@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { Link } from 'react-router-dom';
 import { 
   CheckCircle2, Clock, Calendar, 
-  Sparkles, ShieldCheck, ArrowRight, TrendingUp,
+  Sparkles, ShieldCheck, ArrowRight,
   Cpu, Building2
 } from 'lucide-react';
 
@@ -45,7 +45,7 @@ export const Dashboard: React.FC = () => {
           if (pollRes.data.status === 'COMPLETED') {
             clearInterval(interval);
             setIsGenerating(false);
-            setGenerateMsg('Solve finished: 189 sessions scheduled with 0 hard violations!');
+            setGenerateMsg('Solve finished: Timetable optimized with 0 hard violations!');
             fetchData();
             setTimeout(() => setGenerateMsg(null), 5000);
           } else if (pollRes.data.status === 'FAILED') {
@@ -171,22 +171,8 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* KPI Cards Band */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Metric 1 */}
-        <div className="glass-panel p-5 rounded-xl border border-slate-800 bg-slate-900/60">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Sessions Scheduled</span>
-            <Calendar className="w-4 h-4 text-sky-400" />
-          </div>
-          <div className="text-3xl font-extrabold text-white">
-            {activeMetrics.sessions_scheduled} <span className="text-sm font-normal text-slate-500">/ {activeMetrics.total_sessions}</span>
-          </div>
-          <div className="text-xs text-sky-400 mt-1 flex items-center gap-1 font-medium">
-            <CheckCircle2 className="w-3.5 h-3.5" /> 100% of curriculum placed
-          </div>
-        </div>
-
-        {/* Metric 2 */}
         <div className="glass-panel p-5 rounded-xl border border-slate-800 bg-slate-900/60">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Hard Violations</span>
@@ -200,21 +186,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Metric 3 */}
-        <div className="glass-panel p-5 rounded-xl border border-slate-800 bg-slate-900/60">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span>Spectra Booking Score</span>
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-          </div>
-          <div className="text-3xl font-extrabold text-cyan-400">
-            {Number(activeMetrics.booking_score).toFixed(1)} <span className="text-sm font-normal text-slate-500">/ {Number(activeMetrics.max_booking_score || 75.0).toFixed(1)}</span>
-          </div>
-          <div className="text-xs text-cyan-400/90 mt-1 flex items-center gap-1 font-medium">
-            <TrendingUp className="w-3.5 h-3.5" /> At Realistic Mathematical Ceiling
-          </div>
-        </div>
-
-        {/* Metric 4 */}
+        {/* Metric 2 */}
         <div className="glass-panel p-5 rounded-xl border border-slate-800 bg-slate-900/60">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Room Utilization</span>

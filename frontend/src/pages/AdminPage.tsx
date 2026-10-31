@@ -186,7 +186,7 @@ export const AdminPage: React.FC = () => {
 
           {validatorReport ? (
             <div className="space-y-4 text-xs font-mono">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
                   <div className="text-slate-500 text-[10px]">Hard Violations</div>
                   <div className="text-xl font-bold text-emerald-400">{validatorReport.hard_violation_count}</div>
@@ -194,12 +194,6 @@ export const AdminPage: React.FC = () => {
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
                   <div className="text-slate-500 text-[10px]">Soft Total</div>
                   <div className="text-xl font-bold text-cyan-400">{validatorReport.soft_total}</div>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                  <div className="text-slate-500 text-[10px]">Booking Score</div>
-                  <div className="text-xl font-bold text-purple-400">
-                    {validatorReport.bookings?.booking_score} / {validatorReport.bookings?.booking_score_max_if_all_approved}
-                  </div>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
                   <div className="text-slate-500 text-[10px]">Priority Inversions</div>

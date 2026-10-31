@@ -71,10 +71,7 @@ const AuthenticatedApp: React.FC = () => {
             <span className="font-mono text-emerald-400">
               {metrics ? `${metrics.hard_conflicts} Hard Violations` : 'Loading metrics...'}
             </span>
-            <span>·</span>
-            <span className="font-mono text-sky-400">
-              {metrics ? `${Number(metrics.booking_score).toFixed(1)} / ${Number(metrics.max_booking_score).toFixed(1)} Fest Score` : 'Computing...'}
-            </span>
+            
           </div>
         </div>
       </footer>

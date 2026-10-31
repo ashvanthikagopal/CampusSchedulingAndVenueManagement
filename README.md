@@ -384,7 +384,7 @@ To review all core capabilities in under 5 minutes:
    - Navigate to `http://localhost:5173`.
    - Click the **"Demo: Admin (Full Access)"** quick-button to authenticate instantly.
 2. **Executive KPI Dashboard (`/dashboard`)**:
-   - Inspect top metrics: **189/189 Sessions Scheduled**, **0 Hard Conflicts**, **67.0/70.0 Booking Score**, and **Room Utilization Breakdown**.
+   - Inspect top metrics: **0 Hard Conflicts** and **Room Utilization Breakdown**.
 3. **Master Timetable & Explainability (`/timetable`)**:
    - Switch between **All Venues**, **Student Group (e.g., Y1-A, CSE-2)**, and **Faculty (e.g., F06)** views.
    - Click the **"Spectra Fest Mode"** toggle to view regular classes and evening fest events side-by-side.

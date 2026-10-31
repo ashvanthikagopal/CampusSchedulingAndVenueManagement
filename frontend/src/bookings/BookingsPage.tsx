@@ -203,7 +203,7 @@ export const BookingsPage: React.FC = () => {
             <Clock className="w-4 h-4 text-sky-400" />
             Spectra Week Booking Requests ({bookings.length})
           </h2>
-          <span className="text-xs font-mono text-slate-400">Score: 67.0 / 70.0 (Optimal)</span>
+          
         </div>
 
         <div className="divide-y divide-slate-800/60">
