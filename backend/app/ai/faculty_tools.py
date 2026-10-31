@@ -233,6 +233,8 @@ def tool_find_free_rooms(
 
 def tool_explain_session(session_id: str, faculty_id: str) -> Dict[str, Any]:
     """Deterministic tool: computes real legal options count and reasons for placement."""
+    from backend.app.rules.faculty_checks import enumerate_legal_options, explain_infeasible
+
     data, sched, ctx = load_dataset_and_schedule()
     s = ctx.sessions.get(session_id)
     if not s:
@@ -249,6 +251,28 @@ def tool_explain_session(session_id: str, faculty_id: str) -> Dict[str, Any]:
     cur_d, cur_st, cur_r = base_assign[session_id]
     r_obj = ctx.rooms.get(cur_r)
 
+    legal_opts = enumerate_legal_options(
+        ctx=ctx,
+        current_assign=base_assign,
+        session_id=session_id,
+        limit=20,
+        actor={"role": "faculty", "faculty_id": faculty_id}
+    )
+
+    distinct_alts = [
+        o for o in legal_opts
+        if not (o["day"] == cur_d and o["start_period"] == cur_st and o["room_id"] == cur_r)
+    ]
+
+    infeasible_diag = None
+    if len(legal_opts) == 0:
+        infeasible_diag = explain_infeasible(
+            ctx=ctx,
+            current_assign=base_assign,
+            session_id=session_id,
+            actor={"role": "faculty", "faculty_id": faculty_id}
+        )
+
     return {
         "session_id": session_id,
         "course_id": s.course_id,
@@ -256,6 +280,14 @@ def tool_explain_session(session_id: str, faculty_id: str) -> Dict[str, Any]:
         "capacity_match": f"Room seats {r_obj.capacity if r_obj else '?'} for class size {s.size}",
         "room_type_match": f"Room type '{r_obj.type if r_obj else '?'}' matches required types {s.room_types}",
         "lunch_protected": "Slot does not clash with universal lunch break (Period 5)",
+        "legal_options_count": len(legal_opts),
+        "infeasible_explanation": infeasible_diag,
+        "checked_rules": [
+            "H1_Once", "H2_FacultyClash", "H3_GroupClash", "H4_RoomClash",
+            "H5_Capacity", "H6_RoomType", "H7_FacultyUnavail", "H8_RoomUnavail",
+            "H9_Lunch_LabStart", "H10_Accessibility", "H11_BasketSync",
+            "H12_DailyLimit", "H14_FixedSlot", "ApprovedBookings"
+        ],
         "reasons": [
             f"Assigned to {cur_r} with capacity {r_obj.capacity if r_obj else '?'} for class size {s.size}.",
             f"Respects faculty {s.faculty_id} availability and daily teaching limit ({ctx.faculty[s.faculty_id].max_hours_per_day}h/day).",
@@ -274,6 +306,8 @@ def tool_propose_reschedule(
     Deterministic tool: computes minimal-change disruption proposals using the solver/rules engine.
     Returns proposal card with verified 0 hard violations and ranked alternatives.
     """
+    from backend.app.rules.faculty_checks import enumerate_legal_options, explain_infeasible
+
     data, sched, ctx = load_dataset_and_schedule()
     s = ctx.sessions.get(session_id)
     if not s:
@@ -287,103 +321,74 @@ def tool_propose_reschedule(
         return {"error": f"Session {session_id} is not scheduled in active timetable"}
 
     cur_d, cur_st, cur_r = base_assign[session_id]
-    _, base_soft_total = compute_soft_penalties(ctx, base_assign)
 
-    # Search for valid alternative slots with 0 hard violations
+    filters = {}
+    if preferred_day and preferred_day.upper() in ctx.days:
+        filters["preferred_days"] = [preferred_day.upper()]
+
+    # First search with preferred day if requested
     candidate_slots = []
-    days_to_check = [preferred_day.upper()] if preferred_day else ["MON", "TUE", "WED", "THU", "FRI"]
-    if preferred_day and preferred_day.upper() not in ["MON", "TUE", "WED", "THU", "FRI"]:
-        days_to_check = ["MON", "TUE", "WED", "THU", "FRI"]
+    if filters.get("preferred_days"):
+        candidate_slots = enumerate_legal_options(
+            ctx=ctx,
+            current_assign=base_assign,
+            session_id=session_id,
+            limit=5,
+            filters=filters,
+            actor={"role": "faculty", "faculty_id": faculty_id}
+        )
 
-    # Also add other weekdays if preferred day didn't yield enough
-    all_weekdays = ["MON", "TUE", "WED", "THU", "FRI"]
-    ordered_days = days_to_check + [d for d in all_weekdays if d not in days_to_check]
-
-    for d in ordered_days:
-        for st in range(1, 10 - s.duration + 1):
-            per = block(st, s.duration)
-            if any(p == 5 for p in per):  # Universal lunch
-                continue
-            if (d, st) == (cur_d, cur_st):
-                continue
-            if any((d, p) in ctx.faculty_unavailability.get(faculty_id, set()) for p in per):
-                continue
-
-            # Faculty clash check
-            fac_clash = any(
-                osid != session_id and ctx.sessions[osid].faculty_id == faculty_id and od == d and any(p in block(ost, ctx.sessions[osid].duration) for p in per)
-                for osid, (od, ost, _) in base_assign.items()
-            )
-            if fac_clash:
-                continue
-
-            # Student group clash check
-            grp_clash = any(
-                osid != session_id and od == d and any(g in ctx.sessions[osid].groups for g in s.groups) and any(p in block(ost, ctx.sessions[osid].duration) for p in per)
-                for osid, (od, ost, _) in base_assign.items()
-            )
-            if grp_clash:
-                continue
-
-            # Faculty daily hours check
-            day_hrs = sum(
-                ctx.sessions[osid].duration
-                for osid, (od, _, _) in base_assign.items()
-                if osid != session_id and ctx.sessions[osid].faculty_id == faculty_id and od == d
-            )
-            if day_hrs + s.duration > ctx.faculty[faculty_id].max_hours_per_day:
-                continue
-
-            # Find compatible room
-            for rid, r in ctx.rooms.items():
-                if r.type not in s.room_types or r.capacity < s.size:
-                    continue
-                if s.needs_accessible and not r.accessible:
-                    continue
-                if any((d, p) in ctx.room_unavailability.get(rid, set()) for p in per):
-                    continue
-                # Room clash check
-                room_clash = any(
-                    osid != session_id and od == d and orm == rid and any(p in block(ost, ctx.sessions[osid].duration) for p in per)
-                    for osid, (od, ost, orm) in base_assign.items()
-                )
-                if room_clash:
-                    continue
-
-                # Valid alternative!
-                temp_assign = dict(base_assign)
-                temp_assign[session_id] = (d, st, rid)
-                _, soft_tot = compute_soft_penalties(ctx, temp_assign)
-                delta = soft_tot - base_soft_total
-                candidate_slots.append((delta, d, st, rid, r.name))
-                if len(candidate_slots) >= 30:
-                    break
-            if len(candidate_slots) >= 30:
-                break
-
+    # If no candidates on preferred day, search across all days
     if not candidate_slots:
-        # Infeasible case diagnostics
+        candidate_slots = enumerate_legal_options(
+            ctx=ctx,
+            current_assign=base_assign,
+            session_id=session_id,
+            limit=5,
+            actor={"role": "faculty", "faculty_id": faculty_id}
+        )
+
+    # Filter out current slot
+    distinct_alts = [
+        opt for opt in candidate_slots
+        if not (opt["day"] == cur_d and opt["start_period"] == cur_st and opt["room_id"] == cur_r)
+    ]
+
+    if not distinct_alts:
+        diag = explain_infeasible(
+            ctx=ctx,
+            current_assign=base_assign,
+            session_id=session_id,
+            actor={"role": "faculty", "faculty_id": faculty_id}
+        )
         return {
             "status": "INFEASIBLE",
             "error": "No conflict-free alternative slot exists for this session.",
-            "conflicting_rules": ["H2 (Double-Booking)", "H7 (Unavailability)", "H9 (Lunch Break)", "H12 (Daily Teaching Limit)"],
-            "explanation": f"All tested candidate slots conflict with student group schedules ({', '.join(s.groups)}) or room capacity limits."
+            "conflicting_rules": diag.get("violation_frequency", {}),
+            "bottlenecks": diag.get("bottlenecks", []),
+            "suggestions": diag.get("suggestions", []),
+            "explanation": f"All tested candidate slots conflict with student group schedules ({', '.join(s.groups)}) or faculty/room constraints."
         }
 
-    candidate_slots.sort(key=lambda x: (x[0], x[1], x[2]))
-    best = candidate_slots[0]
-    best_delta, best_d, best_st, best_r, best_rname = best
+    best = distinct_alts[0]
+    best_d = best["day"]
+    best_st = best["start_period"]
+    best_r = best["room_id"]
+    best_rname = best["room_name"]
+    best_delta = best["soft_penalty_delta"]
+    best_breakdown = best["soft_breakdown"]
 
     top_alts = []
-    for delta, d, st, rid, rname in candidate_slots[:3]:
+    for opt in distinct_alts[:3]:
         top_alts.append({
-            "day": d,
-            "start_period": st,
-            "end_period": st + s.duration - 1,
-            "room_id": rid,
-            "room_name": rname,
-            "soft_delta": delta,
-            "label": f"{d} P{st}-P{st + s.duration - 1} in {rname} (Δ soft: {delta:+d})"
+            "day": opt["day"],
+            "start_period": opt["start_period"],
+            "end_period": opt["end_period"],
+            "room_id": opt["room_id"],
+            "room_name": opt["room_name"],
+            "soft_delta": opt["soft_penalty_delta"],
+            "soft_breakdown": opt["soft_breakdown"],
+            "label": f"{opt['day']} P{opt['start_period']}-P{opt['end_period']} in {opt['room_name']} (Δ soft: {opt['soft_penalty_delta']:+d})"
         })
 
     cur_rname = ctx.rooms.get(cur_r).name if cur_r in ctx.rooms else cur_r
@@ -407,10 +412,11 @@ def tool_propose_reschedule(
         "reason": reason,
         "validation_badge": {
             "valid": True,
-            "label": "Validated by Rules Engine: 0 Hard Violations",
+            "label": "Validated by Rules Engine: 0 Hard Violations (H1-H12, H14 Checked)",
             "color": "green",
             "hard_violations": 0,
-            "soft_delta": best_delta
+            "soft_delta": best_delta,
+            "soft_breakdown": best_breakdown
         },
         "requires_admin_approval": True,
         "action_payload": {
@@ -440,4 +446,3 @@ def tool_propose_reschedule(
             f"The proposal has been pre-verified against all 14 hard constraints with 0 hard violations."
         )
     }
-

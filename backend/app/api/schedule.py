@@ -458,6 +458,8 @@ def validate_schedule_endpoint(schedule_data: Optional[Dict[str, Any]] = None, d
 @router.get("/sessions/{sid}/explain", response_model=SessionExplainResponse)
 def explain_session(sid: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Deterministic explanation: real legal options count, blockers, why here, penalty deltas."""
+    from backend.app.rules.faculty_checks import enumerate_legal_options, explain_infeasible
+
     with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
         data = json.load(f)
     with open("exports/schedule.json", encoding="utf-8") as f:
@@ -470,7 +472,7 @@ def explain_session(sid: str, db: Session = Depends(get_db), current_user: User 
 
     # If role is faculty, ensure session belongs to this faculty member
     if current_user.role == "faculty" and s.faculty_id != current_user.faculty_id:
-        raise HTTPException(status_code=403, detail="Faculty can only access explanations for their own sessions")
+        raise HTTPException(status_code=403, detail="NOT_OWN_SESSION: Faculty can only access explanations for their own sessions")
 
     # Find current assignment
     current_assign = None
@@ -484,123 +486,101 @@ def explain_session(sid: str, db: Session = Depends(get_db), current_user: User 
         raise HTTPException(status_code=404, detail=f"Session {sid} is not scheduled")
 
     cur_d, cur_st, cur_r = current_assign
-    _, base_soft_total = compute_soft_penalties(ctx, base_assign)
 
-    # Deterministically calculate real legal options count and legal alternative slots
-    legal_slots = []
-    days = ["MON", "TUE", "WED", "THU", "FRI"]
-    for d in days:
-        for st in range(1, 10 - s.duration + 1):
-            per = block(st, s.duration)
-            # Lunch break universal constraint (H9)
-            if any(p == 5 for p in per):
-                continue
-            # Faculty unavailability (H7)
-            if any((d, p) in ctx.faculty_unavailability.get(s.faculty_id, set()) for p in per):
-                continue
-            # Faculty double booking (H2)
-            fac_clash = False
-            for osid, (od, ost, _) in base_assign.items():
-                if osid != sid and ctx.sessions[osid].faculty_id == s.faculty_id and od == d:
-                    if any(p in block(ost, ctx.sessions[osid].duration) for p in per):
-                        fac_clash = True
-                        break
-            if fac_clash:
-                continue
-            # Student group double booking (H3)
-            grp_clash = False
-            for osid, (od, ost, _) in base_assign.items():
-                if osid != sid and od == d and any(g in ctx.sessions[osid].groups for g in s.groups):
-                    if any(p in block(ost, ctx.sessions[osid].duration) for p in per):
-                        grp_clash = True
-                        break
-            if grp_clash:
-                continue
-            # Faculty daily hours limit (H12)
-            day_hrs = sum(
-                ctx.sessions[osid].duration
-                for osid, (od, _, _) in base_assign.items()
-                if osid != sid and ctx.sessions[osid].faculty_id == s.faculty_id and od == d
-            )
-            if day_hrs + s.duration > ctx.faculty[s.faculty_id].max_hours_per_day:
-                continue
-            # Fixed slot constraint (H8)
-            if s.fixed_slot and (d != s.fixed_slot.get("day") or st != s.fixed_slot.get("start_period")):
-                continue
-            # Elective basket sync (H11)
-            if s.basket_slot:
-                basket_mismatch = False
-                for osid, (od, ost, _) in base_assign.items():
-                    if osid != sid and ctx.sessions[osid].basket_slot == s.basket_slot:
-                        if od != d or ost != st:
-                            basket_mismatch = True
-                            break
-                if basket_mismatch:
-                    continue
+    # Fetch approved bookings from DB
+    bookings_list = []
+    try:
+        from backend.app.models.entities import BookingRequestModel, BookingDecisionModel
+        b_reqs = db.query(BookingRequestModel).all()
+        b_decs = {d.request_id: d for d in db.query(BookingDecisionModel).all()}
+        for req in b_reqs:
+            dec = b_decs.get(req.id)
+            status_val = req.status or (dec.status if dec else "pending")
+            if dec and dec.status:
+                status_val = dec.status
+            if status_val == "approved" and dec:
+                bookings_list.append({
+                    "id": req.id,
+                    "title": req.title,
+                    "status": "approved",
+                    "assigned_day": dec.day,
+                    "start_period": dec.start_period,
+                    "end_period": dec.end_period,
+                    "assigned_room": dec.room_id,
+                    "mandatory_for_groups": req.mandatory_for_groups or []
+                })
+    except Exception:
+        bookings_list = []
 
-            # Check room compatibility and availability (H2, H4, H5, H6, H7)
-            for rid, r in ctx.rooms.items():
-                if r.type not in s.room_types or r.capacity < s.size:
-                    continue
-                if s.needs_accessible and not r.accessible:
-                    continue
-                if any((d, p) in ctx.room_unavailability.get(rid, set()) for p in per):
-                    continue
-                room_clash = False
-                for osid, (od, ost, orm) in base_assign.items():
-                    if osid != sid and od == d and orm == rid:
-                        if any(p in block(ost, ctx.sessions[osid].duration) for p in per):
-                            room_clash = True
-                            break
-                if room_clash:
-                    continue
-                legal_slots.append((d, st, rid))
+    # Deterministically calculate real legal options using unified faculty_checks
+    all_legal = enumerate_legal_options(
+        ctx=ctx,
+        current_assign=base_assign,
+        session_id=sid,
+        bookings=bookings_list,
+        limit=50,
+        actor=current_user
+    )
 
-    real_legal_count = len(legal_slots)
-    raw_alts = [opt for opt in legal_slots if opt != (cur_d, cur_st, cur_r)]
+    real_legal_count = len(all_legal)
+    distinct_alts = [
+        opt for opt in all_legal
+        if not (opt["day"] == cur_d and opt["start_period"] == cur_st and opt["room_id"] == cur_r)
+    ]
 
-    # Score top candidate alternatives by soft penalty delta
-    scored_alts = []
-    for ad, ast, arm in raw_alts[:25]:
-        temp_assign = dict(base_assign)
-        temp_assign[sid] = (ad, ast, arm)
-        _, soft_tot = compute_soft_penalties(ctx, temp_assign)
-        delta = soft_tot - base_soft_total
-        scored_alts.append((delta, ad, ast, arm))
-    scored_alts.sort(key=lambda x: (x[0], x[1], x[2]))
+    infeasible_diag = None
+    if real_legal_count == 0 or len(distinct_alts) == 0:
+        infeasible_diag = explain_infeasible(
+            ctx=ctx,
+            current_assign=base_assign,
+            session_id=sid,
+            bookings=bookings_list,
+            actor=current_user
+        )
 
     alt_slots = []
-    for delta, ad, ast, arm in scored_alts[:3]:
-        r_name = ctx.rooms[arm].name if arm in ctx.rooms else arm
+    for a in distinct_alts[:3]:
         alt_slots.append({
-            "day": ad,
-            "start_period": ast,
-            "room_id": arm,
-            "room_name": r_name,
-            "soft_delta": delta,
-            "reason": f"Conflict-free slot in {r_name} ({ad} Period {ast}, Δ soft: {delta:+d})"
+            "day": a["day"],
+            "start_period": a["start_period"],
+            "end_period": a["end_period"],
+            "room_id": a["room_id"],
+            "room_name": a["room_name"],
+            "soft_delta": a["soft_penalty_delta"],
+            "soft_breakdown": a["soft_breakdown"],
+            "checked_rules": a["checked_rules"],
+            "reason": f"Conflict-free slot in {a['room_name']} ({a['day']} Period {a['start_period']}, Δ soft: {a['soft_penalty_delta']:+d})"
         })
 
+    r_curr = ctx.rooms.get(cur_r)
     reasons = [
-        f"Assigned to {cur_r} ({ctx.rooms[cur_r].name}) with capacity {ctx.rooms[cur_r].capacity} for class size {s.size}.",
-        f"Type '{ctx.rooms[cur_r].type}' matches required room types: {', '.join(s.room_types)}."
+        f"Assigned to {cur_r} ({r_curr.name if r_curr else cur_r}) with capacity {r_curr.capacity if r_curr else '?'} for class size {s.size}.",
+        f"Type '{r_curr.type if r_curr else '?'}' matches required room types: {', '.join(s.room_types)}."
     ]
     if s.needs_accessible:
         reasons.append(f"Room {cur_r} satisfies wheelchair accessibility requirement.")
     if s.basket_slot:
         reasons.append(f"Synchronized with elective basket '{s.basket_slot}' across Year 3 tracks.")
 
+    fac_obj = ctx.faculty.get(s.faculty_id)
     conflicts_avoided = [
-        f"Avoided faculty {s.faculty_id} unavailability and daily overload (under {ctx.faculty[s.faculty_id].max_hours_per_day}h/day limit).",
+        f"Avoided faculty {s.faculty_id} unavailability and daily overload (under {fac_obj.max_hours_per_day if fac_obj else 4}h/day limit).",
         f"Avoided student group clashes across: {', '.join(s.groups)}.",
         f"Protected lunch break interval after Period 5."
     ]
 
     explanation_text = (
         f"Session {sid} ({s.course_id}) is positioned at {cur_d} Period {cur_st} in {cur_r}. "
-        f"This satisfies faculty unavailability constraints for {ctx.faculty[s.faculty_id].name}, respects group scheduling spans for {', '.join(s.groups)}, "
+        f"This satisfies faculty unavailability constraints for {fac_obj.name if fac_obj else s.faculty_id}, respects group scheduling spans for {', '.join(s.groups)}, "
         f"and minimizes campus-wide soft penalty points."
     )
+
+    checked_rules_list = [
+        "H1_Once", "H2_FacultyClash", "H3_GroupClash", "H4_RoomClash",
+        "H5_Capacity", "H6_RoomType", "H7_FacultyUnavail", "H8_RoomUnavail",
+        "H9_Lunch_LabStart", "H10_Accessibility", "H11_BasketSync",
+        "H12_DailyLimit", "H14_FixedSlot", "ApprovedBookings"
+    ]
 
     return SessionExplainResponse(
         session_id=sid,
@@ -611,7 +591,9 @@ def explain_session(sid: str, db: Session = Depends(get_db), current_user: User 
         reasons_for_placement=reasons,
         conflicts_avoided=conflicts_avoided,
         alternative_slots=alt_slots,
-        explanation_text=explanation_text
+        explanation_text=explanation_text,
+        infeasible_explanation=infeasible_diag,
+        checked_rules=checked_rules_list
     )
 
 
@@ -622,8 +604,10 @@ def move_session(move: ManualMoveRequest, db: Session = Depends(get_db), current
     Admin can move any session; Dept Coordinator can move own department's sessions.
     Faculty cannot directly move sessions (must submit request).
     """
+    from backend.app.rules.faculty_checks import check_candidate_move, enumerate_legal_options
+
     if current_user.role not in ("admin", "department_coordinator"):
-        raise HTTPException(status_code=403, detail="Only Admin and Department Coordinators can move sessions directly")
+        raise HTTPException(status_code=403, detail="NOT_AUTHORIZED: Only Admin and Department Coordinators can move sessions directly")
 
     with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
         data = json.load(f)
@@ -637,42 +621,90 @@ def move_session(move: ManualMoveRequest, db: Session = Depends(get_db), current
 
     # If department coordinator, check session belongs to their department
     if current_user.role == "department_coordinator":
-        # Check course or group department
         grp_depts = [ctx.student_groups[g].department for g in s.groups if g in ctx.student_groups]
         if current_user.department not in grp_depts:
             raise HTTPException(status_code=403, detail="Coordinators can only move sessions within their department")
 
-    # Build hypothetical schedule
+    base_assign = {
+        item["session_id"]: (item["day"], item["start_period"], item["room_id"])
+        for item in sched.get("sessions", [])
+    }
+    if move.session_id not in base_assign:
+        raise HTTPException(status_code=404, detail="Session not present in active schedule")
+
+    # Fetch approved bookings from DB
+    bookings_list = []
+    try:
+        from backend.app.models.entities import BookingRequestModel, BookingDecisionModel
+        b_reqs = db.query(BookingRequestModel).all()
+        b_decs = {d.request_id: d for d in db.query(BookingDecisionModel).all()}
+        for req in b_reqs:
+            dec = b_decs.get(req.id)
+            status_val = req.status or (dec.status if dec else "pending")
+            if dec and dec.status:
+                status_val = dec.status
+            if status_val == "approved" and dec:
+                bookings_list.append({
+                    "id": req.id,
+                    "title": req.title,
+                    "status": "approved",
+                    "assigned_day": dec.day,
+                    "start_period": dec.start_period,
+                    "end_period": dec.end_period,
+                    "assigned_room": dec.room_id,
+                    "mandatory_for_groups": req.mandatory_for_groups or []
+                })
+    except Exception:
+        bookings_list = []
+
+    # Comprehensive deterministic candidate move check
+    check_result = check_candidate_move(
+        ctx=ctx,
+        current_assign=base_assign,
+        session_id=move.session_id,
+        day=move.target_day,
+        start=move.target_start_period,
+        room_id=move.target_room_id,
+        bookings=bookings_list,
+        actor=current_user
+    )
+
+    if not check_result["ok"]:
+        suggested = enumerate_legal_options(
+            ctx=ctx,
+            current_assign=base_assign,
+            session_id=move.session_id,
+            bookings=bookings_list,
+            limit=3,
+            actor=current_user
+        )
+        return ManualMoveResponse(
+            valid=False,
+            violations=check_result["hard_violations"],
+            suggested_alternatives=[
+                {
+                    "day": opt["day"],
+                    "start_period": opt["start_period"],
+                    "room_id": opt["room_id"],
+                    "room_name": opt["room_name"],
+                    "soft_delta": opt["soft_penalty_delta"]
+                }
+                for opt in suggested
+            ],
+            message=f"Move blocked by {len(check_result['hard_violations'])} rule violation(s). Hard constraints cannot be bypassed.",
+            soft_breakdown=check_result["soft_breakdown"],
+            soft_penalty_delta=check_result["soft_penalty_delta"]
+        )
+
+    # Valid! Update exports/schedule.json and DB
     sched_copy = json.loads(json.dumps(sched))
-    found = False
     for item in sched_copy["sessions"]:
         if item["session_id"] == move.session_id:
             item["day"] = move.target_day
             item["start_period"] = move.target_start_period
             item["room_id"] = move.target_room_id
-            found = True
             break
 
-    if not found:
-        raise HTTPException(status_code=404, detail="Session not present in active schedule")
-
-    # Validate with rules engine
-    report = evaluate_schedule(data, sched_copy)
-    hard_violations = report.get("hard_violations", [])
-
-    if hard_violations:
-        # Move is invalid! Return exact violated rule codes and suggested alternatives
-        return ManualMoveResponse(
-            valid=False,
-            violations=hard_violations,
-            suggested_alternatives=[
-                {"day": "WED", "start_period": 2, "room_id": move.target_room_id},
-                {"day": "THU", "start_period": 6, "room_id": move.target_room_id}
-            ],
-            message=f"Move blocked by {len(hard_violations)} rule violation(s). Hard constraints cannot be bypassed."
-        )
-
-    # Valid! Save change to exports/schedule.json and DB
     with open("exports/schedule.json", "w", encoding="utf-8") as f:
         json.dump(sched_copy, f, indent=2)
 
@@ -688,6 +720,7 @@ def move_session(move: ManualMoveRequest, db: Session = Depends(get_db), current
         valid=True,
         violations=[],
         suggested_alternatives=[],
-        message="Session successfully moved. Validated with 0 hard violations."
+        message="Session successfully moved. Validated with 0 hard violations.",
+        soft_breakdown=check_result["soft_breakdown"],
+        soft_penalty_delta=check_result["soft_penalty_delta"]
     )
-

@@ -40,9 +40,9 @@ The Faculty Assistant interacts with deterministic backend services via structur
 | Tool Name | Parameters | Deterministic Implementation | Output Boundary |
 |---|---|---|---|
 | `resolve_faculty_session` | `query_text`, `faculty_id` | Scans `sessions.csv` and `courses.csv` scoped to faculty | Returns verified `session_id` or clarifying question if ambiguous |
-| `tool_explain_session` | `session_id`, `faculty_id` | Pure-python constraint verification, legal option counting | Computes real `legal_options_count` and top alternative slots |
-| `tool_propose_reschedule` | `session_id`, `reason`, `faculty_id` | Minimal-change candidate search respecting H1–H14 | Returns ranked top-3 alternatives with 0 hard violations and soft deltas |
-| `tool_find_free_rooms` | `day`, `period`, `room_type`, `capacity` | Set difference against active room occupancy matrix | Returns real unoccupied venues meeting capacity/equipment |
+| `tool_explain_session` | `session_id`, `faculty_id` | `faculty_checks.enumerate_legal_options` & `explain_infeasible` | Computes real `legal_options_count`, top alternatives, and bottleneck diagnostics |
+| `tool_propose_reschedule` | `session_id`, `reason`, `faculty_id` | `faculty_checks.check_candidate_move` & CP-SAT soft objective | Returns proposal card with 0 hard violations, soft breakdown (S1-S6), and ranked alternatives |
+| `tool_find_free_rooms` | `day`, `period`, `room_type`, `capacity` | Set difference against active room occupancy matrix & approved bookings | Returns real unoccupied venues meeting capacity/equipment |
 | `tool_show_my_schedule` | `faculty_id`, `day` | Filters active schedule by faculty ID and calculates daily hours | Returns verified teaching slots, free periods, and groups |
 | `tool_check_workload` | `faculty_id` | Evaluates daily teaching hours against H12 (`max_hours_per_day`) | Verifies daily limit compliance (e.g. max 4h/day) |
 

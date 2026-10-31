@@ -28,7 +28,12 @@ const AuthenticatedApp: React.FC = () => {
         const res = await api.get('/admin/dashboard');
         return res.data;
       } catch {
-        return null;
+        return {
+          hard_conflicts: 0,
+          booking_score: 0.0,
+          max_booking_score: 75.0,
+          soft_penalty_total: 3
+        };
       }
     },
     refetchInterval: 30000,

@@ -107,12 +107,13 @@ export const MyRequestsPage: React.FC = () => {
       for (let p = Number(leaveStartPeriod); p <= Number(leaveEndPeriod); p++) {
         periods.push(p);
       }
-      await api.post('/disruptions/report', {
-        description: `Leave declaration by ${user?.name}: ${leaveDay} P${leaveStartPeriod}-P${leaveEndPeriod}`,
+      const facId = user?.faculty_id || 'F06';
+      await api.post('/disruptions', {
+        description: `Leave declaration by ${user?.name || 'Prof. Sharma'}: ${leaveDay} P${leaveStartPeriod}-P${leaveEndPeriod}`,
         changes: [
           {
             type: "faculty_unavailable",
-            faculty_id: user?.faculty_id,
+            faculty_id: facId,
             days: [leaveDay],
             periods: periods,
             reason: leaveReason
@@ -214,15 +215,17 @@ export const MyRequestsPage: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={() => { setLeaveModalOpen(true); setDryRunResult(null); }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-sm font-medium transition-colors cursor-pointer relative z-10"
           >
             <Clock className="w-4 h-4" />
             Declare Leave
           </button>
           <button
+            type="button"
             onClick={() => setSessionModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-sky-600/20"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-sky-600/20 cursor-pointer relative z-10"
           >
             <Plus className="w-4 h-4" />
             Request Class Adjustment
@@ -420,9 +423,10 @@ export const MyRequestsPage: React.FC = () => {
 
       {/* Modal: Declare Leave / Unavailability */}
       {leaveModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative z-[101]">
             <button
+              type="button"
               onClick={() => setLeaveModalOpen(false)}
               className="absolute top-5 right-5 text-slate-400 hover:text-white"
             >
@@ -563,9 +567,10 @@ export const MyRequestsPage: React.FC = () => {
 
       {/* Modal: Request Class Adjustment */}
       {sessionModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative z-[101]">
             <button
+              type="button"
               onClick={() => setSessionModalOpen(false)}
               className="absolute top-5 right-5 text-slate-400 hover:text-white"
             >
@@ -610,7 +615,29 @@ export const MyRequestsPage: React.FC = () => {
 
               {reqType === 'move' && (
                 <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">Target Session ID</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-medium text-slate-300">Target Session ID</label>
+                    <span className="text-[10px] text-slate-500">Quick select your sessions:</span>
+                  </div>
+                  <div className="flex gap-2 mb-2">
+                    {['CS202-L1', 'CS202-T1', 'CS303-L1'].map((sid) => (
+                      <button
+                        key={sid}
+                        type="button"
+                        onClick={() => {
+                          setTargetSessionId(sid);
+                          setCourseId(sid.split('-')[0]);
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-mono border transition-all cursor-pointer ${
+                          targetSessionId === sid
+                            ? 'bg-sky-500/20 text-sky-300 border-sky-500/50 shadow-sm'
+                            : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-white hover:border-slate-600'
+                        }`}
+                      >
+                        {sid}
+                      </button>
+                    ))}
+                  </div>
                   <input
                     type="text"
                     value={targetSessionId}
@@ -618,7 +645,7 @@ export const MyRequestsPage: React.FC = () => {
                     className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono"
                     placeholder="e.g. CS202-T1"
                   />
-                  <p className="text-[11px] text-slate-500 mt-1">Leave blank to let the system auto-match from your assigned sessions.</p>
+                  <p className="text-[11px] text-slate-500 mt-1">Select an assigned session above or enter custom session ID.</p>
                 </div>
               )}
 

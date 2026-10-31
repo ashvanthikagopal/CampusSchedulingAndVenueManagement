@@ -157,17 +157,26 @@ def repair_schedule(
                         # Changed room only
                         move_cost += 80_000
 
-            # Include baseline soft costs
-            # S5 (capacity ratio)
-            rm = new_ctx.rooms[r]
-            if rm.capacity and (s.size / rm.capacity < 0.4):
-                move_cost += 10
-            # S6 (period 9)
-            if 9 in block(st, s.duration):
-                move_cost += 10
-
             if move_cost > 0:
                 obj_terms.append(move_cost * v)
+
+            # --- S1: Faculty avoid preference (weight 2 * periods) ---
+            fac_obj = new_ctx.faculty.get(s.faculty_id)
+            if fac_obj:
+                for pref in fac_obj.preferences:
+                    if pref.get("type") == "avoid" and d in pref.get("days", new_ctx.days):
+                        avoid_pers = [p for p in block(st, s.duration) if p in pref.get("periods", [])]
+                        if avoid_pers:
+                            obj_terms.append((2 * len(avoid_pers)) * v)
+
+            # --- S5: Room underutilization < 40% (weight 1) ---
+            rm = new_ctx.rooms[r]
+            if rm.capacity and (s.size / rm.capacity < 0.4):
+                obj_terms.append(1 * v)
+
+            # --- S6: Period 9 session (weight 1) ---
+            if 9 in block(st, s.duration):
+                obj_terms.append(1 * v)
 
         model.AddExactlyOne([v for _, v in session_var_map[sid]])
 
@@ -244,6 +253,68 @@ def repair_schedule(
                 terms.append(bv)
         if len(terms) > 1:
             model.Add(sum(terms) <= 1)
+
+    # --- S4: Same course lecture twice in a day (weight 3 * (count - 1)) ---
+    course_day_lectures = defaultdict(list)
+    for sid, s in new_ctx.sessions.items():
+        if s.kind == "lecture" and not s.basket_slot:
+            for (d, st, r), v in session_var_map[sid]:
+                course_day_lectures[(s.course_id, d)].append(v)
+
+    for (cid, d), vlist in course_day_lectures.items():
+        if len(vlist) > 1:
+            excess_s4 = model.NewIntVar(0, len(vlist), f"s4_{cid}_{d}")
+            model.Add(excess_s4 >= sum(vlist) - 1)
+            model.Add(excess_s4 >= 0)
+            obj_terms.append(3 * excess_s4)
+
+    # --- S3: Student group > 6 hours in a day (weight 3 * (hours - 6)) ---
+    grp_day_durations = defaultdict(list)
+    for sid, s in new_ctx.sessions.items():
+        for g in s.groups:
+            for (d, st, r), v in session_var_map[sid]:
+                grp_day_durations[(g, d)].append(s.duration * v)
+
+    for (g, d), dlist in grp_day_durations.items():
+        excess_s3 = model.NewIntVar(0, 9, f"s3_{g}_{d}")
+        model.Add(excess_s3 >= sum(dlist) - 6)
+        model.Add(excess_s3 >= 0)
+        obj_terms.append(3 * excess_s3)
+
+    # --- S2: Student group gaps in a day (weight 1 * gap period) ---
+    grp_day_period_vars = defaultdict(list)
+    for sid, s in new_ctx.sessions.items():
+        for g in s.groups:
+            for (d, st, r), v in session_var_map[sid]:
+                for p in block(st, s.duration):
+                    grp_day_period_vars[(g, d, p)].append(v)
+
+    for (g, d) in set((g, d) for (g, d, _) in grp_day_period_vars.keys()):
+        active_p_vars = []
+        for p in range(1, 10):
+            p_vars = grp_day_period_vars.get((g, d, p), [])
+            if p_vars:
+                act = model.NewBoolVar(f"act_{g}_{d}_{p}")
+                model.Add(sum(p_vars) >= 1).OnlyEnforceIf(act)
+                model.Add(sum(p_vars) == 0).OnlyEnforceIf(act.Not())
+                active_p_vars.append((p, act))
+
+        if len(active_p_vars) >= 2:
+            first_p = model.NewIntVar(1, 9, f"fp_{g}_{d}")
+            last_p = model.NewIntVar(1, 9, f"lp_{g}_{d}")
+            for p, act in active_p_vars:
+                model.Add(first_p <= p).OnlyEnforceIf(act)
+                model.Add(last_p >= p).OnlyEnforceIf(act)
+
+            total_act = sum(act for _, act in active_p_vars)
+            span = model.NewIntVar(0, 9, f"span_{g}_{d}")
+            model.Add(span >= last_p - first_p + 1)
+            model.Add(span >= 0)
+
+            gap = model.NewIntVar(0, 9, f"gap_{g}_{d}")
+            model.Add(gap >= span - total_act)
+            model.Add(gap >= 0)
+            obj_terms.append(1 * gap)
 
     model.Minimize(sum(obj_terms))
 

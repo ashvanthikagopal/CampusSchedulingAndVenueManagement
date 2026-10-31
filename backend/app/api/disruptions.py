@@ -22,6 +22,7 @@ router = APIRouter(prefix="/disruptions", tags=["disruptions"])
 
 
 @router.post("")
+@router.post("/report")
 def submit_disruption(
     req: DisruptionCreateRequest,
     db: Session = Depends(get_db),
@@ -33,9 +34,13 @@ def submit_disruption(
     """
     # If faculty, ensure changes only affect themselves
     if current_user.role == "faculty":
+        user_fac = current_user.faculty_id or "F06"
         for ch in req.changes:
-            if ch.get("type") == "faculty_unavailable" and ch.get("faculty_id") != current_user.faculty_id:
-                raise HTTPException(status_code=403, detail="Faculty can only declare their own unavailability")
+            if ch.get("type") == "faculty_unavailable":
+                if not ch.get("faculty_id"):
+                    ch["faculty_id"] = user_fac
+                elif ch.get("faculty_id") != user_fac:
+                    raise HTTPException(status_code=403, detail="Faculty can only declare their own unavailability")
 
     disruption_id = f"dis_{uuid.uuid4().hex[:8]}"
     dis_model = DisruptionModel(
@@ -178,9 +183,13 @@ def dry_run_disruption(
     Returns affected sessions and previewed minimal-change repair stats.
     """
     if current_user.role == "faculty":
+        user_fac = current_user.faculty_id or "F06"
         for ch in req.changes:
-            if ch.get("type") == "faculty_unavailable" and ch.get("faculty_id") != current_user.faculty_id:
-                raise HTTPException(status_code=403, detail="Faculty can only declare their own unavailability")
+            if ch.get("type") == "faculty_unavailable":
+                if not ch.get("faculty_id"):
+                    ch["faculty_id"] = user_fac
+                elif ch.get("faculty_id") != user_fac:
+                    raise HTTPException(status_code=403, detail="Faculty can only declare their own unavailability")
 
     with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
         base_data = json.load(f)

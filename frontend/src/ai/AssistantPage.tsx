@@ -179,10 +179,21 @@ export const AssistantPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Validation Badge */}
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                    <span className="font-semibold">{m.proposalCard.validation_badge.label}</span>
+                  {/* Validation Badge & Soft Breakdown */}
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                      <span className="font-semibold">{m.proposalCard.validation_badge.label}</span>
+                    </div>
+                    {m.proposalCard.validation_badge.soft_breakdown && (
+                      <div className="flex flex-wrap gap-1 text-[9px] font-mono pt-1 border-t border-emerald-500/20 text-emerald-200">
+                        {Object.entries(m.proposalCard.validation_badge.soft_breakdown).map(([k, v]: [string, any]) => (
+                          <span key={k} className="px-1.5 py-0.2 rounded bg-slate-900/80 border border-emerald-500/30">
+                            {k}: {v >= 0 ? `+${v}` : v}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Submit button */}

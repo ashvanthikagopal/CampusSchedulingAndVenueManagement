@@ -77,6 +77,8 @@ class SessionExplainResponse(BaseModel):
     conflicts_avoided: List[str]
     alternative_slots: List[Dict[str, Any]]
     explanation_text: str
+    infeasible_explanation: Optional[Dict[str, Any]] = None
+    checked_rules: List[str] = []
 
 
 class ManualMoveRequest(BaseModel):
@@ -91,6 +93,8 @@ class ManualMoveResponse(BaseModel):
     violations: List[Dict[str, Any]] = []
     suggested_alternatives: List[Dict[str, Any]] = []
     message: str
+    soft_breakdown: Optional[Dict[str, int]] = None
+    soft_penalty_delta: Optional[int] = None
 
 
 # --- Booking Schemas ---

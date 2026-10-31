@@ -98,26 +98,30 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-transform">
-              <Calendar className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-transform shrink-0">
+              <Calendar className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <span className="font-bold text-lg text-white tracking-tight flex items-center gap-1.5">
-                CIT Scheduler
-                <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">
+            <div className="shrink-0 flex flex-col justify-center">
+              <div className="flex items-center gap-2 whitespace-nowrap leading-tight">
+                <span className="font-bold text-base text-white tracking-tight">
+                  CIT Scheduler
+                </span>
+                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">
                   Zero Clashes
                 </span>
-              </span>
-              <p className="text-xs text-slate-400">Campus Scheduling & Venue Management</p>
+              </div>
+              <p className="text-[11px] text-slate-400 whitespace-nowrap mt-0.5 hidden xl:block">
+                Campus Scheduling & Venue Management
+              </p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1 shrink-0">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname === link.path;
@@ -125,13 +129,13 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${isActive
+                  className={`whitespace-nowrap flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ${isActive
                       ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                     }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
-                  {link.name}
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{link.name}</span>
                   {link.badge && (
                     <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">
                       {link.badge}
@@ -143,10 +147,10 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {/* User Profile, Notifications & Demo Controls */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2.5 shrink-0">
             {/* Notification Bell */}
             {user && (
-              <div className="relative">
+              <div className="relative shrink-0">
                 <button
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
                   className="relative p-2 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
@@ -228,8 +232,8 @@ export const Navbar: React.FC = () => {
             )}
 
             {user ? (
-              <div className="flex items-center gap-3">
-                <div className="text-right">
+              <div className="flex items-center gap-2.5 shrink-0">
+                <div className="text-right shrink-0 whitespace-nowrap leading-tight">
                   <div className="text-xs font-semibold text-white">{user.name}</div>
                   <div className="text-[11px] text-sky-400 font-mono capitalize">
                     {user.role.replace('_', ' ')} {user.faculty_id ? `(${user.faculty_id})` : ''}
@@ -238,7 +242,7 @@ export const Navbar: React.FC = () => {
 
                 <button
                   onClick={logout}
-                  className="p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                  className="p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors shrink-0"
                   title="Logout"
                 >
                   <LogOut className="w-4 h-4" />
