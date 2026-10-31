@@ -34,6 +34,7 @@ class Settings(BaseSettings):
 
     # Demo Simulation Settings
     DEMO_TODAY_DATE: str = os.getenv("DEMO_TODAY_DATE", "2027-01-25")
+    DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() in ("true", "1", "yes")
 
     # CORS
     CORS_ORIGINS: List[str] = [

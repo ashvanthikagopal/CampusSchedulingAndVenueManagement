@@ -8,8 +8,18 @@ from pydantic import BaseModel, Field
 
 # --- Auth Schemas ---
 class LoginRequest(BaseModel):
-    email: str
+    identifier: Optional[str] = None
+    email: Optional[str] = None
     password: str
+
+
+class PublicStatsResponse(BaseModel):
+    sessions_scheduled: int
+    hard_violations: int
+    booking_score: float
+    bookings_count: int
+    last_reschedule_moved_count: int
+    soft_penalty_total: Optional[int] = 0
 
 
 class TokenResponse(BaseModel):
@@ -135,6 +145,7 @@ class BookingParseResponse(BaseModel):
     assumptions: List[str] = []
     follow_up_question: Optional[str] = None
     effective_category: str
+    rule_trace: Optional[str] = None
     raw_text: str
     parsed_by: str  # "gemini" or "rule_fallback"
 

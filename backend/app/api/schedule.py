@@ -263,12 +263,32 @@ def get_schedule(
         if not id:
             id = current_user.student_group
 
-    # For role=faculty, restrict faculty view to their own faculty_id
-    if current_user and current_user.role == "faculty" and view == "faculty":
+    # For role=faculty, restrict strictly to their own faculty timetable
+    if current_user and current_user.role == "faculty":
+        if view and view != "faculty":
+            raise HTTPException(status_code=403, detail="Faculty can only view their own faculty timetable")
         if id and id != current_user.faculty_id:
             raise HTTPException(status_code=403, detail="Faculty can only view their own faculty timetable")
-        if not id:
-            id = current_user.faculty_id
+        view = "faculty"
+        id = current_user.faculty_id
+
+    # For role=department_coordinator, restrict scoped views to their own department
+    if current_user and current_user.role == "department_coordinator" and current_user.department:
+        try:
+            with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
+                _d = json.load(f)
+            if view == "faculty" and id:
+                fac_match = next((fac for fac in _d.get("faculty", []) if fac["id"] == id), None)
+                if fac_match and fac_match.get("department") != current_user.department:
+                    raise HTTPException(status_code=403, detail=f"Coordinators can only view faculty within their department ({current_user.department})")
+            elif view == "group" and id:
+                grp_match = next((g for g in _d.get("student_groups", []) if g["id"] == id), None)
+                if grp_match and grp_match.get("department") != current_user.department:
+                    raise HTTPException(status_code=403, detail=f"Coordinators can only view student groups within their department ({current_user.department})")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
 
     # Get active version
     ver = db.query(ScheduleVersion).filter(ScheduleVersion.status == "active").order_by(ScheduleVersion.created_at.desc()).first()

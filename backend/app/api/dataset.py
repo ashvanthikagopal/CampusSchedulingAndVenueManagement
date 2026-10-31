@@ -136,6 +136,10 @@ def import_dataset(
                 raw_text=b.raw_text, status="pending"
             ))
 
+    # Seed/update user accounts dynamically from the newly imported dataset
+    from backend.app.core.seed_users import seed_users
+    seed_users(db, data)
+
     db.commit()
 
     return {

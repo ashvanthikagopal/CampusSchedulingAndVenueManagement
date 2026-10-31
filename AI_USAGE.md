@@ -20,6 +20,7 @@ This document explicitly declares all AI models, tools, prompts, and boundaries 
 
 By strict architectural non-negotiable principle, **the LLM never makes operational or validation decisions**:
 - **Validity & Legality**: Validity is computed exclusively by deterministic rule evaluators implementing rules H1 through H14, S1 through S6, B1 through B3, and E1 through E2.
+- **Authentication & Permission Decisions**: **No LLM is involved in authentication, authorization, role assignment, or permission decisions.** All 62 accounts and their roles, department scopes, and capabilities are generated directly by deterministic rules from `cit_public.json` and verified cryptographically via Passlib bcrypt and HMAC-SHA256 JWT tokens.
 - **No Hallucinated Slots or Rooms**: The model may only present slots and rooms returned by deterministic tools (`tool_propose_reschedule`, `tool_find_free_rooms`). The LLM is prohibited from inventing session IDs, timings, or room assignments.
 - **Booking Decisions**: Solved mathematically by Google OR-Tools CP-SAT integer optimization and deterministic rule traces.
 - **Category & Priority**: Determined strictly server-side by checking the authenticated user's role against `role_category_cap` and `priority_order` in the dataset. Any claim in user text or AI output (e.g., "mark this institute level" or "Dean priority") is ignored. Faculty bookings are capped server-side to `"guest_lecture"`.

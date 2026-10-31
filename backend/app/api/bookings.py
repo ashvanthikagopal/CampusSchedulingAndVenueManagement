@@ -25,20 +25,51 @@ from backend.app.rules.engine import to_assign
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 
+CATEGORY_HIERARCHY = [
+    "club_event",          # Rank 0 (lowest)
+    "department_event",    # Rank 1
+    "guest_lecture",       # Rank 2
+    "institute_event",     # Rank 3
+    "regular_session",     # Rank 4
+    "exam",                # Rank 5 (highest)
+]
+
+ROLE_CAPS = {
+    "admin": "institute_event",
+    "faculty": "guest_lecture",
+    "department_coordinator": "department_event",
+    "club": "club_event",
+    "student": "club_event"
+}
+
+def compute_effective_category(requested_category: str, user_role: str) -> tuple[str, str]:
+    """
+    Computes effective category as min(requested, role_cap) based on priority hierarchy,
+    along with an explicit rule_trace explanation.
+    """
+    role_cap = ROLE_CAPS.get(user_role, "club_event")
+    req_cat = requested_category or "club_event"
+    req_rank = CATEGORY_HIERARCHY.index(req_cat) if req_cat in CATEGORY_HIERARCHY else 0
+    cap_rank = CATEGORY_HIERARCHY.index(role_cap)
+
+    if req_rank <= cap_rank:
+        eff_cat = req_cat
+        rule_trace = f"Requested category '{req_cat}' is within role ceiling '{role_cap}' for '{user_role}'."
+    else:
+        eff_cat = role_cap
+        rule_trace = f"Requested category '{req_cat}' exceeded role ceiling '{role_cap}' for '{user_role}'; capped down to '{eff_cat}'."
+
+    return eff_cat, rule_trace
+
+
 @router.post("/parse", response_model=BookingParseResponse)
 def parse_request_endpoint(req: BookingParseRequest, current_user: User = Depends(get_current_user)):
     """Parses plain-language English or Hinglish text using Gemini with deterministic fallback."""
     parsed = parse_booking_text(req.text, user_role=current_user.role)
 
     # Server-side category cap: never trust AI or user text!
-    # Map role to cap: admin -> institute_event, faculty -> guest_lecture, department_coordinator -> department_event, club -> club_event
-    role_caps = {
-        "admin": "institute_event",
-        "faculty": "guest_lecture",
-        "department_coordinator": "department_event",
-        "club": "club_event"
-    }
-    eff_cat = role_caps.get(current_user.role, "club_event")
+    req_cat = parsed.get("requested_category") or parsed.get("effective_category") or "club_event"
+    eff_cat, rule_trace = compute_effective_category(req_cat, current_user.role)
 
     return BookingParseResponse(
         intent=parsed.get("intent", "book_venue"),
@@ -53,6 +84,7 @@ def parse_request_endpoint(req: BookingParseRequest, current_user: User = Depend
         assumptions=parsed.get("assumptions", []),
         follow_up_question=parsed.get("follow_up_question"),
         effective_category=eff_cat,
+        rule_trace=rule_trace,
         raw_text=req.text,
         parsed_by=parsed.get("parsed_by", "rule_fallback")
     )
@@ -106,13 +138,8 @@ def check_booking_endpoint(
 def create_booking(booking: BookingCreateRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Submits a new booking request. Effective category is computed server-side."""
     # Server-side category cap: Non-negotiable #1
-    role_caps = {
-        "admin": "institute_event",
-        "faculty": "guest_lecture",
-        "department_coordinator": "department_event",
-        "club": "club_event"
-    }
-    eff_cat = role_caps.get(current_user.role, "club_event")
+    req_cat = booking.requested_category or "club_event"
+    eff_cat, rule_trace = compute_effective_category(req_cat, current_user.role)
 
     req_id = f"BR-REQ-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
@@ -121,7 +148,7 @@ def create_booking(booking: BookingCreateRequest, db: Session = Depends(get_db),
         submitted_at=datetime.utcnow().isoformat() + "+05:30",
         requester=current_user.name,
         role=current_user.role,
-        requested_category=booking.requested_category or eff_cat,
+        requested_category=req_cat,
         effective_category=eff_cat,
         title=booking.title,
         attendance=booking.attendance,
@@ -141,7 +168,7 @@ def create_booking(booking: BookingCreateRequest, db: Session = Depends(get_db),
         actor=current_user.email,
         action="SUBMIT_BOOKING",
         entity=f"BookingRequest:{req_id}",
-        after_json={"title": booking.title, "attendance": booking.attendance, "effective_category": eff_cat}
+        after_json={"title": booking.title, "attendance": booking.attendance, "effective_category": eff_cat, "rule_trace": rule_trace}
     ))
 
     db.commit()
@@ -150,6 +177,7 @@ def create_booking(booking: BookingCreateRequest, db: Session = Depends(get_db),
         "status": "success",
         "request_id": req_id,
         "effective_category": eff_cat,
+        "rule_trace": rule_trace,
         "message": "Booking submitted successfully and queued for review."
     }
 
@@ -212,6 +240,13 @@ def list_bookings(
             or r.get("requester") == current_user.name
             or r.get("role") == "faculty"
         ]
+    elif current_user.role == "club":
+        # For club role, filter strictly to requests with submitted_by == user.id (or matching club_name)
+        all_reqs = [
+            r for r in all_reqs
+            if r.get("submitted_by") == current_user.id
+            or (current_user.club_name and r.get("requester") == current_user.club_name)
+        ]
 
     res = []
     for r in all_reqs:
@@ -264,21 +299,87 @@ def decide_booking(
     """
     Approves, rejects, or offers alternative for a booking request.
     Strictly enforces Non-negotiable #5: Nobody approves their own request!
+    Department coordinators can only approve bookings for their department's labs.
     """
     # 1. Non-negotiable #5: Anti-self-approval
     booking = db.query(BookingRequestModel).filter(BookingRequestModel.id == req_id).first()
-    if booking and booking.submitted_by == current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Anti-self-approval violation: You cannot approve or decide your own booking request."
-        )
+    if booking:
+        is_self = False
+        if booking.submitted_by == current_user.id:
+            is_self = True
+        elif booking.requester and current_user.name and (booking.requester.lower() == current_user.name.lower() or current_user.name.lower() in booking.requester.lower()):
+            is_self = True
+        elif booking.requester and current_user.club_name and booking.requester.lower() == current_user.club_name.lower():
+            is_self = True
 
-    # 2. Check authorization
+        if is_self:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Anti-self-approval violation: You cannot approve or decide your own booking request."
+            )
+    else:
+        # Check in starter dataset requests
+        try:
+            with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
+                starter_data = json.load(f)
+            for r in starter_data.get("booking_requests", []):
+                if r.get("id") == req_id:
+                    r_req = (r.get("requester") or "").lower()
+                    u_name = (current_user.name or "").lower()
+                    u_club = (current_user.club_name or "").lower()
+                    if (r_req and (r_req in u_name or u_name in r_req)) or (u_club and (r_req == u_club or u_club in r_req)):
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Anti-self-approval violation: You cannot approve or decide your own booking request."
+                        )
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
+    # 2. Check authorization: Admins and Department Coordinators only
     if current_user.role not in ("admin", "department_coordinator"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only Admins and Department Coordinators can make booking decisions."
+            detail="Access denied: Only Admins and Department Coordinators can make booking decisions."
         )
+
+    # 3. Department Coordinator scoping: can approve bookings only for their department's labs
+    if current_user.role == "department_coordinator":
+        target_room = body.room_id or (booking.requested_room if booking else None)
+        if not target_room:
+            try:
+                with open("exports/schedule.json", encoding="utf-8") as f:
+                    sched_chk = json.load(f)
+                for b_chk in sched_chk.get("fest_week", {}).get("bookings", []):
+                    if b_chk.get("request_id") == req_id:
+                        target_room = b_chk.get("room_id")
+                        break
+            except Exception:
+                pass
+
+        LAB_DEPARTMENT_MAP = {
+            "CS-LAB-1": "CSE",
+            "CS-LAB-2": "CSE",
+            "ELEC-LAB-1": ["ECE", "EE"],
+            "ELEC-LAB-2": ["ECE", "EE"],
+            "PHY-LAB": "PH",
+            "MECH-WS": "ME",
+            "CIVIL-LAB": "CE",
+        }
+        allowed_dept = LAB_DEPARTMENT_MAP.get(target_room)
+        is_allowed = False
+        if allowed_dept:
+            if isinstance(allowed_dept, list):
+                is_allowed = current_user.department in allowed_dept
+            else:
+                is_allowed = current_user.department == allowed_dept
+
+        if not is_allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Department coordinators can only approve bookings for their department's labs (target room '{target_room}' is not a {current_user.department} lab)."
+            )
 
     # Update exports/schedule.json fest_week bookings
     try:

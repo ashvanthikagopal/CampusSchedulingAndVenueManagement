@@ -1,0 +1,27 @@
+{
+  "admins": [
+    {
+      "email": "admin@cit.edu",
+      "name": "Dean's Office",
+      "department": "Administration"
+    },
+    {
+      "email": "admin2@cit.edu",
+      "name": "Spectra Core Team",
+      "department": "Administration"
+    }
+  ],
+  "special_coordinators": [
+    {
+      "email": "coord_tnp@cit.edu",
+      "name": "Training & Placement Cell",
+      "department": "CSE"
+    }
+  ],
+  "role_passwords": {
+    "admin": "Admin@123",
+    "department_coordinator": "Coord@123",
+    "faculty": "Faculty@123",
+    "club": "Club@123"
+  }
+}

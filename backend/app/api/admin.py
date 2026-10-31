@@ -47,7 +47,7 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
         val_rep = official_validator_run(data, sched)
         hard_conflicts = val_rep.get("hard_violation_count", 0)
         soft_total = val_rep.get("soft_total", 0)
-        b_score = float(val_rep.get("bookings", {}).get("score", 0.0))
+        b_score = float(val_rep.get("bookings", {}).get("booking_score", val_rep.get("bookings", {}).get("score", 0.0)))
     except Exception:
         hard_conflicts = 0
         soft_total = sched.get("soft_total", 0)
@@ -205,54 +205,7 @@ def reset_demo(db: Session = Depends(get_db)):
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
-    # 2. Seed the 5 official demo accounts
-    demo_users = [
-        User(
-            id="usr_admin1",
-            name="Campus Administrator",
-            email="admin@cit.edu",
-            password_hash=get_password_hash("Admin@123"),
-            role="admin",
-            department="Administration"
-        ),
-        User(
-            id="usr_admin2",
-            name="Dean of Academics",
-            email="admin2@cit.edu",
-            password_hash=get_password_hash("Admin@123"),
-            role="admin",
-            department="Administration"
-        ),
-        User(
-            id="usr_coord_cse",
-            name="CSE Coordinator",
-            email="coord_cse@cit.edu",
-            password_hash=get_password_hash("Coord@123"),
-            role="department_coordinator",
-            department="CSE"
-        ),
-        User(
-            id="usr_fac_f06",
-            name="Prof. Sharma (F06)",
-            email="faculty_f06@cit.edu",
-            password_hash=get_password_hash("Faculty@123"),
-            role="faculty",
-            department="CSE",
-            faculty_id="F06"
-        ),
-        User(
-            id="usr_club_dance",
-            name="Dance Club Representative",
-            email="club_dance@cit.edu",
-            password_hash=get_password_hash("Club@123"),
-            role="club",
-            club_name="Dance Club"
-        ),
-    ]
-    for u in demo_users:
-        db.add(u)
-
-    # 3. Load starter dataset
+    # 2. Load starter dataset
     try:
         with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
             data = json.load(f)
@@ -279,23 +232,25 @@ def reset_demo(db: Session = Depends(get_db)):
             actor="system",
             action="RESET_DEMO_STATE",
             entity="Database",
-            after_json={"message": "Demo state reset cleanly with 5 demo accounts"}
+            after_json={"message": "Demo state reset cleanly with all 62 dataset-driven accounts"}
         ))
 
         db.commit()
+
+        # 3. Seed all 62 official demo accounts dynamically from dataset
+        from backend.app.core.seed_users import seed_users
+        seeded_users = seed_users(db, data)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Reset failed: {str(e)}")
 
     return {
         "status": "success",
-        "message": "Demo environment reset successfully with clean starter data and 5 demo accounts seeded.",
+        "message": f"Demo environment reset successfully with clean starter data and {len(seeded_users)} demo accounts seeded.",
+        "demo_accounts_count": len(seeded_users),
         "demo_accounts": [
-            {"email": "admin@cit.edu", "role": "admin", "password": "Admin@123"},
-            {"email": "admin2@cit.edu", "role": "admin (anti-self-approval)", "password": "Admin@123"},
-            {"email": "coord_cse@cit.edu", "role": "department_coordinator", "password": "Coord@123"},
-            {"email": "faculty_f06@cit.edu", "role": "faculty", "password": "Faculty@123"},
-            {"email": "club_dance@cit.edu", "role": "club", "password": "Club@123"}
+            {"email": u.email, "role": u.role, "name": u.name}
+            for u in seeded_users
         ]
     }
 

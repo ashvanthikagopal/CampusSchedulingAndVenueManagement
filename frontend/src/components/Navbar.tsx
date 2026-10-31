@@ -85,6 +85,14 @@ export const Navbar: React.FC = () => {
       { name: `Class Timetable (${user.student_group || 'My Class'})`, path: '/timetable', icon: Calendar },
       { name: 'AI Assistant', path: '/assistant', icon: MessageSquare },
     ];
+  } else if (user?.role === 'department_coordinator') {
+    navLinks = [
+      { name: 'Dashboard', path: '/', icon: BarChart3 },
+      { name: `${user.department || 'Dept'} Timetable`, path: '/timetable', icon: Calendar },
+      { name: 'Book Venue', path: '/bookings', icon: PlusCircle },
+      { name: 'Approvals & Diff', path: '/approvals', icon: ShieldCheck },
+      { name: 'AI Assistant', path: '/assistant', icon: MessageSquare },
+    ];
   } else {
     navLinks = [
       { name: 'Dashboard', path: '/', icon: BarChart3 },
@@ -248,8 +256,15 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-2.5 shrink-0">
                 <div className="text-right shrink-0 whitespace-nowrap leading-tight">
                   <div className="text-xs font-semibold text-white">{user.name}</div>
-                  <div className="text-[11px] text-sky-400 font-mono capitalize">
-                    {user.role.replace('_', ' ')} {user.faculty_id ? `(${user.faculty_id})` : ''}
+                  <div className="flex items-center justify-end gap-1.5 text-[10px] mt-0.5">
+                    <span className="text-sky-400 font-mono capitalize">
+                      {user.role.replace('_', ' ')}
+                    </span>
+                    {(user.department || user.club_name || user.faculty_id) && (
+                      <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-semibold border border-slate-700/80">
+                        {user.faculty_id ? `${user.faculty_id} · ${user.department}` : (user.club_name || user.department)}
+                      </span>
+                    )}
                   </div>
                 </div>
 

@@ -4,11 +4,13 @@ FastAPI application entry point for CIT Campus Scheduler and Venue Management.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import json
 
 from backend.app.core.config import settings
 from backend.app.database.session import Base, engine, SessionLocal
-from backend.app.models.entities import User, PriorityConfigModel, DatasetModel
-from backend.app.core.security import get_password_hash
+from backend.app.models.entities import User
+from backend.app.core.seed_users import seed_users
+from backend.app.schemas.schemas import PublicStatsResponse
 
 # Routers
 from backend.app.api.auth import router as auth_router
@@ -30,80 +32,7 @@ def seed_demo_accounts_if_empty():
     try:
         # Create all tables if not exist
         Base.metadata.create_all(bind=engine)
-
-        if db.query(User).count() == 0:
-            demo_users = [
-                User(
-                    id="usr_admin1",
-                    name="Campus Administrator",
-                    email="admin@cit.edu",
-                    password_hash=get_password_hash("Admin@123"),
-                    role="admin",
-                    department="Administration"
-                ),
-                User(
-                    id="usr_admin2",
-                    name="Dean of Academics",
-                    email="admin2@cit.edu",
-                    password_hash=get_password_hash("Admin@123"),
-                    role="admin",
-                    department="Administration"
-                ),
-                User(
-                    id="usr_coord_cse",
-                    name="CSE Coordinator",
-                    email="coord_cse@cit.edu",
-                    password_hash=get_password_hash("Coord@123"),
-                    role="department_coordinator",
-                    department="CSE"
-                ),
-                User(
-                    id="usr_fac_f06",
-                    name="Prof. Sharma (F06)",
-                    email="faculty_f06@cit.edu",
-                    password_hash=get_password_hash("Faculty@123"),
-                    role="faculty",
-                    department="CSE",
-                    faculty_id="F06"
-                ),
-                User(
-                    id="usr_club",
-                    name="Club Representative",
-                    email="club@cit.edu",
-                    password_hash=get_password_hash("Club@123"),
-                    role="club",
-                    club_name="Student Clubs"
-                ),
-                User(
-                    id="usr_club_dance",
-                    name="Dance Club Representative",
-                    email="club_dance@cit.edu",
-                    password_hash=get_password_hash("Club@123"),
-                    role="club",
-                    club_name="Dance Club"
-                ),
-                User(
-                    id="usr_student_y1a",
-                    name="Aarav Sharma (Y1-A Student)",
-                    email="student_y1a@cit.edu",
-                    password_hash=get_password_hash("Student@123"),
-                    role="student",
-                    department="First Year",
-                    student_group="Y1-A"
-                ),
-                User(
-                    id="usr_student_cse3",
-                    name="Priya Patel (CSE-3 Student)",
-                    email="student_cse3@cit.edu",
-                    password_hash=get_password_hash("Student@123"),
-                    role="student",
-                    department="CSE",
-                    student_group="CSE-3"
-                ),
-            ]
-            for u in demo_users:
-                db.add(u)
-            db.commit()
+        seed_users(db)
     except Exception as e:
         print(f"Warning during seed: {e}")
     finally:
@@ -112,6 +41,7 @@ def seed_demo_accounts_if_empty():
 
 # Ensure tables and demo accounts are initialized on startup
 seed_demo_accounts_if_empty()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -148,6 +78,52 @@ app.include_router(notifications_router, prefix=settings.API_PREFIX)
 app.include_router(session_requests_router, prefix=settings.API_PREFIX)
 app.include_router(rooms_router, prefix=settings.API_PREFIX)
 app.include_router(rooms_router)  # Also allows direct /rooms/availability
+
+
+def compute_public_stats() -> dict:
+    from backend.validator.validator import run as official_validator_run
+
+    try:
+        with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        data = {"sessions": [], "rooms": [], "booking_requests": []}
+
+    try:
+        with open("exports/schedule.json", encoding="utf-8") as f:
+            sched = json.load(f)
+    except Exception:
+        sched = {"sessions": [], "fest_week": {"bookings": [], "session_overrides": []}}
+
+    try:
+        val_rep = official_validator_run(data, sched)
+        hard_violations = val_rep.get("hard_violation_count", 0)
+        soft_total = val_rep.get("soft_total", 0)
+        b_score = float(val_rep.get("bookings", {}).get("booking_score", 0.0))
+        bookings_count = val_rep.get("bookings", {}).get("approved", 0) + val_rep.get("bookings", {}).get("alternatives", 0)
+    except Exception:
+        hard_violations = 0
+        soft_total = 0
+        b_score = 0.0
+        bookings_count = len(sched.get("fest_week", {}).get("bookings", []))
+
+    sessions_count = len(sched.get("sessions", []))
+    moved_count = len(sched.get("fest_week", {}).get("session_overrides", []))
+
+    return {
+        "sessions_scheduled": sessions_count,
+        "hard_violations": hard_violations,
+        "booking_score": b_score,
+        "bookings_count": bookings_count,
+        "last_reschedule_moved_count": moved_count,
+        "soft_penalty_total": soft_total
+    }
+
+
+@app.get("/api/public/stats", response_model=PublicStatsResponse)
+@app.get("/public/stats", response_model=PublicStatsResponse)
+def get_public_stats_endpoint():
+    return compute_public_stats()
 
 
 @app.get("/api/health")

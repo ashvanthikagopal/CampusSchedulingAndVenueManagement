@@ -17,6 +17,8 @@ This document lists all libraries, frameworks, and third-party modules utilized 
 | **python-jose[cryptography]** | `>=3.3.0` | JSON Web Token (JWT) encoding, decoding, and signature verification |
 | **passlib[bcrypt]** / **bcrypt** | `>=1.7.4 / >=4.0.0` | Password hashing for secure user authentication |
 | **python-multipart** | `>=0.0.9` | Multipart form data parsing for dataset and disruption uploads |
+
+> **Note on Authentication & Security**: No third-party AI or LLM is involved in authentication, authorization, role derivation, or permission decisions. All credential verification and permission scoping are performed deterministically via `passlib[bcrypt]`, `python-jose`, and FastAPI dependencies.
 | **python-dotenv** | `>=1.0.0` | Loading environment configurations from `.env` |
 | **google-genai** | `>=0.1.0` | Official client library for Google Gemini API |
 | **httpx** | `>=0.27.0` | Asynchronous HTTP client for API and background calls |
