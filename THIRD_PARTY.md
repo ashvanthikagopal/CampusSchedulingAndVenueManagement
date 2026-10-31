@@ -14,8 +14,9 @@ This document lists all libraries, frameworks, and third-party modules utilized 
 | **PyMySQL** | `>=1.1.0` | Pure-Python MySQL client for MySQL 8 connectivity |
 | **Pydantic** | `>=2.7.0` | Data validation, settings management, and strict schema enforcement |
 | **Google OR-Tools** | `>=9.10.0` | CP-SAT solver for timetable generation, exam scheduling, booking optimization, and disruption repair |
-| **python-jose[cryptography]** | `>=3.3.0` | JSON Web Token (JWT) encoding, decoding, and signature verification |
-| **passlib[bcrypt]** / **bcrypt** | `>=1.7.4 / >=4.0.0` | Password hashing for secure user authentication |
+| **PyJWT** | `>=2.9.0` | JSON Web Token (JWT) encoding, decoding, and signature verification |
+| **cryptography** | `>=43.0.0` | Cryptographic recipes and primitives for secure auth & MySQL 8 sha2 authentication |
+| **bcrypt** | `>=4.0.0` | Direct bcrypt password hashing with 72-byte safe handling |
 | **python-multipart** | `>=0.0.9` | Multipart form data parsing for dataset and disruption uploads |
 | **python-dotenv** | `>=1.0.0` | Loading environment configurations from `.env` |
 | **google-genai** | `>=0.1.0` | Official client library for Google Gemini API |

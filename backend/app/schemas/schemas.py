@@ -183,7 +183,12 @@ class ChangeProposalResponse(BaseModel):
     soft_delta: int
     status: str
     moved_sessions: List[Dict[str, Any]]
-    validator_report: Dict[str, Any]
+    validator_report: Optional[Dict[str, Any]] = None
+    minimum_possible_moves: Optional[int] = None
+    proved_optimal: Optional[bool] = None
+    forced_count: Optional[int] = None
+    active_widening_tier: Optional[int] = None
+    variants: Optional[List[Dict[str, Any]]] = None
 
 
 # --- AI Chat & Explanation Schemas ---

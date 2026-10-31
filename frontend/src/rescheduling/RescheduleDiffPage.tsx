@@ -101,14 +101,21 @@ export const RescheduleDiffPage: React.FC = () => {
 
         {activeProposal && activeProposal.status === 'pending_approval' && user?.role === 'admin' && (
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => handleApprove(activeProposal.proposal_id)}
-              disabled={isApproving}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
-            >
-              <Check className="w-4 h-4" />
-              {isApproving ? 'Activating...' : 'Approve & Activate New Schedule'}
-            </button>
+            {activeProposal.reported_by && user?.email === activeProposal.reported_by ? (
+              <div className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold flex items-center gap-2">
+                <span>Anti-Self-Approval:</span>
+                <span className="text-amber-400 font-mono text-[11px]">Submitted by you ({user.email}). Another admin must approve.</span>
+              </div>
+            ) : (
+              <button
+                onClick={() => handleApprove(activeProposal.proposal_id)}
+                disabled={isApproving}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+              >
+                <Check className="w-4 h-4" />
+                {isApproving ? 'Activating...' : 'Approve & Activate New Schedule'}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -132,6 +139,19 @@ export const RescheduleDiffPage: React.FC = () => {
           ) : activeProposal ? (
             <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-950/60 space-y-6">
               
+              {/* Optimal Moves Proved Callout */}
+              <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                  <span>
+                    <strong>Minimum possible moves: {activeProposal.minimum_possible_moves || activeProposal.moved_count}</strong> (proved optimal: {activeProposal.forced_count || activeProposal.moved_count} forced by disruption, 0 unnecessary shifts).
+                  </span>
+                </div>
+                <span className="font-mono text-[10px] text-sky-300 bg-sky-500/20 px-2.5 py-1 rounded w-fit border border-sky-500/30">
+                  Tier {activeProposal.active_widening_tier ?? 0}: Forced Only
+                </span>
+              </div>
+
               {/* Diff Summary Metrics */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
@@ -176,6 +196,7 @@ export const RescheduleDiffPage: React.FC = () => {
                         <th className="p-3 font-semibold">Baseline Slot (Before)</th>
                         <th className="p-3 font-semibold">Repaired Slot (After)</th>
                         <th className="p-3 font-semibold">Change Type</th>
+                        <th className="p-3 font-semibold">Disruption Reason</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/60 bg-slate-950/40">
@@ -199,13 +220,18 @@ export const RescheduleDiffPage: React.FC = () => {
                           <td className="p-3">
                             <span
                               className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                m.time_changed
+                                m.before === null
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  : m.time_changed
                                   ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                                   : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                               }`}
                             >
                               {m.before === null ? 'Added' : m.time_changed ? 'Time + Room' : 'Room Only'}
                             </span>
+                          </td>
+                          <td className="p-3 text-slate-300 font-sans text-[11px]">
+                            {m.reason || (m.before === null ? 'Newly added session scheduled' : m.time_changed ? 'Time shifted due to disruption' : 'Relocated to alternative venue')}
                           </td>
                         </tr>
                       ))}

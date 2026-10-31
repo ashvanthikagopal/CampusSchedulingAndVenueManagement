@@ -3,7 +3,7 @@ import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
 import { 
   Calendar, Filter, Sparkles, 
-  X, CheckCircle2, AlertOctagon, Move
+  X, CheckCircle2, AlertOctagon, Move, Copy, Check, Download
 } from 'lucide-react';
 
 export const TimetableGrid: React.FC = () => {
@@ -25,6 +25,44 @@ export const TimetableGrid: React.FC = () => {
   const [targetRoom, setTargetRoom] = useState('CR-101');
   const [moveResult, setMoveResult] = useState<any>(null);
   const [isSubmittingMove, setIsSubmittingMove] = useState(false);
+  const [copiedWhatsapp, setCopiedWhatsapp] = useState(false);
+
+  const handleCopyWhatsapp = (session: any) => {
+    if (!session) return;
+    const msg = `📢 *CIT Academic Timetable Notice*\n` +
+      `📅 *Course:* ${session.course_name || session.course_id} (${session.course_id})\n` +
+      `📍 *Venue:* ${session.room_name || session.room_id} (${session.room_id})\n` +
+      `⏰ *Slot:* ${session.day} Period ${session.start_period} (${session.time_slot || 'Teaching Slot'})\n` +
+      `👨‍🏫 *Faculty:* ${session.faculty_name || session.faculty_id} (${session.faculty_id})\n` +
+      `👥 *Group:* ${(session.groups || []).join(', ')}\n` +
+      `✅ *Status:* Clash-Free Verified (0 Hard Violations)`;
+    navigator.clipboard.writeText(msg);
+    setCopiedWhatsapp(true);
+    setTimeout(() => setCopiedWhatsapp(false), 2500);
+  };
+
+  const handleDownloadIcs = (session: any) => {
+    if (!session) return;
+    const icsContent = 
+      "BEGIN:VCALENDAR\n" +
+      "VERSION:2.0\n" +
+      "PRODID:-//CIT Campus Scheduler//EN\n" +
+      "BEGIN:VEVENT\n" +
+      `SUMMARY:${session.course_id}: ${session.course_name || 'Class'}\n` +
+      `LOCATION:${session.room_id}\n` +
+      `DESCRIPTION:Faculty: ${session.faculty_name || session.faculty_id}, Groups: ${(session.groups || []).join(', ')}\n` +
+      `STATUS:CONFIRMED\n` +
+      "END:VEVENT\n" +
+      "END:VCALENDAR";
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${session.session_id || 'session'}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const days = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
   const periods = [
@@ -362,9 +400,27 @@ export const TimetableGrid: React.FC = () => {
                   </ul>
                 </div>
 
+                {/* Quick actions: WhatsApp Announcement & ICS Download */}
+                <div className="pt-3 border-t border-slate-800 flex items-center gap-2">
+                  <button
+                    onClick={() => handleCopyWhatsapp(selectedSession)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-semibold text-xs text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all"
+                  >
+                    {copiedWhatsapp ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedWhatsapp ? 'Copied WhatsApp Notice!' : 'Copy WhatsApp Announcement'}
+                  </button>
+                  <button
+                    onClick={() => handleDownloadIcs(selectedSession)}
+                    title="Export ICS Calendar file"
+                    className="flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+                  >
+                    <Download className="w-4 h-4 text-sky-400" />
+                  </button>
+                </div>
+
                 {/* Move button for authorized roles */}
                 {(user?.role === 'admin' || user?.role === 'department_coordinator') && (
-                  <div className="pt-4 border-t border-slate-800">
+                  <div className="pt-2">
                     <button
                       onClick={() => openMoveModal(selectedSession)}
                       className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"

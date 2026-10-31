@@ -219,6 +219,11 @@ export const BookingsPage: React.FC = () => {
                       {b.reason_code}
                     </span>
                   )}
+                  {(b.room_substituted || b.reason_code === 'ROOM_SUBSTITUTED') && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                      Room Substituted
+                    </span>
+                  )}
                 </div>
 
                 <div className="text-xs text-slate-400 flex items-center gap-4 flex-wrap">
@@ -232,6 +237,11 @@ export const BookingsPage: React.FC = () => {
                 {b.reason && (
                   <div className="text-xs text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 italic">
                     Reason: "{b.reason}"
+                  </div>
+                )}
+                {b.counterfactual && (
+                  <div className="text-xs text-amber-300/90 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                    💡 <strong>Counterfactual:</strong> {b.counterfactual}
                   </div>
                 )}
               </div>

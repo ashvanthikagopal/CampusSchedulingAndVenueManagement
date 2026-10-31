@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from backend.app.database.session import get_db, SessionLocal
 from backend.app.models.entities import (
     ScheduleVersion, ScheduleEntry, SessionOverride, SessionModel, RoomModel,
-    FacultyModel, StudentGroupModel, DatasetModel, AuditLogModel, User
+    FacultyModel, StudentGroupModel, DatasetModel, AuditLogModel, User, JobModel
 )
 from backend.app.api.deps import require_admin, get_current_user
 from backend.app.schemas.schemas import (
@@ -35,6 +35,10 @@ JOBS: Dict[str, Dict[str, Any]] = {}
 def run_solver_background_job(job_id: str, admin_email: str):
     db = SessionLocal()
     JOBS[job_id]["status"] = "RUNNING"
+    db_job = db.query(JobModel).filter(JobModel.id == job_id).first()
+    if db_job:
+        db_job.status = "RUNNING"
+        db.commit()
     try:
         # Load dataset
         ds = db.query(DatasetModel).filter(DatasetModel.is_active == True).first()
@@ -51,6 +55,10 @@ def run_solver_background_job(job_id: str, admin_email: str):
         if not timetable_assign:
             JOBS[job_id]["status"] = "FAILED"
             JOBS[job_id]["error"] = f"Solver returned status: {status_t}"
+            if db_job:
+                db_job.status = "FAILED"
+                db_job.error = f"Solver returned status: {status_t}"
+                db.commit()
             return
 
         # 2. Solve exams
@@ -133,8 +141,7 @@ def run_solver_background_job(job_id: str, admin_email: str):
 
         db.commit()
 
-        JOBS[job_id]["status"] = "COMPLETED"
-        JOBS[job_id]["result"] = {
+        res_info = {
             "version_id": version_id,
             "hard_violations": val_rep.get("hard_violation_count", 0),
             "soft_total": val_rep.get("soft_total", 0),
@@ -142,9 +149,19 @@ def run_solver_background_job(job_id: str, admin_email: str):
             "solve_seconds": stats_t.get("solve_seconds", 0.0),
             "booking_score": val_rep.get("bookings", {}).get("booking_score", 0.0)
         }
+        JOBS[job_id]["status"] = "COMPLETED"
+        JOBS[job_id]["result"] = res_info
+        if db_job:
+            db_job.status = "COMPLETED"
+            db_job.result_json = res_info
+            db.commit()
     except Exception as e:
         JOBS[job_id]["status"] = "FAILED"
         JOBS[job_id]["error"] = str(e)
+        if db_job:
+            db_job.status = "FAILED"
+            db_job.error = str(e)
+            db.commit()
     finally:
         db.close()
 
@@ -152,7 +169,8 @@ def run_solver_background_job(job_id: str, admin_email: str):
 @router.post("/generate", response_model=ScheduleJobResponse)
 def generate_schedule(
     background_tasks: BackgroundTasks,
-    admin: User = Depends(require_admin)
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
 ):
     job_id = f"job_{uuid.uuid4().hex[:10]}"
     JOBS[job_id] = {
@@ -161,6 +179,8 @@ def generate_schedule(
         "result": None,
         "error": None
     }
+    db.add(JobModel(id=job_id, status="PENDING"))
+    db.commit()
     background_tasks.add_task(run_solver_background_job, job_id, admin.email)
     return {
         "job_id": job_id,
@@ -169,11 +189,61 @@ def generate_schedule(
 
 
 @router.get("/jobs/{job_id}", response_model=ScheduleJobResponse)
-def get_job_status(job_id: str):
+def get_job_status(job_id: str, db: Session = Depends(get_db)):
     job = JOBS.get(job_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+        db_job = db.query(JobModel).filter(JobModel.id == job_id).first()
+        if not db_job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        job = {
+            "job_id": db_job.id,
+            "status": db_job.status,
+            "result": db_job.result_json,
+            "error": db_job.error
+        }
+        JOBS[job_id] = job
     return job
+
+
+@router.get("/validator/raw")
+def run_official_validator_raw(target: str = "baseline"):
+    """
+    F1: Executes official unmodified validator.py as a subprocess using sys.executable
+    and pathlib paths. Returns raw terminal report and structured verification details.
+    """
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    script_path = Path("backend/validator/validator.py").resolve()
+    data_path = Path("data/starter_dataset/cit_public.json").resolve()
+    if target == "after":
+        sched_path = Path("exports/schedule_after.json").resolve()
+        disruption_path = Path("starter_pack/examples/sample_disruption.json").resolve()
+        base_path = Path("exports/schedule.json").resolve()
+        cmd = [
+            sys.executable, str(script_path),
+            "--data", str(data_path),
+            "--schedule", str(sched_path),
+            "--disruption", str(disruption_path),
+            "--baseline", str(base_path)
+        ]
+    else:
+        sched_path = Path("exports/schedule.json").resolve()
+        cmd = [
+            sys.executable, str(script_path),
+            "--data", str(data_path),
+            "--schedule", str(sched_path)
+        ]
+
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    return {
+        "target": target,
+        "exit_code": res.returncode,
+        "raw_stdout": res.stdout,
+        "raw_stderr": res.stderr,
+        "is_valid": (res.returncode == 0 and "Hard violations: 0" in res.stdout)
+    }
 
 
 @router.get("", response_model=ScheduleViewResponse)

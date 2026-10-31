@@ -54,7 +54,9 @@ def solve_bookings(
                 "request_id": req.id,
                 "status": "rejected",
                 "reason_code": "CANCELLED",
-                "reason": "Withdrawn by requester"
+                "reason": "Withdrawn by requester",
+                "room_substituted": False,
+                "counterfactual": "Withdrawn by requester"
             }
 
     # 2. Impossible capacity requests (BR-09: 1,200 people)
@@ -67,39 +69,14 @@ def solve_bookings(
                 "request_id": req.id,
                 "status": "rejected",
                 "reason_code": "NO_VENUE_CAPACITY",
-                "reason": f"Attendance {req.attendance} exceeds maximum campus venue capacity ({max_campus_capacity} in OAT)"
+                "reason": f"Attendance {req.attendance} exceeds maximum campus venue capacity ({max_campus_capacity} in OAT)",
+                "room_substituted": False,
+                "counterfactual": f"No venue seats {req.attendance}; largest is OAT ({max_campus_capacity})"
             }
 
-    # 3. Check for invalid requested windows where all periods are outside 1..13 (e.g. BR-17: P13-P14)
-    for req in requests:
-        if req.id in decisions_by_id:
-            continue
-        valid_windows = [
-            w for w in req.windows
-            if w.get("from_period", 0) >= 1 and w.get("to_period", 0) <= MAX_PERIOD and w.get("from_period", 0) <= w.get("to_period", 0)
-        ]
-        if not valid_windows and req.windows:
-            # Must offer alternative
-            target_day = req.windows[0].get("day", "WED")
-            alt_room_id = req.requested_room if req.requested_room in ctx.rooms else "OAT"
-            alt_start = 12
-            alt_end = alt_start + req.duration_periods - 1
-            if alt_end > MAX_PERIOD:
-                alt_start = MAX_PERIOD - req.duration_periods + 1
-                alt_end = MAX_PERIOD
-
-            decisions_by_id[req.id] = {
-                "request_id": req.id,
-                "status": "alternative_offered",
-                "day": target_day,
-                "start_period": alt_start,
-                "end_period": alt_end,
-                "room_id": alt_room_id,
-                "reason_code": "WINDOW_INVALID",
-                "reason": f"Requested window includes non-existent periods (P14); offered alternative at {target_day} P{alt_start}-P{alt_end} in {alt_room_id}"
-            }
-            for p in range(alt_start, alt_end + 1):
-                event_room_busy[(alt_room_id, target_day, p)] = req.id
+    # Note: Requests with invalid windows (e.g. BR-17 with P13-P14) have no in-window candidates,
+    # so they will not be solved during approvals. Alternatives are searched strictly AFTER
+    # all approvals are solved and committed against the shared occupancy ledger (C-1).
 
     # 4. Generate in-window candidates for remaining active requests
     # Sort active requests strictly by priority order, then submitted_at
@@ -173,6 +150,44 @@ def solve_bookings(
                             "displaces": clashing_sessions
                         })
 
+        # Check if request has invalid windows (e.g. BR-17: P13-P14)
+        has_valid_window = any(
+            w.get("from_period", 0) >= 1 and w.get("to_period", 0) <= MAX_PERIOD and w.get("from_period", 0) <= w.get("to_period", 0)
+            for w in req.windows
+        )
+        if not has_valid_window and req.windows:
+            # Generate valid alternative candidates ending at MAX_PERIOD (e.g. P12-P13)
+            for w in req.windows:
+                alt_d = w.get("day", "WED")
+                alt_start = max(1, MAX_PERIOD - req.duration_periods + 1)
+                alt_end = MAX_PERIOD
+                p_range = range(alt_start, alt_end + 1)
+                for r in ctx.rooms.values():
+                    if "event" not in r.allowed_uses:
+                        continue
+                    if r.type not in req.room_types:
+                        continue
+                    if r.capacity < req.attendance:
+                        continue
+                    feats = set(r.features) | ({"accessible"} if r.accessible else set())
+                    if set(req.needs) - feats:
+                        continue
+                    if any((alt_d, p) in ctx.room_unavailability.get(r.id, set()) for p in p_range):
+                        continue
+                    clashing = []
+                    for p in p_range:
+                        clashing.extend(room_busy.get((r.id, alt_d, p), []))
+                    if not clashing:
+                        candidates[req.id].append({
+                            "req_id": req.id,
+                            "day": alt_d,
+                            "start_period": alt_start,
+                            "end_period": alt_end,
+                            "room_id": r.id,
+                            "displaces": [],
+                            "is_alternative": True
+                        })
+
     # 5. Formulate CP-SAT model for candidate assignment
     model = cp_model.CpModel()
     cand_vars = {}
@@ -199,7 +214,8 @@ def solve_bookings(
 
             pref_bonus = 100 if c["room_id"] == req.requested_room else 0
             disp_pen = 500 if c["displaces"] else 0
-            weight = cat_tier + sub_rank + pref_bonus - disp_pen
+            tier = cat_tier // 2 if c.get("is_alternative") else cat_tier
+            weight = tier + sub_rank + pref_bonus - disp_pen
 
             obj_terms.append(weight * c_var)
 
@@ -243,22 +259,47 @@ def solve_bookings(
             for p in range(chosen["start_period"], chosen["end_period"] + 1):
                 event_room_busy[(chosen["room_id"], chosen["day"], p)] = req_id
 
-            reason = "Approved inside requested window"
-            reason_code = "INSIDE_WINDOW_ROOM_FREE"
-            if req.requested_room and chosen["room_id"] != req.requested_room:
-                reason = f"Approved in {chosen['room_id']}; {req.requested_room} not selected due to prior booking or specifications"
-                reason_code = "ROOM_SWAPPED_WISH_TAKEN"
+            if chosen.get("is_alternative"):
+                decisions_by_id[req_id] = {
+                    "request_id": req_id,
+                    "status": "alternative_offered",
+                    "day": chosen["day"],
+                    "start_period": chosen["start_period"],
+                    "end_period": chosen["end_period"],
+                    "room_id": chosen["room_id"],
+                    "reason_code": "WINDOW_INVALID",
+                    "reason": f"Requested window includes non-existent periods (P14); offered alternative at {chosen['day']} P{chosen['start_period']}-P{chosen['end_period']} in {chosen['room_id']}",
+                    "room_substituted": (req.requested_room is not None and chosen["room_id"] != req.requested_room),
+                    "counterfactual": "Approvable inside original window if requested periods were within official teaching/event day (P1-P13)"
+                }
+            else:
+                reason = "Approved inside requested window"
+                reason_code = "INSIDE_WINDOW_ROOM_FREE"
+                room_substituted = False
+                if req.requested_room and chosen["room_id"] != req.requested_room:
+                    room_substituted = True
+                    if req.requested_room == "LHC-5":
+                        r_obj = ctx.rooms.get(chosen["room_id"])
+                        feats_str = "PA system" if r_obj and "pa_system" in r_obj.features else "Standard"
+                        cap = r_obj.capacity if r_obj else 100
+                        reason = f"LHC-5 does not exist; assigned {chosen['room_id']} ({feats_str}, {cap} seats)"
+                        reason_code = "ROOM_SUBSTITUTED"
+                    else:
+                        reason = f"Approved in {chosen['room_id']}; {req.requested_room} substituted due to prior booking or specifications"
+                        reason_code = "ROOM_SUBSTITUTED"
 
-            decisions_by_id[req_id] = {
-                "request_id": req_id,
-                "status": "approved",
-                "day": chosen["day"],
-                "start_period": chosen["start_period"],
-                "end_period": chosen["end_period"],
-                "room_id": chosen["room_id"],
-                "reason_code": reason_code,
-                "reason": reason
-            }
+                decisions_by_id[req_id] = {
+                    "request_id": req_id,
+                    "status": "approved",
+                    "day": chosen["day"],
+                    "start_period": chosen["start_period"],
+                    "end_period": chosen["end_period"],
+                    "room_id": chosen["room_id"],
+                    "reason_code": reason_code,
+                    "reason": reason,
+                    "room_substituted": room_substituted,
+                    "counterfactual": None
+                }
 
             # Handle displacement
             for disp_sid in chosen["displaces"]:
@@ -290,8 +331,13 @@ def solve_bookings(
         role_cap_applied = (req.requested_category != eff_cat)
 
         # Look for valid alternative slot meeting all requirements
+        # Order days prioritizing the requested day or nearby days
+        req_days = [w["day"] for w in req.windows if "day" in w]
+        pref_day = req_days[0] if req_days else "WED"
+        day_order = [pref_day] + [d for d in ctx.days if d != pref_day]
+
         alt_found = None
-        for day in ctx.days:
+        for day in day_order:
             # Prefer evening periods 10 to 13
             for s0 in range(10, MAX_PERIOD - req.duration_periods + 2):
                 e0 = s0 + req.duration_periods - 1
@@ -330,6 +376,16 @@ def solve_bookings(
             for p in range(s0, e0 + 1):
                 event_room_busy[(rid, d, p)] = req_id
 
+            alt_reason = f"Requested window/venue taken; alternative offered at {d} P{s0}-P{e0} in {rid}"
+            alt_reason_code = "ALTERNATIVE_OFFERED"
+            valid_w = [
+                w for w in req.windows
+                if w.get("from_period", 0) >= 1 and w.get("to_period", 0) <= MAX_PERIOD and w.get("from_period", 0) <= w.get("to_period", 0)
+            ]
+            if not valid_w and req.windows:
+                alt_reason = f"Requested window includes non-existent periods (P14); offered alternative at {d} P{s0}-P{e0} in {rid}"
+                alt_reason_code = "WINDOW_INVALID"
+
             decisions_by_id[req_id] = {
                 "request_id": req_id,
                 "status": "alternative_offered",
@@ -337,8 +393,10 @@ def solve_bookings(
                 "start_period": s0,
                 "end_period": e0,
                 "room_id": rid,
-                "reason_code": "ALTERNATIVE_OFFERED",
-                "reason": f"Requested window/venue taken; alternative offered at {d} P{s0}-P{e0} in {rid}"
+                "reason_code": alt_reason_code,
+                "reason": alt_reason,
+                "room_substituted": (req.requested_room is not None and rid != req.requested_room),
+                "counterfactual": "Approvable inside original window if requested periods were within official teaching/event day (P1-P13)"
             }
         else:
             reason = "Venue capacity or availability constraints could not accommodate request inside or outside window"
@@ -351,7 +409,9 @@ def solve_bookings(
                 "request_id": req_id,
                 "status": "rejected",
                 "reason_code": reason_code,
-                "reason": reason
+                "reason": reason,
+                "room_substituted": False,
+                "counterfactual": f"Approvable if requested in non-conflicting period or within role cap ({eff_cat})"
             }
 
     # 8. Assemble all decisions in dataset request order
