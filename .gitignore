@@ -1,4 +1,6 @@
-# Python
+# ==========================================
+# Python & Virtual Environments
+# ==========================================
 __pycache__/
 *.py[cod]
 *$py.class
@@ -10,27 +12,46 @@ htmlcov/
 .venv/
 venv/
 ENV/
+env/
 *.sqlite3
 *.db
+*.log
 
-# Node
+# ==========================================
+# Node.js & Frontend Build Outputs
+# ==========================================
 node_modules/
+**/node_modules/
 dist/
+**/dist/
 dist-ssr/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 *.local
 
-# Environment & IDE
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
 .env
+.env.*
+!.env.example
+
+# ==========================================
+# Operating System & IDE Artifacts
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Starter package archives
+# ==========================================
+# Raw Archives & Starter Pack Materials
+# ==========================================
 CrunchWeek_StarterPack.zip
 Problem_statement.pdf
 starter_pack/
-
