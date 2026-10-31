@@ -85,37 +85,30 @@ export const RescheduleDiffPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Banner */}
-      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/10 bg-zinc-900/80 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/60 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
             <ShieldCheck className="w-3.5 h-3.5" />
             Minimal Disruption Engine
           </div>
           <h1 className="text-2xl font-bold text-white">Disruptions & Reschedule Diff</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             Compare before-and-after schedule triples. Human Admin approval is required before activating changes.
           </p>
         </div>
 
         {activeProposal && activeProposal.status === 'pending_approval' && user?.role === 'admin' && (
           <div className="flex items-center gap-3">
-            {activeProposal.reported_by && user?.email === activeProposal.reported_by ? (
-              <div className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold flex items-center gap-2">
-                <span>Anti-Self-Approval:</span>
-                <span className="text-amber-400 font-mono text-[11px]">Submitted by you ({user.email}). Another admin must approve.</span>
-              </div>
-            ) : (
-              <button
-                onClick={() => handleApprove(activeProposal.proposal_id)}
-                disabled={isApproving}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
-              >
-                <Check className="w-4 h-4" />
-                {isApproving ? 'Activating...' : 'Approve & Activate New Schedule'}
-              </button>
-            )}
+            <button
+              onClick={() => handleApprove(activeProposal.proposal_id)}
+              disabled={isApproving}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+            >
+              <Check className="w-4 h-4" />
+              {isApproving ? 'Activating...' : 'Approve & Activate New Schedule'}
+            </button>
           </div>
         )}
       </div>
@@ -133,47 +126,34 @@ export const RescheduleDiffPage: React.FC = () => {
         {/* Left Column: Diff View */}
         <div className="lg:col-span-8 space-y-6">
           {loading ? (
-            <div className="glass-panel p-12 text-center text-sm text-zinc-500 rounded-2xl border border-white/10">
+            <div className="glass-panel p-12 text-center text-sm text-slate-500 rounded-2xl border border-slate-800">
               Loading minimal-change repair diff proposals...
             </div>
           ) : activeProposal ? (
-            <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-zinc-950/60 space-y-6">
+            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-950/60 space-y-6">
               
-              {/* Optimal Moves Proved Callout */}
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>
-                    <strong>Minimum possible moves: {activeProposal.minimum_possible_moves || activeProposal.moved_count}</strong> (proved optimal: {activeProposal.forced_count || activeProposal.moved_count} forced by disruption, 0 unnecessary shifts).
-                  </span>
-                </div>
-                <span className="font-mono text-[10px] text-emerald-300 bg-emerald-500/20 px-2.5 py-1 rounded w-fit border border-emerald-500/30">
-                  Tier {activeProposal.active_widening_tier ?? 0}: Forced Only
-                </span>
-              </div>
-
               {/* Diff Summary Metrics */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
-                  <div className="text-xs text-zinc-400 mb-1">Total Moved</div>
-                  <div className="text-2xl font-bold text-white">{activeProposal.moved_count}</div>
-                  <div className="text-[10px] text-zinc-500 mt-0.5">Minimal impact</div>
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                  <div className="text-xs text-slate-400 mb-1">Total Moved</div>
+                  <div className="text-2xl font-bold text-sky-400">{activeProposal.moved_count}</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">Minimal impact</div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
-                  <div className="text-xs text-zinc-400 mb-1">Time Changed</div>
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                  <div className="text-xs text-slate-400 mb-1">Time Changed</div>
                   <div className="text-2xl font-bold text-amber-400">{activeProposal.time_changed_count}</div>
-                  <div className="text-[10px] text-zinc-500 mt-0.5">Only required shifts</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">Only required shifts</div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
-                  <div className="text-xs text-zinc-400 mb-1">Room Only</div>
-                  <div className="text-2xl font-bold text-violet-400">{activeProposal.room_only_changed_count}</div>
-                  <div className="text-[10px] text-zinc-500 mt-0.5">Kept same time slot</div>
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                  <div className="text-xs text-slate-400 mb-1">Room Only</div>
+                  <div className="text-2xl font-bold text-indigo-400">{activeProposal.room_only_changed_count}</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">Kept same time slot</div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-center">
-                  <div className="text-xs text-zinc-400 mb-1">Hard Violations</div>
+                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                  <div className="text-xs text-slate-400 mb-1">Hard Violations</div>
                   <div className="text-2xl font-bold text-emerald-400">
                     {activeProposal.hard_violations}
                   </div>
@@ -184,29 +164,28 @@ export const RescheduleDiffPage: React.FC = () => {
               {/* Before vs After Session Comparison Table */}
               <div className="space-y-3">
                 <h3 className="font-bold text-sm text-white flex items-center gap-2">
-                  <Move className="w-4 h-4 text-emerald-400" />
+                  <Move className="w-4 h-4 text-sky-400" />
                   Session Diff (Before → After)
                 </h3>
 
-                <div className="overflow-x-auto rounded-xl border border-zinc-800">
+                <div className="overflow-x-auto rounded-xl border border-slate-800">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-zinc-900/80 text-zinc-400 border-b border-zinc-800">
+                      <tr className="bg-slate-900/80 text-slate-400 border-b border-slate-800">
                         <th className="p-3 font-semibold">Session ID</th>
                         <th className="p-3 font-semibold">Baseline Slot (Before)</th>
                         <th className="p-3 font-semibold">Repaired Slot (After)</th>
                         <th className="p-3 font-semibold">Change Type</th>
-                        <th className="p-3 font-semibold">Disruption Reason</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800/60 bg-zinc-950/40">
+                    <tbody className="divide-y divide-slate-800/60 bg-slate-950/40">
                       {activeProposal.moved_sessions?.map((m: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-zinc-900/40">
-                          <td className="p-3 font-mono font-bold text-white bg-white/5 px-2 py-0.5 rounded border border-white/10 w-fit">{m.session_id}</td>
-                          <td className="p-3 text-zinc-400">
+                        <tr key={idx} className="hover:bg-slate-900/40">
+                          <td className="p-3 font-mono font-bold text-sky-400">{m.session_id}</td>
+                          <td className="p-3 text-slate-400">
                             {m.before ? (
                               <span>
-                                {m.before.day} Period {m.before.start_period} in <strong className="text-zinc-300">{m.before.room_id}</strong>
+                                {m.before.day} Period {m.before.start_period} in <strong className="text-slate-300">{m.before.room_id}</strong>
                               </span>
                             ) : (
                               <span className="text-emerald-400 font-semibold">[New Session]</span>
@@ -220,18 +199,13 @@ export const RescheduleDiffPage: React.FC = () => {
                           <td className="p-3">
                             <span
                               className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                m.before === null
-                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                  : m.time_changed
+                                m.time_changed
                                   ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                  : 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                                  : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                               }`}
                             >
                               {m.before === null ? 'Added' : m.time_changed ? 'Time + Room' : 'Room Only'}
                             </span>
-                          </td>
-                          <td className="p-3 text-zinc-300 font-sans text-[11px]">
-                            {m.reason || (m.before === null ? 'Newly added session scheduled' : m.time_changed ? 'Time shifted due to disruption' : 'Relocated to alternative venue')}
                           </td>
                         </tr>
                       ))}
@@ -242,7 +216,7 @@ export const RescheduleDiffPage: React.FC = () => {
 
             </div>
           ) : (
-            <div className="glass-panel p-12 text-center text-zinc-400 text-sm">
+            <div className="glass-panel p-12 text-center text-slate-400 text-sm">
               No change proposals pending.
             </div>
           )}
@@ -250,18 +224,18 @@ export const RescheduleDiffPage: React.FC = () => {
 
         {/* Right Column: Upload Disruption Form */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-zinc-900/60 space-y-4">
+          <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
             <h3 className="font-bold text-base text-white flex items-center gap-2">
-              <Upload className="w-4 h-4 text-emerald-400" />
+              <Upload className="w-4 h-4 text-sky-400" />
               Apply Disruption Payload
             </h3>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-slate-400">
               Submit disruption changes (faculty absence, venue closure, added session) to simulate real-world emergencies.
             </p>
 
             <button
               onClick={handleLoadSampleDisruption}
-              className="w-full text-xs font-semibold py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-emerald-300 border border-zinc-700 transition-all text-center"
+              className="w-full text-xs font-semibold py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 transition-all text-center"
             >
               Load Official Sample Disruption
             </button>
@@ -271,13 +245,13 @@ export const RescheduleDiffPage: React.FC = () => {
               value={disruptionText}
               onChange={(e) => setDisruptionText(e.target.value)}
               placeholder="Paste disruption JSON here..."
-              className="w-full p-3 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 font-mono focus:outline-none focus:border-white"
+              className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 font-mono focus:outline-none focus:border-sky-500"
             />
 
             <button
               onClick={handleSubmitDisruption}
               disabled={isSubmittingDisruption || !disruptionText.trim()}
-              className="w-full py-2.5 px-4 rounded-xl font-bold text-xs text-zinc-950 bg-white hover:bg-zinc-200 shadow-xl shadow-white/10 transition-all disabled:opacity-50"
+              className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50"
             >
               {isSubmittingDisruption ? 'Solving Minimal Repair...' : 'Compute Minimal-Change Repair'}
             </button>

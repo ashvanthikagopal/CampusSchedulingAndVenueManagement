@@ -18,14 +18,14 @@ export interface DirectoryAdmin {
 
 export interface DirectoryCoordinator {
   name: string;
-  department: string;
+  department?: string;
   email: string;
 }
 
 export interface DirectoryFaculty {
   name: string;
-  department: string;
-  faculty_id: string;
+  department?: string;
+  faculty_id?: string;
   email: string;
 }
 
@@ -34,7 +34,7 @@ export interface DirectoryClub {
   email: string;
 }
 
-export interface DirectoryData {
+export interface AuthDirectory {
   admins: DirectoryAdmin[];
   coordinators: DirectoryCoordinator[];
   faculty: DirectoryFaculty[];
@@ -46,8 +46,8 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (identifier: string, pass: string) => Promise<User>;
-  loadDirectory: () => Promise<DirectoryData | null>;
   logout: () => void;
+  loadDirectory: () => Promise<AuthDirectory | null>;
   isLoading: boolean;
 }
 
@@ -58,46 +58,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(localStorage.getItem('cit_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Restore session from token by fetching profile
+  // Restore session strictly from token by fetching /auth/me
   useEffect(() => {
-    const initAuth = async () => {
-      const currentToken = localStorage.getItem('cit_token');
-      if (currentToken) {
+    const fetchCurrentUser = async () => {
+      const storedToken = localStorage.getItem('cit_token');
+      if (storedToken) {
         try {
           const res = await api.get('/auth/me');
           setUser(res.data);
+          setToken(storedToken);
         } catch {
-          // Token expired or invalid
-          localStorage.removeItem('cit_token');
-          setToken(null);
-          setUser(null);
+          // Token invalid or expired
+          logout();
         }
       }
       setIsLoading(false);
     };
 
-    initAuth();
-  }, [token]);
+    fetchCurrentUser();
+  }, []);
 
   const login = async (identifier: string, password: string): Promise<User> => {
     const res = await api.post('/auth/login', { identifier, password });
     const { access_token, user: userData } = res.data;
     setToken(access_token);
     setUser(userData);
-    // Persist only the token (do not persist user object)
+    // Persist nothing but the token
     localStorage.setItem('cit_token', access_token);
     localStorage.removeItem('cit_user');
     return userData;
   };
 
-  const loadDirectory = async (): Promise<DirectoryData | null> => {
+  const loadDirectory = async (): Promise<AuthDirectory | null> => {
     try {
       const res = await api.get('/auth/directory');
       return res.data;
     } catch (err: any) {
       if (err.response?.status === 404) {
-        // DEMO_MODE is disabled on backend
-        return null;
+        return null; // DEMO_MODE disabled on backend
       }
       throw err;
     }
@@ -111,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, loadDirectory, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loadDirectory, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

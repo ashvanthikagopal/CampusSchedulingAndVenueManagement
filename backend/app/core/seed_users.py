@@ -1,19 +1,22 @@
 """
-Rule-based user generation and seeding from dataset.
-Builds accounts for every faculty member, department coordinator, club, and admin.
-Idempotent upsert by email with cached role password hashes.
+Seed users module: creates rule-based accounts from the dataset for every role.
+Ensures zero hard-coded personal credentials in Python code.
+Idempotent upsert by email with single password hashing per role for fast execution.
 """
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+import os
 import json
 import re
+from pathlib import Path
+from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 
 from backend.app.models.entities import User
 from backend.app.core.security import get_password_hash
 
+# Cache hashes in memory so bcrypt is only evaluated once per role
+_ROLE_PASSWORD_HASHES: Dict[str, str] = {}
 
-CONFIG_PATH = Path(__file__).resolve().parent / "accounts_config.json"
+CONFIG_PATH = Path(__file__).parent / "accounts_config.json"
 
 
 def load_accounts_config() -> Dict[str, Any]:
@@ -22,12 +25,31 @@ def load_accounts_config() -> Dict[str, Any]:
             return json.load(f)
     return {
         "admins": [
-            {"id": "usr_admin1", "email": "admin@cit.edu", "name": "Dean's Office", "role": "admin", "department": "Administration"},
-            {"id": "usr_admin2", "email": "admin2@cit.edu", "name": "Spectra Core Team", "role": "admin", "department": "Administration"}
+            {
+                "id": "usr_admin1",
+                "name": "Dean's Office",
+                "email": "admin@cit.edu",
+                "role": "admin",
+                "department": "Administration"
+            },
+            {
+                "id": "usr_admin2",
+                "name": "Spectra Core Team",
+                "email": "admin2@cit.edu",
+                "role": "admin",
+                "department": "Administration"
+            }
         ],
         "extra_coordinators": [
-            {"id": "usr_coord_tnp", "email": "coord_tnp@cit.edu", "name": "Training & Placement Cell", "role": "department_coordinator", "department": "CSE"}
+            {
+                "id": "usr_coord_tnp",
+                "name": "Training & Placement Cell",
+                "email": "coord_tnp@cit.edu",
+                "role": "department_coordinator",
+                "department": "CSE"
+            }
         ],
+        "exclude_faculty_departments_for_coordinator": ["ADMIN"],
         "role_passwords": {
             "admin": "Admin@123",
             "department_coordinator": "Coord@123",
@@ -37,179 +59,145 @@ def load_accounts_config() -> Dict[str, Any]:
     }
 
 
+def get_cached_password_hashes(passwords: Dict[str, str]) -> Dict[str, str]:
+    global _ROLE_PASSWORD_HASHES
+    for role, raw_pwd in passwords.items():
+        if role not in _ROLE_PASSWORD_HASHES:
+            _ROLE_PASSWORD_HASHES[role] = get_password_hash(raw_pwd)
+    return _ROLE_PASSWORD_HASHES
+
+
 def make_club_slug(name: str) -> str:
-    cleaned = name.lower().replace("club", "").replace("society", "")
-    slug = re.sub(r"[^a-z0-9]", "", cleaned)
-    return slug.strip()
+    """Removes 'club' or 'society' and returns lowercase alphanumerics."""
+    s = re.sub(r'(?i)\b(club|society)\b', '', name)
+    s = re.sub(r'[^a-zA-Z0-9]', '', s).lower()
+    return s
 
 
-def get_requester_user_id(requester: str, role: str) -> Optional[str]:
-    """Resolves a booking requester name and role to the seeded user ID."""
-    if not requester:
-        return None
-    r_lower = requester.lower()
-    if role == "club":
-        slug = make_club_slug(requester)
-        return f"usr_club_{slug}"
-    if "spectra" in r_lower:
-        return "usr_admin2"
-    if "dean" in r_lower:
-        return "usr_admin1"
-    if "placement" in r_lower or "tnp" in r_lower or "training" in r_lower:
-        return "usr_coord_tnp"
-    if "ece" in r_lower:
-        return "usr_coord_ece"
-    if "civil" in r_lower:
-        return "usr_coord_ce"
-    if "cse" in r_lower:
-        return "usr_coord_cse"
-    if "ee" in r_lower or "electrical" in r_lower:
-        return "usr_coord_ee"
-    if "me" in r_lower or "mech" in r_lower:
-        return "usr_coord_me"
-    m = re.search(r"\(f(\d+)\)", r_lower)
-    if m:
-        return f"usr_fac_f{m.group(1).zfill(2)}"
-    return None
-
-
-def build_accounts_list(dataset: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Generates the full specification of all 62 accounts from dataset and config."""
+def build_accounts_from_dataset(dataset: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Generates all 62 accounts from the dataset and config."""
     config = load_accounts_config()
     accounts: List[Dict[str, Any]] = []
 
-    # 1. Admins
-    for a in config.get("admins", []):
+    # 1. Admins from config
+    for adm in config.get("admins", []):
         accounts.append({
-            "id": a.get("id", f"usr_{a['email'].split('@')[0]}"),
-            "email": a["email"].lower(),
-            "name": a["name"],
-            "role": "admin",
-            "department": a.get("department", "Administration"),
+            "id": adm.get("id", f"usr_admin_{adm['email']}"),
+            "name": adm["name"],
+            "email": adm["email"].lower(),
+            "role": adm.get("role", "admin"),
+            "department": adm.get("department", "Administration"),
             "faculty_id": None,
             "club_name": None
         })
 
-    # 2. Department Coordinators (1 per department in faculty[] excluding ADMIN)
-    fac_list = dataset.get("faculty", [])
-    depts = sorted(set(f.get("department") for f in fac_list if f.get("department") and f.get("department") != "ADMIN"))
-    for dept in depts:
-        dept_lower = dept.lower()
+    # 2. Coordinators: 1 per department in faculty[] excluding ADMIN
+    exclude_depts = set(config.get("exclude_faculty_departments_for_coordinator", ["ADMIN"]))
+    faculty_list = dataset.get("faculty", [])
+    depts = sorted(list(set(f["department"] for f in faculty_list if f.get("department") not in exclude_depts)))
+
+    for d in depts:
         accounts.append({
-            "id": f"usr_coord_{dept_lower}",
-            "email": f"coord_{dept_lower}@cit.edu",
-            "name": f"{dept} Department Coordinator",
+            "id": f"usr_coord_{d.lower()}",
+            "name": f"{d} Department Coordinator",
+            "email": f"coord_{d.lower()}@cit.edu",
             "role": "department_coordinator",
-            "department": dept,
+            "department": d,
             "faculty_id": None,
             "club_name": None
         })
 
     # Extra coordinators from config (e.g. Training & Placement Cell)
-    for c in config.get("extra_coordinators", []):
+    for extra in config.get("extra_coordinators", []):
         accounts.append({
-            "id": c.get("id", f"usr_{c['email'].split('@')[0]}"),
-            "email": c["email"].lower(),
-            "name": c["name"],
-            "role": "department_coordinator",
-            "department": c.get("department", "CSE"),
+            "id": extra.get("id", f"usr_coord_{extra['email']}"),
+            "name": extra["name"],
+            "email": extra["email"].lower(),
+            "role": extra.get("role", "department_coordinator"),
+            "department": extra.get("department", "CSE"),
             "faculty_id": None,
             "club_name": None
         })
 
-    # 3. Faculty members (1 per entry in faculty[])
-    for f in fac_list:
-        fid = f.get("id", "")
-        fid_lower = fid.lower()
+    # 3. Faculty: 1 per faculty[] entry
+    for f in faculty_list:
+        fid = f["id"]
         accounts.append({
-            "id": f"usr_fac_{fid_lower}",
-            "email": f"faculty_{fid_lower}@cit.edu",
-            "name": f.get("name", f"Faculty {fid}"),
+            "id": f"usr_fac_{fid.lower()}",
+            "name": f["name"],
+            "email": f"faculty_{fid.lower()}@cit.edu",
             "role": "faculty",
             "department": f.get("department"),
             "faculty_id": fid,
             "club_name": None
         })
 
-    # 4. Clubs (1 per distinct requester with role == 'club' in booking_requests[])
-    booking_requests = dataset.get("booking_requests", [])
-    club_names = sorted(set(
-        br.get("requester") for br in booking_requests
-        if br.get("role") == "club" and br.get("requester")
-    ))
-    for club_name in club_names:
-        slug = make_club_slug(club_name)
-        accounts.append({
-            "id": f"usr_club_{slug}",
-            "email": f"club_{slug}@cit.edu",
-            "name": club_name,
-            "role": "club",
-            "department": None,
-            "faculty_id": None,
-            "club_name": club_name
-        })
+    # 4. Clubs: 1 per distinct requester with role == 'club' in booking_requests[]
+    seen_clubs = set()
+    for br in dataset.get("booking_requests", []):
+        if br.get("role") == "club":
+            req = br.get("requester")
+            if req and req not in seen_clubs:
+                seen_clubs.add(req)
+                slug = make_club_slug(req)
+                accounts.append({
+                    "id": f"usr_club_{slug}",
+                    "name": req,
+                    "email": f"club_{slug}@cit.edu",
+                    "role": "club",
+                    "department": None,
+                    "faculty_id": None,
+                    "club_name": req
+                })
 
     return accounts
 
 
 def seed_users(db: Session, dataset: Optional[Dict[str, Any]] = None) -> List[User]:
     """
-    Idempotently seeds all accounts derived from dataset.
-    Hashes each role password once and reuses the hash.
-    Upserts by email.
+    Idempotent database seeding for all rule-based users.
+    Upserts each user by email and commits.
     """
     if dataset is None:
-        data_path = Path("data/starter_dataset/cit_public.json")
-        if data_path.exists():
-            with open(data_path, "r", encoding="utf-8") as f:
+        dataset_path = Path("data/starter_dataset/cit_public.json")
+        if dataset_path.exists():
+            with open(dataset_path, "r", encoding="utf-8") as f:
                 dataset = json.load(f)
         else:
             dataset = {"faculty": [], "booking_requests": []}
 
     config = load_accounts_config()
-    role_passwords = config.get("role_passwords", {
-        "admin": "Admin@123",
-        "department_coordinator": "Coord@123",
-        "faculty": "Faculty@123",
-        "club": "Club@123"
-    })
+    hashes = get_cached_password_hashes(config.get("role_passwords", {}))
 
-    # Hash each role password exactly once
-    cached_hashes = {
-        role: get_password_hash(pwd)
-        for role, pwd in role_passwords.items()
-    }
-
-    accounts_spec = build_accounts_list(dataset)
+    accounts = build_accounts_from_dataset(dataset)
     seeded_users: List[User] = []
 
-    for spec in accounts_spec:
-        email = spec["email"].lower()
-        role = spec["role"]
-        pwd_hash = cached_hashes.get(role, cached_hashes.get("faculty"))
+    for acc in accounts:
+        role = acc["role"]
+        pwd_hash = hashes.get(role, hashes.get("club", "fallback_hash"))
 
-        user = db.query(User).filter(User.email == email).first()
-        if user:
-            # Update fields
-            user.name = spec["name"]
-            user.role = spec["role"]
-            user.department = spec["department"]
-            user.faculty_id = spec["faculty_id"]
-            user.club_name = spec["club_name"]
-            user.password_hash = pwd_hash
+        existing = db.query(User).filter(User.email == acc["email"]).first()
+        if existing:
+            existing.name = acc["name"]
+            existing.role = acc["role"]
+            existing.department = acc["department"]
+            existing.faculty_id = acc["faculty_id"]
+            existing.club_name = acc["club_name"]
+            existing.password_hash = pwd_hash
+            seeded_users.append(existing)
         else:
             user = User(
-                id=spec["id"],
-                name=spec["name"],
-                email=email,
+                id=acc["id"],
+                name=acc["name"],
+                email=acc["email"],
                 password_hash=pwd_hash,
-                role=spec["role"],
-                department=spec["department"],
-                faculty_id=spec["faculty_id"],
-                club_name=spec["club_name"]
+                role=acc["role"],
+                department=acc["department"],
+                faculty_id=acc["faculty_id"],
+                club_name=acc["club_name"]
             )
             db.add(user)
-        seeded_users.append(user)
+            seeded_users.append(user)
 
     db.commit()
     return seeded_users

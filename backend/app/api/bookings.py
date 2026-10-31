@@ -1,6 +1,6 @@
 """
 Spectra Week and Venue Bookings API endpoints.
-Strictly enforces server-side role capping, department scoping, and anti-self-approval checks.
+Strictly enforces server-side role capping and anti-self-approval checks.
 """
 from datetime import datetime
 from typing import List, Optional, Dict, Any
@@ -12,18 +12,18 @@ from backend.app.database.session import get_db
 from backend.app.models.entities import (
     BookingRequestModel, BookingDecisionModel, User, AuditLogModel, DatasetModel, RoomModel
 )
-from backend.app.api.deps import get_current_user, get_current_user_optional, require_admin
+from backend.app.api.deps import get_current_user, require_admin, get_optional_current_user
 from backend.app.schemas.schemas import (
     BookingCreateRequest, BookingParseRequest, BookingParseResponse,
     BookingCheckRequest, BookingCheckResponse, BookingDecisionRequest
 )
 from backend.app.ai.parser import parse_booking_text
 from backend.app.rules.models import DatasetContext, BookingRequest as RuleBookingRequest, effective_category
-from backend.app.core.seed_users import get_requester_user_id
 from backend.app.solver.booking_engine import solve_bookings
 from backend.app.rules.engine import to_assign
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
+
 
 PRIORITY_ORDER = [
     "exam", "regular_session", "institute_event",
@@ -37,42 +37,31 @@ ROLE_CAPS = {
     "club": "club_event"
 }
 
-DEPT_LAB_TYPES = {
-    "CSE": ["lab_cs"],
-    "ECE": ["lab_elec"],
-    "EE": ["lab_elec"],
-    "PH": ["lab_phy"],
-    "CE": ["lab_civil"],
-    "ME": ["workshop"]
-}
 
-
-def compute_effective_category(role: str, requested_cat: Optional[str]) -> tuple[str, str]:
-    """
-    Computes effective category as min(requested, role_cap) with stated rule trace.
-    In PRIORITY_ORDER, smaller index is higher priority, so min priority corresponds to max index.
-    """
+def compute_effective_category_and_trace(role: str, requested: Optional[str]) -> tuple[str, str]:
     cap = ROLE_CAPS.get(role, "club_event")
-    req = requested_cat or cap
-    order = PRIORITY_ORDER
-    req_idx = order.index(req) if req in order else len(order) - 1
-    cap_idx = order.index(cap) if cap in order else len(order) - 1
-
+    req = requested or cap
+    req_idx = PRIORITY_ORDER.index(req) if req in PRIORITY_ORDER else len(PRIORITY_ORDER) - 1
+    cap_idx = PRIORITY_ORDER.index(cap)
     eff_idx = max(req_idx, cap_idx)
-    eff_cat = order[eff_idx]
+    eff_cat = PRIORITY_ORDER[eff_idx]
 
     if req_idx < cap_idx:
-        trace = f"Requested category '{req}' exceeds role cap for '{role}' ({cap}). Capped to '{eff_cat}'."
+        rule_trace = f"Requested category '{req}' capped to '{eff_cat}' by role policy for role '{role}'."
     else:
-        trace = f"Requested category '{req}' is valid within role cap for '{role}' ({cap})."
-    return eff_cat, trace
+        rule_trace = f"Requested category '{req}' satisfies role cap '{cap}' for role '{role}'."
+
+    return eff_cat, rule_trace
 
 
 @router.post("/parse", response_model=BookingParseResponse)
 def parse_request_endpoint(req: BookingParseRequest, current_user: User = Depends(get_current_user)):
     """Parses plain-language English or Hinglish text using Gemini with deterministic fallback."""
     parsed = parse_booking_text(req.text, user_role=current_user.role)
-    eff_cat, _ = compute_effective_category(current_user.role, parsed.get("effective_category"))
+
+    # Server-side category cap: min(requested, role_cap) with stated rule_trace
+    requested = parsed.get("requested_category")
+    eff_cat, rule_trace = compute_effective_category_and_trace(current_user.role, requested)
 
     return BookingParseResponse(
         intent=parsed.get("intent", "book_venue"),
@@ -87,6 +76,7 @@ def parse_request_endpoint(req: BookingParseRequest, current_user: User = Depend
         assumptions=parsed.get("assumptions", []),
         follow_up_question=parsed.get("follow_up_question"),
         effective_category=eff_cat,
+        rule_trace=rule_trace,
         raw_text=req.text,
         parsed_by=parsed.get("parsed_by", "rule_fallback")
     )
@@ -97,6 +87,7 @@ def check_booking_endpoint(check_req: BookingCheckRequest, db: Session = Depends
     """Dry-run validation of a booking request against current timetable and venue constraints."""
     b = check_req.booking
 
+    # Check venue capacity
     all_rooms = db.query(RoomModel).all()
     max_cap = max((r.capacity for r in all_rooms if "event" in r.allowed_uses), default=0)
     if b.attendance > max_cap:
@@ -106,6 +97,7 @@ def check_booking_endpoint(check_req: BookingCheckRequest, db: Session = Depends
             reason=f"Attendance of {b.attendance} exceeds largest campus event venue capacity ({max_cap} seats in OAT)."
         )
 
+    # Check room exists if requested
     if b.requested_room:
         rm = db.query(RoomModel).filter(RoomModel.id == b.requested_room).first()
         if not rm:
@@ -131,16 +123,10 @@ def check_booking_endpoint(check_req: BookingCheckRequest, db: Session = Depends
 
 
 @router.post("")
-def create_booking(
-    booking: BookingCreateRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Submits a new booking request.
-    Effective category is strictly capped to min(requested, role_cap) server-side with rule trace.
-    """
-    eff_cat, rule_trace = compute_effective_category(current_user.role, booking.requested_category)
+def create_booking(booking: BookingCreateRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Submits a new booking request. Effective category is computed server-side."""
+    eff_cat, rule_trace = compute_effective_category_and_trace(current_user.role, booking.requested_category)
+
     req_id = f"BR-REQ-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
     new_b = BookingRequestModel(
@@ -168,36 +154,24 @@ def create_booking(
         actor=current_user.email,
         action="SUBMIT_BOOKING",
         entity=f"BookingRequest:{req_id}",
-        after_json={
-            "title": booking.title,
-            "attendance": booking.attendance,
-            "requested_category": booking.requested_category,
-            "effective_category": eff_cat,
-            "rule_trace": rule_trace
-        }
+        after_json={"title": booking.title, "attendance": booking.attendance, "effective_category": eff_cat, "rule_trace": rule_trace}
     ))
+
     db.commit()
 
     return {
         "status": "success",
         "request_id": req_id,
         "effective_category": eff_cat,
-        "requested_category": booking.requested_category or eff_cat,
         "rule_trace": rule_trace,
-        "reason": rule_trace,
-        "message": "Booking submitted successfully and queued for review."
+        "message": f"Booking submitted successfully. {rule_trace}"
     }
 
 
 @router.get("")
-def list_bookings(
-    db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional)
-):
-    """
-    Lists booking requests and active decisions.
-    Clubs only see their own requests (submitted_by == user.id or club_name matches).
-    """
+def list_bookings(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
+    """Lists all booking requests and their active decisions."""
+    # Read decisions from exports/schedule.json
     disk_decisions = {}
     try:
         with open("exports/schedule.json", encoding="utf-8") as f:
@@ -207,6 +181,7 @@ def list_bookings(
     except Exception:
         pass
 
+    # Read requests from cit_public.json
     try:
         with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
             data = json.load(f)
@@ -214,26 +189,20 @@ def list_bookings(
     except Exception:
         starter_reqs = []
 
-    db_reqs = {b.id: b for b in db.query(BookingRequestModel).all()}
-
     res = []
     for r in starter_reqs:
-        req_id = r["id"]
-        d = disk_decisions.get(req_id, {})
-        db_b = db_reqs.get(req_id)
-
-        submitted_by = db_b.submitted_by if db_b else get_requester_user_id(r.get("requester", ""), r.get("role", "club"))
-        requester_name = r.get("requester")
-
-        # Club scoping: clubs only see requests submitted by their account
+        # Scoping check for club: only requests where requester matches club_name or submitted_by
         if current_user and current_user.role == "club":
-            if submitted_by != current_user.id and requester_name != current_user.club_name and requester_name != current_user.name:
+            req_name = r.get("requester")
+            sub_by = r.get("submitted_by")
+            if req_name != current_user.club_name and req_name != current_user.name and sub_by != current_user.id:
                 continue
 
+        d = disk_decisions.get(r["id"], {})
         res.append({
-            "id": req_id,
+            "id": r["id"],
             "title": r.get("title"),
-            "requester": requester_name,
+            "requester": r.get("requester"),
             "role": r.get("role"),
             "attendance": r.get("attendance"),
             "duration_periods": r.get("duration_periods"),
@@ -243,7 +212,6 @@ def list_bookings(
             "requested_room": r.get("requested_room"),
             "mandatory_for_groups": r.get("mandatory_for_groups"),
             "submitted_at": r.get("submitted_at"),
-            "submitted_by": submitted_by,
             "status": d.get("status", "pending"),
             "assigned_room": d.get("room_id"),
             "assigned_day": d.get("day"),
@@ -253,30 +221,30 @@ def list_bookings(
             "reason": d.get("reason")
         })
 
-    # Also include any newly created bookings in db that were not in starter dataset
-    starter_ids = {r["id"] for r in starter_reqs}
-    for b_id, b in db_reqs.items():
-        if b_id in starter_ids:
-            continue
+    # Also include any live requests in DB that were submitted
+    db_reqs = db.query(BookingRequestModel).all()
+    for db_r in db_reqs:
         if current_user and current_user.role == "club":
-            if b.submitted_by != current_user.id and b.requester != current_user.club_name and b.requester != current_user.name:
+            if db_r.submitted_by != current_user.id and db_r.requester != current_user.club_name and db_r.requester != current_user.name:
                 continue
-        d = disk_decisions.get(b_id, {})
+        # Avoid duplicate if already in starter_reqs
+        if any(item["id"] == db_r.id for item in res):
+            continue
+        d = disk_decisions.get(db_r.id, {})
         res.append({
-            "id": b.id,
-            "title": b.title,
-            "requester": b.requester,
-            "role": b.role,
-            "attendance": b.attendance,
-            "duration_periods": b.duration_periods,
-            "windows": b.windows,
-            "room_types": b.room_types,
-            "needs": b.needs,
-            "requested_room": b.requested_room,
-            "mandatory_for_groups": b.mandatory_for_groups,
-            "submitted_at": b.submitted_at,
-            "submitted_by": b.submitted_by,
-            "status": b.status or d.get("status", "pending"),
+            "id": db_r.id,
+            "title": db_r.title,
+            "requester": db_r.requester,
+            "role": db_r.role,
+            "attendance": db_r.attendance,
+            "duration_periods": db_r.duration_periods,
+            "windows": db_r.windows,
+            "room_types": db_r.room_types,
+            "needs": db_r.needs,
+            "requested_room": db_r.requested_room,
+            "mandatory_for_groups": db_r.mandatory_for_groups,
+            "submitted_at": db_r.submitted_at,
+            "status": db_r.status or d.get("status", "pending"),
             "assigned_room": d.get("room_id"),
             "assigned_day": d.get("day"),
             "start_period": d.get("start_period"),
@@ -297,96 +265,99 @@ def decide_booking(
 ):
     """
     Approves, rejects, or offers alternative for a booking request.
-    Strictly enforces:
-    1. Anti-self-approval: nobody approves their own request.
-    2. Role boundaries: clubs and faculty cannot approve.
-    3. Department Coordinators can ONLY approve bookings for their department's labs.
+    Strictly enforces Non-negotiable #5: Nobody approves their own request!
+    Also enforces that department coordinators can only approve department lab bookings.
     """
-    # 1. Role boundary check
+    # 1. Authorization: Admins and Department Coordinators only
     if current_user.role not in ("admin", "department_coordinator"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Operation not permitted: role '{current_user.role}' cannot make booking decisions."
+            detail="Only Admins and Department Coordinators can make booking decisions."
         )
 
-    # Find booking request
+    # 2. Non-negotiable #5: Anti-self-approval
     booking = db.query(BookingRequestModel).filter(BookingRequestModel.id == req_id).first()
-    requester = booking.requester if booking else ""
-    submitted_by = booking.submitted_by if booking else None
-
-    if not submitted_by or not requester:
+    if booking:
+        if booking.submitted_by and booking.submitted_by == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Anti-self-approval violation: You cannot approve or decide your own booking request."
+            )
+        if booking.requester and (booking.requester.lower() == current_user.name.lower() or booking.requester.lower() == (current_user.club_name or "").lower()):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Anti-self-approval violation: You cannot approve or decide your own booking request."
+            )
+    else:
+        # Check against starter dataset
         try:
             with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-                d = json.load(f)
-            for br in d.get("booking_requests", []):
-                if br["id"] == req_id:
-                    requester = br.get("requester", "")
-                    submitted_by = get_requester_user_id(requester, br.get("role", ""))
-                    break
+                sdata = json.load(f)
+            for req in sdata.get("booking_requests", []):
+                if req.get("id") == req_id:
+                    req_name = req.get("requester", "")
+                    if req_name.lower() == current_user.name.lower() or req_name.lower() == (current_user.club_name or "").lower():
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Anti-self-approval violation: You cannot approve or decide your own booking request."
+                        )
+        except HTTPException:
+            raise
         except Exception:
             pass
 
-    if not submitted_by:
-        submitted_by = get_requester_user_id(requester, "club")
-
-    # 2. Anti-self-approval check
-    is_self = False
-    if submitted_by and submitted_by == current_user.id:
-        is_self = True
-    elif current_user.id == "usr_admin2" and "Spectra" in requester:
-        is_self = True
-    elif current_user.id == "usr_admin1" and ("Dean" in requester or "Academic" in requester):
-        is_self = True
-    elif current_user.club_name and requester == current_user.club_name:
-        is_self = True
-    elif current_user.name and (requester == current_user.name or current_user.name in requester):
-        is_self = True
-
-    if is_self:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Anti-self-approval violation: You cannot approve or decide your own booking request."
-        )
-
-    # 3. Department coordinator lab approval scoping
+    # 3. Department coordinator lab restriction
     if current_user.role == "department_coordinator":
-        allowed_types = DEPT_LAB_TYPES.get(current_user.department, [])
         target_room_id = body.room_id or (booking.requested_room if booking else None)
-
         if not target_room_id:
             try:
                 with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-                    d = json.load(f)
-                for br in d.get("booking_requests", []):
-                    if br["id"] == req_id:
-                        target_room_id = br.get("requested_room")
-                        break
+                    sdata = json.load(f)
+                for req in sdata.get("booking_requests", []):
+                    if req.get("id") == req_id:
+                        target_room_id = req.get("requested_room")
             except Exception:
                 pass
 
         if not target_room_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Department coordinators can only approve bookings targeting their department's labs."
+                detail="Department coordinators can only approve bookings targeting a department laboratory venue."
             )
 
-        room = db.query(RoomModel).filter(RoomModel.id == target_room_id).first()
-        room_type = room.type if room else None
-        if not room_type:
+        rm = db.query(RoomModel).filter(RoomModel.id == target_room_id).first()
+        if not rm:
             try:
                 with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-                    d = json.load(f)
-                for r in d.get("rooms", []):
-                    if r["id"] == target_room_id:
-                        room_type = r.get("type")
-                        break
+                    sdata = json.load(f)
+                for r in sdata.get("rooms", []):
+                    if r.get("id") == target_room_id:
+                        rm = RoomModel(id=r["id"], name=r["name"], building=r.get("building"), type=r["type"], capacity=r["capacity"], allowed_uses=r.get("allowed_uses", []))
             except Exception:
                 pass
 
-        if not room_type or room_type not in allowed_types:
+        if not rm or not (rm.type.startswith("lab") or "lab" in rm.type.lower() or "lab" in rm.id.lower()):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Department coordinators can only approve bookings for their department's labs (allowed types for {current_user.department}: {allowed_types})."
+                detail="Department coordinators can only approve bookings for laboratory venues."
+            )
+
+        lab_dept_map = {
+            "lab_cs": ["CSE"],
+            "lab_elec": ["ECE", "EE"],
+            "lab_phy": ["PH"],
+            "lab_civil": ["CE"]
+        }
+        allowed_depts = lab_dept_map.get(rm.type, [])
+        dept_match = (
+            (current_user.department in allowed_depts) or
+            (current_user.department.lower() in rm.id.lower()) or
+            (current_user.department.lower() in (rm.building or "").lower())
+        )
+        if not dept_match:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Department coordinators cannot approve bookings for labs outside their department ({current_user.department})."
             )
 
     # Update exports/schedule.json fest_week bookings
@@ -425,9 +396,6 @@ def decide_booking(
         with open("exports/schedule.json", "w", encoding="utf-8") as f:
             json.dump(sched, f, indent=2)
 
-        if booking:
-            booking.status = body.action
-
         # Audit log
         db.add(AuditLogModel(
             actor=current_user.email,
@@ -438,15 +406,13 @@ def decide_booking(
         db.commit()
 
         return {"status": "success", "request_id": req_id, "action": body.action}
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/decide-all")
 def decide_all_bookings(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    """Runs CP-SAT optimization engine to solve all booking requests with 0 inversions."""
+    """Runs CP-SAT optimization engine to solve all 25 booking requests with 0 inversions."""
     with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
         data = json.load(f)
     with open("exports/schedule.json", encoding="utf-8") as f:
@@ -476,3 +442,4 @@ def decide_all_bookings(db: Session = Depends(get_db), admin: User = Depends(req
         "stats": stats,
         "message": f"Solved {stats['total_requests']} requests: {stats['approved']} approved, {stats['alternatives']} alternatives, {stats['rejected']} rejected."
     }
+

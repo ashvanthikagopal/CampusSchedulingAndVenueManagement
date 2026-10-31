@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
 import { 
   Calendar, Filter, Sparkles, 
-  X, CheckCircle2, AlertOctagon, Move, Copy, Check, Download
+  X, CheckCircle2, AlertOctagon, Move,
+  GraduationCap, Building2
 } from 'lucide-react';
 
 export const TimetableGrid: React.FC = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [scheduleData, setScheduleData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterView, setFilterView] = useState<string>('all'); // all | group | faculty | room
@@ -17,6 +20,18 @@ export const TimetableGrid: React.FC = () => {
   const [explanation, setExplanation] = useState<any>(null);
   const [loadingExplain, setLoadingExplain] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (user?.role === 'faculty' && user.faculty_id) {
+      setFilterView('faculty');
+      setFilterId(user.faculty_id);
+    } else if (searchParams.get('faculty')) {
+      setFilterView('faculty');
+      setFilterId(searchParams.get('faculty')!);
+    } else if (searchParams.get('dept')) {
+      setFilterView('all');
+    }
+  }, [user, searchParams]);
+
   // Manual move modal state
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [targetSessionId, setTargetSessionId] = useState('');
@@ -25,44 +40,6 @@ export const TimetableGrid: React.FC = () => {
   const [targetRoom, setTargetRoom] = useState('CR-101');
   const [moveResult, setMoveResult] = useState<any>(null);
   const [isSubmittingMove, setIsSubmittingMove] = useState(false);
-  const [copiedWhatsapp, setCopiedWhatsapp] = useState(false);
-
-  const handleCopyWhatsapp = (session: any) => {
-    if (!session) return;
-    const msg = `📢 *CIT Academic Timetable Notice*\n` +
-      `📅 *Course:* ${session.course_name || session.course_id} (${session.course_id})\n` +
-      `📍 *Venue:* ${session.room_name || session.room_id} (${session.room_id})\n` +
-      `⏰ *Slot:* ${session.day} Period ${session.start_period} (${session.time_slot || 'Teaching Slot'})\n` +
-      `👨‍🏫 *Faculty:* ${session.faculty_name || session.faculty_id} (${session.faculty_id})\n` +
-      `👥 *Group:* ${(session.groups || []).join(', ')}\n` +
-      `✅ *Status:* Clash-Free Verified (0 Hard Violations)`;
-    navigator.clipboard.writeText(msg);
-    setCopiedWhatsapp(true);
-    setTimeout(() => setCopiedWhatsapp(false), 2500);
-  };
-
-  const handleDownloadIcs = (session: any) => {
-    if (!session) return;
-    const icsContent = 
-      "BEGIN:VCALENDAR\n" +
-      "VERSION:2.0\n" +
-      "PRODID:-//CIT Campus Scheduler//EN\n" +
-      "BEGIN:VEVENT\n" +
-      `SUMMARY:${session.course_id}: ${session.course_name || 'Class'}\n` +
-      `LOCATION:${session.room_id}\n` +
-      `DESCRIPTION:Faculty: ${session.faculty_name || session.faculty_id}, Groups: ${(session.groups || []).join(', ')}\n` +
-      `STATUS:CONFIRMED\n` +
-      "END:VEVENT\n" +
-      "END:VCALENDAR";
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${session.session_id || 'session'}.ics`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const days = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
   const periods = [
@@ -155,13 +132,13 @@ export const TimetableGrid: React.FC = () => {
     if (isEvent) return 'bg-pink-500/20 border-pink-500/40 text-pink-300';
     switch (kind) {
       case 'lecture':
-        return 'bg-violet-500/20 border-violet-500/40 text-violet-300';
+        return 'bg-blue-500/20 border-blue-500/40 text-blue-300';
       case 'tutorial':
         return 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300';
       case 'lab':
-        return 'bg-amber-500/20 border-amber-500/40 text-amber-300';
+        return 'bg-purple-500/20 border-purple-500/40 text-purple-300';
       default:
-        return 'bg-zinc-800 border-zinc-700 text-zinc-300';
+        return 'bg-slate-800 border-slate-700 text-slate-300';
     }
   };
 
@@ -178,13 +155,13 @@ export const TimetableGrid: React.FC = () => {
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Top Header & Filter Bar */}
-      <div className="glass-panel p-5 rounded-2xl border border-white/10 bg-zinc-900/60 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="glass-panel p-5 rounded-2xl border border-slate-800 bg-slate-900/60 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-white" />
+            <Calendar className="w-6 h-6 text-sky-400" />
             Master Academic Timetable
           </h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             Synchronized schedule across 14 Student Groups, 40 Faculty, and 27 Venues
           </p>
         </div>
@@ -197,7 +174,7 @@ export const TimetableGrid: React.FC = () => {
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
               isWeek7
                 ? 'bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-lg shadow-pink-500/10'
-                : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:text-zinc-200'
+                : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-slate-200'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -205,57 +182,72 @@ export const TimetableGrid: React.FC = () => {
           </button>
 
           {/* Filter Type */}
-          <div className="flex items-center gap-1.5 bg-zinc-800/80 p-1 rounded-xl border border-zinc-700">
-            <Filter className="w-3.5 h-3.5 text-zinc-400 ml-2" />
-            <select
-              value={filterView}
-              onChange={(e) => {
-                setFilterView(e.target.value);
-                setFilterId('');
-              }}
-              className="bg-transparent text-xs text-white font-medium focus:outline-none pr-3"
-            >
-              <option value="all" className="bg-zinc-900 text-white">All Sessions</option>
-              <option value="group" className="bg-zinc-900 text-white">By Student Group</option>
-              <option value="faculty" className="bg-zinc-900 text-white">By Faculty</option>
-              <option value="room" className="bg-zinc-900 text-white">By Room / Venue</option>
-            </select>
-          </div>
+          {user?.role === 'faculty' ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono">
+              <GraduationCap className="w-4 h-4 text-amber-400" />
+              Faculty Timetable: {user.name} ({user.faculty_id})
+            </div>
+          ) : (
+            <>
+              {user?.role === 'department_coordinator' && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-mono">
+                  <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                  {user.department} Dept Scope
+                </div>
+              )}
+              <div className="flex items-center gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700">
+                <Filter className="w-3.5 h-3.5 text-slate-400 ml-2" />
+                <select
+                  value={filterView}
+                  onChange={(e) => {
+                    setFilterView(e.target.value);
+                    setFilterId('');
+                  }}
+                  className="bg-transparent text-xs text-white font-medium focus:outline-none pr-3"
+                >
+                  <option value="all" className="bg-slate-900 text-white">All Sessions</option>
+                  <option value="group" className="bg-slate-900 text-white">By Student Group</option>
+                  <option value="faculty" className="bg-slate-900 text-white">By Faculty</option>
+                  <option value="room" className="bg-slate-900 text-white">By Room / Venue</option>
+                </select>
+              </div>
 
-          {/* Filter ID Input */}
-          {filterView !== 'all' && (
-            <input
-              type="text"
-              placeholder={
-                filterView === 'group' ? 'e.g. Y1-A, CSE-2, ECE-3' :
-                filterView === 'faculty' ? 'e.g. F06, F19, F37' : 'e.g. AUD, LH-1, CS-LAB-1'
-              }
-              value={filterId}
-              onChange={(e) => setFilterId(e.target.value.toUpperCase())}
-              className="px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white"
-            />
+              {/* Filter ID Input */}
+              {filterView !== 'all' && (
+                <input
+                  type="text"
+                  placeholder={
+                    filterView === 'group' ? 'e.g. Y1-A, CSE-2, ECE-3' :
+                    filterView === 'faculty' ? 'e.g. F06, F19, F37' : 'e.g. AUD, LH-1, CS-LAB-1'
+                  }
+                  value={filterId}
+                  onChange={(e) => setFilterId(e.target.value.toUpperCase())}
+                  className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                />
+              )}
+            </>
           )}
 
           {/* Color Legend */}
-          <div className="hidden xl:flex items-center gap-3 text-[11px] text-zinc-400 pl-2">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-violet-500" /> Lecture</span>
+          <div className="hidden xl:flex items-center gap-3 text-[11px] text-slate-400 pl-2">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Lecture</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Tutorial</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Lab (3h)</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500" /> Lab (3h)</span>
             {isWeek7 && <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-pink-500" /> Fest Event</span>}
           </div>
         </div>
       </div>
 
       {/* Timetable Table Container */}
-      <div className="glass-panel rounded-2xl border border-white/10 bg-zinc-950/70 overflow-hidden shadow-2xl">
+      <div className="glass-panel rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden shadow-2xl">
         {loading ? (
-          <div className="p-16 text-center text-sm text-zinc-500">Loading master timetable grid...</div>
+          <div className="p-16 text-center text-sm text-slate-500">Loading master timetable grid...</div>
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1100px]">
             <thead>
-              <tr className="border-b border-zinc-800 bg-zinc-900/80">
-                <th className="p-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider w-24 sticky left-0 bg-zinc-900/90 z-20">
+              <tr className="border-b border-slate-800 bg-slate-900/80">
+                <th className="p-3 text-xs font-semibold text-slate-400 uppercase tracking-wider w-24 sticky left-0 bg-slate-900/90 z-20">
                   Day
                 </th>
                 {periods.map((item, idx) => (
@@ -265,21 +257,21 @@ export const TimetableGrid: React.FC = () => {
                       item.p === 'LUNCH'
                         ? 'bg-amber-950/20 text-amber-400 w-20 border-x border-amber-500/20'
                         : typeof item.p === 'number' && item.p >= 10
-                        ? 'bg-pink-950/20 text-pink-300 w-28 border-l border-zinc-800/80'
-                        : 'text-zinc-300 w-32 border-l border-zinc-800/50'
+                        ? 'bg-pink-950/20 text-pink-300 w-28 border-l border-slate-800/80'
+                        : 'text-slate-300 w-32 border-l border-slate-800/50'
                     }`}
                   >
                     <div>{item.label}</div>
-                    <div className="text-[10px] font-normal text-zinc-500">{item.time}</div>
+                    <div className="text-[10px] font-normal text-slate-500">{item.time}</div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60">
+            <tbody className="divide-y divide-slate-800/60">
               {days.map((day) => (
-                <tr key={day} className="hover:bg-zinc-900/30 transition-colors">
+                <tr key={day} className="hover:bg-slate-900/30 transition-colors">
                   {/* Day Label */}
-                  <td className="p-3 text-sm font-bold text-white sticky left-0 bg-zinc-950/95 z-10 border-r border-zinc-800">
+                  <td className="p-3 text-sm font-bold text-sky-400 sticky left-0 bg-slate-950/90 z-10 border-r border-slate-800">
                     {day}
                   </td>
 
@@ -349,32 +341,32 @@ export const TimetableGrid: React.FC = () => {
 
       {/* Drawer: Explain This Slot */}
       {selectedSession && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-zinc-900 border-l border-zinc-800 h-full p-6 overflow-y-auto space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-slate-900 border-l border-slate-800 h-full p-6 overflow-y-auto space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div>
                 <h3 className="font-bold text-lg text-white">
                   Slot Explanation & Why Here
                 </h3>
-                <span className="font-mono text-xs text-emerald-400">
+                <span className="font-mono text-xs text-sky-400">
                   {selectedSession.session_id} ({selectedSession.course_id})
                 </span>
               </div>
               <button
                 onClick={() => setSelectedSession(null)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white"
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {loadingExplain ? (
-              <div className="text-center py-12 text-zinc-400 text-sm">
+              <div className="text-center py-12 text-slate-400 text-sm">
                 Evaluating deterministic constraint facts...
               </div>
             ) : explanation ? (
-              <div className="space-y-5 text-xs text-zinc-300">
-                <div className="p-3.5 rounded-xl bg-white/10 border border-white/20 text-white leading-relaxed">
+              <div className="space-y-5 text-xs text-slate-300">
+                <div className="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300 leading-relaxed">
                   {explanation.explanation_text}
                 </div>
 
@@ -382,7 +374,7 @@ export const TimetableGrid: React.FC = () => {
                   <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-2">
                     Reasons for Current Placement
                   </h4>
-                  <ul className="space-y-1.5 list-disc list-inside text-zinc-400">
+                  <ul className="space-y-1.5 list-disc list-inside text-slate-400">
                     {explanation.reasons_for_placement.map((r: string, idx: number) => (
                       <li key={idx}>{r}</li>
                     ))}
@@ -400,32 +392,14 @@ export const TimetableGrid: React.FC = () => {
                   </ul>
                 </div>
 
-                {/* Quick actions: WhatsApp Announcement & ICS Download */}
-                <div className="pt-3 border-t border-zinc-800 flex items-center gap-2">
-                  <button
-                    onClick={() => handleCopyWhatsapp(selectedSession)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl font-semibold text-xs text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all"
-                  >
-                    {copiedWhatsapp ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copiedWhatsapp ? 'Copied WhatsApp Notice!' : 'Copy WhatsApp Announcement'}
-                  </button>
-                  <button
-                    onClick={() => handleDownloadIcs(selectedSession)}
-                    title="Export ICS Calendar file"
-                    className="flex items-center justify-center p-2 rounded-xl text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-all"
-                  >
-                    <Download className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-
                 {/* Move button for authorized roles */}
                 {(user?.role === 'admin' || user?.role === 'department_coordinator') && (
-                  <div className="pt-2">
+                  <div className="pt-4 border-t border-slate-800">
                     <button
                       onClick={() => openMoveModal(selectedSession)}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-all"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
                     >
-                      <Move className="w-4 h-4 text-emerald-400" />
+                      <Move className="w-4 h-4 text-sky-400" />
                       Move or Reassign Session
                     </button>
                   </div>

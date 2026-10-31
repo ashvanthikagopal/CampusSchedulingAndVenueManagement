@@ -155,107 +155,92 @@ python backend/validator/validator.py --data data/starter_dataset/cit_public.jso
 
 ## Demo Accounts & Role-Based Access
 
-The system replaces hard-coded demo credentials with **deterministic, rule-based account generation** derived directly from `data/starter_dataset/cit_public.json` and `backend/app/core/accounts_config.json`. Every member of every role receives an active account (**62 total accounts**).
+The platform provides comprehensive, dataset-driven role-based access control (RBAC). Rather than hard-coded mock logins, accounts are dynamically generated for **every member of every role** in the dataset (62 distinct accounts total):
 
-### Role Passwords & Rules
+### Role Password Policy & Email Derivation Rules
 
-| Role | Email Rule / Login Identifier | Password | Role Category Cap | Allowed Capabilities |
-|---|---|---|---|---|
-| **Campus Admin** | `admin@cit.edu`, `admin2@cit.edu` | `Admin@123` | `institute_event` | Full timetable generation, disruption approval, global venue governance, demo reset |
-| **Department Coordinator** | `coord_<dept>@cit.edu` (e.g. `coord_cse@cit.edu`, `coord_tnp@cit.edu`) | `Coord@123` | `department_event` | Department timetable scoping, lab booking approval for own department's labs only |
-| **Faculty Member** | `faculty_<fid>@cit.edu` OR Faculty ID (e.g. `F06` / `f06`) | `Faculty@123` | `guest_lecture` | Own teaching timetable only, guest lecture booking requests, own leave declaration |
-| **Club Representative** | `club_<slug>@cit.edu` (e.g. `club_ecell@cit.edu`, `club_dance@cit.edu`) | `Club@123` | `club_event` | Submit fest venue requests, view own club requests, track alternative venues |
+| Role | Email Rule | Password | Scope & Permitted Capabilities |
+|---|---|---|---|
+| **Admin** | `admin@cit.edu` (Dean's Office)<br>`admin2@cit.edu` (Spectra Core Team) | `Admin@123` | Master timetable solve, system reset, dual administrative proposal approval (anti-self-approval enforced). |
+| **Department Coordinator** | `coord_<dept>@cit.edu` for all 8 departments (`ce`, `cse`, `ece`, `ee`, `hss`, `ma`, `me`, `ph`) + `coord_tnp@cit.edu` (Training & Placement Cell, CSE) | `Coord@123` | Department-scoped sessions, submit disruptions, approve bookings strictly for their department's labs. |
+| **Faculty Member** | `faculty_<id>@cit.edu` (`faculty_f01@cit.edu` to `faculty_f40@cit.edu`) | `Faculty@123` | Scoped strictly to their own faculty timetable (`session.faculty_id == user.faculty_id`) and personal leave/unavailability. |
+| **Club Representative** | `club_<slug>@cit.edu` for all 11 campus clubs (slug = lowercase alphanumerics without "club"/"society") | `Club@123` | Spectra Fest bookings (category capped at `club_event`), real-time venue check, view only their submitted requests. |
 
-### Key Access Rules
-- **Faculty Login by ID**: Any faculty member can log in using either their email (`faculty_f06@cit.edu`) or their faculty ID (case-insensitive `F06` or `f06`).
-- **Department Scoping**: Department coordinators can only view their own department's sessions and can only approve booking requests that target their department's labs (e.g. CSE coordinator only approves `lab_cs` venues).
-- **Anti-Self-Approval**: Under Non-negotiable #5, nobody can approve their own request (`approver.id != submitted_by`). For example, `admin2@cit.edu` (Spectra Core Team) cannot approve `BR-01` (Spectra Core Team), and `admin@cit.edu` (Dean's Office) cannot approve `BR-03` (Dean of Academics).
-- **Effective Category Capping**: A club requesting a `guest_lecture` is automatically capped to `club_event` with a stated rule trace explanation.
-- **DEMO_MODE Flag**: Set `DEMO_MODE=true` in `.env` to enable the `/auth/directory` endpoint for one-click browser testing. Passwords are never sent over the API directory.
-- **Admin Reset**: The "Reset Demo" button in the navigation bar executes `POST /api/admin/reset-demo`, which idempotently resets tables and re-seeds all 62 accounts.
+> [!TIP]
+> **Flexible Identifier Login**: Users can sign in using either their full email or their Faculty ID case-insensitively (e.g. `F06` or `f06` logs directly into Dr. Arjun Mehta's faculty account).
+>
+> **Demo Mode (`DEMO_MODE=true`)**: When enabled in `.env`, the frontend landing page presents a two-step visual role selector and 1-click login buttons for all 62 accounts via `GET /api/auth/directory`. Passwords are kept confidential in the API and only shown as UI hints.
+>
+> **Pristine Reset**: The Admin "Reset demo data" button (`POST /api/admin/reset-demo`) is idempotent and automatically restores all 62 accounts and starter dataset data.
 
 <details>
-<summary><strong>Complete Directory of all 62 Rule-Generated Demo Accounts (Click to expand)</strong></summary>
+<summary><strong>Click to expand the complete directory of all 62 rule-based accounts</strong></summary>
 
-### Admins (Password: `Admin@123`)
-| Name | Email | Role | Department |
-| :--- | :--- | :--- | :--- |
-| Dean's Office | `admin@cit.edu` | Admin | Administration |
-| Spectra Core Team | `admin2@cit.edu` | Admin | Administration |
+| # | Role | Name | Identifier / Email | Faculty ID / Dept / Club | Demo Password |
+|---|---|---|---|---|---|
+| 1 | `admin` | Dean's Office | `admin@cit.edu` | Administration | `Admin@123` |
+| 2 | `admin` | Spectra Core Team | `admin2@cit.edu` | Administration | `Admin@123` |
+| 3 | `department_coordinator` | CE Department Coordinator | `coord_ce@cit.edu` | CE | `Coord@123` |
+| 4 | `department_coordinator` | CSE Department Coordinator | `coord_cse@cit.edu` | CSE | `Coord@123` |
+| 5 | `department_coordinator` | ECE Department Coordinator | `coord_ece@cit.edu` | ECE | `Coord@123` |
+| 6 | `department_coordinator` | EE Department Coordinator | `coord_ee@cit.edu` | EE | `Coord@123` |
+| 7 | `department_coordinator` | HSS Department Coordinator | `coord_hss@cit.edu` | HSS | `Coord@123` |
+| 8 | `department_coordinator` | MA Department Coordinator | `coord_ma@cit.edu` | MA | `Coord@123` |
+| 9 | `department_coordinator` | ME Department Coordinator | `coord_me@cit.edu` | ME | `Coord@123` |
+| 10 | `department_coordinator` | PH Department Coordinator | `coord_ph@cit.edu` | PH | `Coord@123` |
+| 11 | `department_coordinator` | Training & Placement Cell | `coord_tnp@cit.edu` | CSE | `Coord@123` |
+| 12 | `faculty` | Dr. Ananya Mishra | `faculty_f01@cit.edu` | F01 | `Faculty@123` |
+| 13 | `faculty` | Dr. Rohit Sahoo | `faculty_f02@cit.edu` | F02 | `Faculty@123` |
+| 14 | `faculty` | Dr. Kavya Iyer | `faculty_f03@cit.edu` | F03 | `Faculty@123` |
+| 15 | `faculty` | Dr. Sandeep Patnaik | `faculty_f04@cit.edu` | F04 | `Faculty@123` |
+| 16 | `faculty` | Dr. Meera Nair | `faculty_f05@cit.edu` | F05 | `Faculty@123` |
+| 17 | `faculty` | Dr. Arjun Mehta | `faculty_f06@cit.edu` | F06 | `Faculty@123` |
+| 18 | `faculty` | Dr. Pooja Das | `faculty_f07@cit.edu` | F07 | `Faculty@123` |
+| 19 | `faculty` | Prof. Vikram Rao (Visiting) | `faculty_f08@cit.edu` | F08 | `Faculty@123` |
+| 20 | `faculty` | Dr. Ishita Banerjee | `faculty_f09@cit.edu` | F09 | `Faculty@123` |
+| 21 | `faculty` | Dr. Suresh Pradhan | `faculty_f10@cit.edu` | F10 | `Faculty@123` |
+| 22 | `faculty` | Dr. Neha Kulkarni | `faculty_f11@cit.edu` | F11 | `Faculty@123` |
+| 23 | `faculty` | Dr. Amit Behera | `faculty_f12@cit.edu` | F12 | `Faculty@123` |
+| 24 | `faculty` | Dr. Ritu Sharma | `faculty_f13@cit.edu` | F13 | `Faculty@123` |
+| 25 | `faculty` | Dr. Kunal Joshi | `faculty_f14@cit.edu` | F14 | `Faculty@123` |
+| 26 | `faculty` | Dr. Sneha Mohanty | `faculty_f15@cit.edu` | F15 | `Faculty@123` |
+| 27 | `faculty` | Dr. Rakesh Panda | `faculty_f16@cit.edu` | F16 | `Faculty@123` |
+| 28 | `faculty` | Dr. Divya Menon | `faculty_f17@cit.edu` | F17 | `Faculty@123` |
+| 29 | `faculty` | Dr. Manoj Tripathy | `faculty_f18@cit.edu` | F18 | `Faculty@123` |
+| 30 | `faculty` | Dr. Shalini Gupta | `faculty_f19@cit.edu` | F19 | `Faculty@123` |
+| 31 | `faculty` | Dr. Prakash Nayak | `faculty_f20@cit.edu` | F20 | `Faculty@123` |
+| 32 | `faculty` | Dr. Lakshmi Reddy | `faculty_f21@cit.edu` | F21 | `Faculty@123` |
+| 33 | `faculty` | Dr. Harish Dash | `faculty_f22@cit.edu` | F22 | `Faculty@123` |
+| 34 | `faculty` | Dr. Farah Khan | `faculty_f23@cit.edu` | F23 | `Faculty@123` |
+| 35 | `faculty` | Dr. Gaurav Jena | `faculty_f24@cit.edu` | F24 | `Faculty@123` |
+| 36 | `faculty` | Dr. Tanvi Desai | `faculty_f25@cit.edu` | F25 | `Faculty@123` |
+| 37 | `faculty` | Dr. Abhishek Rout | `faculty_f26@cit.edu` | F26 | `Faculty@123` |
+| 38 | `faculty` | Dr. Sunita Bose | `faculty_f27@cit.edu` | F27 | `Faculty@123` |
+| 39 | `faculty` | Dr. Nikhil Swain | `faculty_f28@cit.edu` | F28 | `Faculty@123` |
+| 40 | `faculty` | Dr. Priya Raman | `faculty_f29@cit.edu` | F29 | `Faculty@123` |
+| 41 | `faculty` | Dr. Debashish Sethi | `faculty_f30@cit.edu` | F30 | `Faculty@123` |
+| 42 | `faculty` | Dr. Anjali Verma | `faculty_f31@cit.edu` | F31 | `Faculty@123` |
+| 43 | `faculty` | Dr. Sameer Khuntia | `faculty_f32@cit.edu` | F32 | `Faculty@123` |
+| 44 | `faculty` | Dr. Rekha Pillai | `faculty_f33@cit.edu` | F33 | `Faculty@123` |
+| 45 | `faculty` | Dr. Varun Acharya | `faculty_f34@cit.edu` | F34 | `Faculty@123` |
+| 46 | `faculty` | Dr. Bhavna Saxena | `faculty_f35@cit.edu` | F35 | `Faculty@123` |
+| 47 | `faculty` | Dr. Ashok Mahapatra | `faculty_f36@cit.edu` | F36 | `Faculty@123` |
+| 48 | `faculty` | Prof. Shreya Kapoor (Dean) | `faculty_f37@cit.edu` | F37 | `Faculty@123` |
+| 49 | `faculty` | Dr. Imran Qureshi | `faculty_f38@cit.edu` | F38 | `Faculty@123` |
+| 50 | `faculty` | Dr. Radhika Hegde | `faculty_f39@cit.edu` | F39 | `Faculty@123` |
+| 51 | `faculty` | Dr. Om Prakash Sahu | `faculty_f40@cit.edu` | F40 | `Faculty@123` |
+| 52 | `club` | Coding Club | `club_coding@cit.edu` | Coding Club | `Club@123` |
+| 53 | `club` | Robotics Club | `club_robotics@cit.edu` | Robotics Club | `Club@123` |
+| 54 | `club` | Dance Club | `club_dance@cit.edu` | Dance Club | `Club@123` |
+| 55 | `club` | Quiz Club | `club_quiz@cit.edu` | Quiz Club | `Club@123` |
+| 56 | `club` | Dramatics Society | `club_dramatics@cit.edu` | Dramatics Society | `Club@123` |
+| 57 | `club` | Gaming Society | `club_gaming@cit.edu` | Gaming Society | `Club@123` |
+| 58 | `club` | Photography Club | `club_photography@cit.edu` | Photography Club | `Club@123` |
+| 59 | `club` | E-Cell | `club_ecell@cit.edu` | E-Cell | `Club@123` |
+| 60 | `club` | Literary Society | `club_literary@cit.edu` | Literary Society | `Club@123` |
+| 61 | `club` | Music Club | `club_music@cit.edu` | Music Club | `Club@123` |
+| 62 | `club` | Astronomy Club | `club_astronomy@cit.edu` | Astronomy Club | `Club@123` |
 
-### Department Coordinators (Password: `Coord@123`)
-| Name | Email | Department |
-| :--- | :--- | :--- |
-| CE Department Coordinator | `coord_ce@cit.edu` | CE |
-| CSE Department Coordinator | `coord_cse@cit.edu` | CSE |
-| ECE Department Coordinator | `coord_ece@cit.edu` | ECE |
-| EE Department Coordinator | `coord_ee@cit.edu` | EE |
-| HSS Department Coordinator | `coord_hss@cit.edu` | HSS |
-| MA Department Coordinator | `coord_ma@cit.edu` | MA |
-| ME Department Coordinator | `coord_me@cit.edu` | ME |
-| PH Department Coordinator | `coord_ph@cit.edu` | PH |
-| Training & Placement Cell | `coord_tnp@cit.edu` | CSE |
-
-### Clubs (Password: `Club@123`)
-| Club Name | Email | Role |
-| :--- | :--- | :--- |
-| Astronomy Club | `club_astronomy@cit.edu` | Club Representative |
-| Coding Club | `club_coding@cit.edu` | Club Representative |
-| Dance Club | `club_dance@cit.edu` | Club Representative |
-| Dramatics Society | `club_dramatics@cit.edu` | Club Representative |
-| E-Cell | `club_ecell@cit.edu` | Club Representative |
-| Gaming Society | `club_gaming@cit.edu` | Club Representative |
-| Literary Society | `club_literary@cit.edu` | Club Representative |
-| Music Club | `club_music@cit.edu` | Club Representative |
-| Photography Club | `club_photography@cit.edu` | Club Representative |
-| Quiz Club | `club_quiz@cit.edu` | Club Representative |
-| Robotics Club | `club_robotics@cit.edu` | Club Representative |
-
-### Faculty Members (Password: `Faculty@123` / Login by Faculty ID)
-| Faculty ID | Name | Department | Email |
-| :--- | :--- | :--- | :--- |
-| F01 | Dr. Ananya Mishra | CSE | `faculty_f01@cit.edu` |
-| F02 | Dr. Rohit Sahoo | CSE | `faculty_f02@cit.edu` |
-| F03 | Dr. Kavya Iyer | CSE | `faculty_f03@cit.edu` |
-| F04 | Dr. Sandeep Patnaik | CSE | `faculty_f04@cit.edu` |
-| F05 | Dr. Meera Nair | CSE | `faculty_f05@cit.edu` |
-| F06 | Dr. Arjun Mehta | CSE | `faculty_f06@cit.edu` |
-| F07 | Dr. Pooja Das | CSE | `faculty_f07@cit.edu` |
-| F08 | Prof. Vikram Rao (Visiting) | CSE | `faculty_f08@cit.edu` |
-| F09 | Dr. Ishita Banerjee | ECE | `faculty_f09@cit.edu` |
-| F10 | Dr. Suresh Pradhan | ECE | `faculty_f10@cit.edu` |
-| F11 | Dr. Neha Kulkarni | ECE | `faculty_f11@cit.edu` |
-| F12 | Dr. Amit Behera | ECE | `faculty_f12@cit.edu` |
-| F13 | Dr. Ritu Sharma | ECE | `faculty_f13@cit.edu` |
-| F14 | Dr. Kunal Joshi | EE | `faculty_f14@cit.edu` |
-| F15 | Dr. Sneha Mohanty | EE | `faculty_f15@cit.edu` |
-| F16 | Dr. Rakesh Panda | EE | `faculty_f16@cit.edu` |
-| F17 | Dr. Divya Menon | EE | `faculty_f17@cit.edu` |
-| F18 | Dr. Manoj Tripathy | EE | `faculty_f18@cit.edu` |
-| F19 | Dr. Shalini Gupta | MA | `faculty_f19@cit.edu` |
-| F20 | Dr. Prakash Nayak | MA | `faculty_f20@cit.edu` |
-| F21 | Dr. Lakshmi Reddy | PH | `faculty_f21@cit.edu` |
-| F22 | Dr. Harish Dash | PH | `faculty_f22@cit.edu` |
-| F23 | Dr. Farah Khan | PH | `faculty_f23@cit.edu` |
-| F24 | Dr. Gaurav Jena | PH | `faculty_f24@cit.edu` |
-| F25 | Dr. Tanvi Desai | ME | `faculty_f25@cit.edu` |
-| F26 | Dr. Abhishek Rout | ME | `faculty_f26@cit.edu` |
-| F27 | Dr. Sunita Bose | ME | `faculty_f27@cit.edu` |
-| F28 | Dr. Nikhil Swain | ME | `faculty_f28@cit.edu` |
-| F29 | Dr. Priya Raman | ME | `faculty_f29@cit.edu` |
-| F30 | Dr. Debashish Sethi | ME | `faculty_f30@cit.edu` |
-| F31 | Dr. Anjali Verma | CE | `faculty_f31@cit.edu` |
-| F32 | Dr. Sameer Khuntia | CE | `faculty_f32@cit.edu` |
-| F33 | Dr. Rekha Pillai | CE | `faculty_f33@cit.edu` |
-| F34 | Dr. Varun Acharya | CE | `faculty_f34@cit.edu` |
-| F35 | Dr. Bhavna Saxena | CE | `faculty_f35@cit.edu` |
-| F36 | Dr. Ashok Mahapatra | HSS | `faculty_f36@cit.edu` |
-| F37 | Prof. Shreya Kapoor (Dean) | ADMIN | `faculty_f37@cit.edu` |
-| F38 | Dr. Imran Qureshi | HSS | `faculty_f38@cit.edu` |
-| F39 | Dr. Radhika Hegde | HSS | `faculty_f39@cit.edu` |
-| F40 | Dr. Om Prakash Sahu | HSS | `faculty_f40@cit.edu` |
-
-*(Generated with `scripts/print_accounts.py`)*
 </details>
 
 ---

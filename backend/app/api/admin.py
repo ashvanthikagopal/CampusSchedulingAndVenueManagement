@@ -15,38 +15,86 @@ from backend.app.models.entities import (
 )
 from backend.app.api.deps import require_admin, get_current_user
 from backend.app.core.security import get_password_hash
-from backend.app.core.seed_users import seed_users, get_requester_user_id
-from backend.app.core.stats import get_real_stats
+from backend.app.core.seed_users import seed_users
 from backend.app.schemas.schemas import DashboardMetrics, PriorityUpdateRequest
+
+from backend.validator.validator import run as official_validator_run
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
+_VALIDATOR_CACHE = {"mtime": 0, "report": None}
+
+def get_or_run_validator(data: dict, sched: dict, sched_path: str = "exports/schedule.json") -> dict:
+    import os
+    try:
+        mtime = os.path.getmtime(sched_path)
+    except Exception:
+        mtime = 0
+    if _VALIDATOR_CACHE["report"] is not None and _VALIDATOR_CACHE["mtime"] == mtime:
+        return _VALIDATOR_CACHE["report"]
+    report = official_validator_run(data, sched)
+    _VALIDATOR_CACHE["mtime"] = mtime
+    _VALIDATOR_CACHE["report"] = report
+    return report
+
+
 @router.get("/dashboard", response_model=DashboardMetrics)
 def get_dashboard_metrics(db: Session = Depends(get_db)):
-    """Provides high-level dashboard KPIs dynamically read from active schedule and dataset."""
-    stats = get_real_stats(db=db)
-
+    """Provides high-level dashboard KPIs read from the active schedule and dataset."""
     try:
         with open("exports/schedule.json", encoding="utf-8") as f:
             sched = json.load(f)
     except Exception:
         sched = {"sessions": [], "fest_week": {"bookings": []}}
 
+    # Load active dataset
+    ds = db.query(DatasetModel).filter(DatasetModel.is_active == True).first()
+    if ds:
+        data = ds.raw_json
+    else:
+        try:
+            with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {"sessions": [], "rooms": [], "dataset_id": "cit-public-v1"}
+
+    val_rep = get_or_run_validator(data, sched)
+
+    sessions_count = len(sched.get("sessions", []))
+    total_sessions_in_ds = len(data.get("sessions", [])) or 189
     bookings = sched.get("fest_week", {}).get("bookings", [])
-    pending = sum(1 for b in bookings if b.get("status") == "pending")
+    
+    val_bookings = val_rep.get("bookings", {})
+    approved_val = val_bookings.get("approved")
+    if isinstance(approved_val, int):
+        approved_b = approved_val
+    elif isinstance(approved_val, list):
+        approved_b = len(approved_val)
+    else:
+        approved_b = sum(1 for b in bookings if b.get("status") == "approved")
+    booking_score = float(val_bookings.get("booking_score", 0.0))
+    max_booking_score = float(val_bookings.get("booking_score_max_if_all_approved", 70.0))
+    hard_conflicts = int(val_rep.get("hard_violation_count", len(val_rep.get("hard_violations", []))))
+    soft_total = int(val_rep.get("soft_total", 0))
+
+    # Room utilization
+    total_rooms = len(data.get("rooms", [])) or 27
+    total_teaching_slots = total_rooms * 45  # 5 days * 9 periods
+    total_occupied_slots = sum(s.get("duration", 1) for s in sched.get("sessions", []))
+    room_util_pct = round((total_occupied_slots / total_teaching_slots) * 100, 1) if total_teaching_slots > 0 else 0.0
 
     return DashboardMetrics(
-        sessions_scheduled=stats["sessions_scheduled"],
-        total_sessions=189,
-        hard_conflicts=stats["hard_violations"],
-        soft_penalty_total=stats["soft_penalty_total"],
-        pending_approvals=pending,
-        approved_bookings=stats["approved_bookings"],
-        booking_score=stats["booking_score"],
-        max_booking_score=70.0,
-        room_utilization_rate=68.4,
-        active_dataset_id="cit-public-v1"
+        sessions_scheduled=sessions_count,
+        total_sessions=total_sessions_in_ds,
+        hard_conflicts=hard_conflicts,
+        soft_penalty_total=soft_total,
+        pending_approvals=sum(1 for b in bookings if b.get("status") == "pending"),
+        approved_bookings=approved_b,
+        booking_score=booking_score,
+        max_booking_score=max_booking_score,
+        room_utilization_rate=room_util_pct,
+        active_dataset_id=data.get("dataset_id", "cit-public-v1")
     )
 
 
@@ -167,50 +215,24 @@ def update_priority_config(
 def reset_demo(db: Session = Depends(get_db)):
     """
     Idempotent Admin reset: restores database to a pristine demo state,
-    seeds demo accounts for all 62 roles from dataset, loads starter dataset,
+    seeds demo accounts for all roles from dataset, loads starter dataset,
     and resets active schedule.
     """
     # 1. Recreate tables
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
+    # 2. Load starter dataset
     try:
         with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
             data = json.load(f)
 
-        # 2. Seed all 62 accounts idempotently using seed_users
-        seeded_users = seed_users(db, dataset=data)
-
-        # 3. Load starter dataset
         db.add(DatasetModel(
             dataset_id=data.get("dataset_id", "cit-public-v1"),
             raw_json=data,
             imported_by="system_demo_reset",
             is_active=True
         ))
-
-        # Seed booking requests with correct submitted_by mappings
-        for b in data.get("booking_requests", []):
-            sub_id = get_requester_user_id(b.get("requester", ""), b.get("role", "club"))
-            db.add(BookingRequestModel(
-                id=b["id"],
-                submitted_at=b.get("submitted_at"),
-                requester=b.get("requester"),
-                role=b.get("role"),
-                requested_category=b.get("requested_category"),
-                effective_category=b.get("effective_category", b.get("requested_category")),
-                title=b.get("title"),
-                attendance=b.get("attendance"),
-                duration_periods=b.get("duration_periods"),
-                windows=b.get("windows"),
-                room_types=b.get("room_types"),
-                needs=b.get("needs"),
-                requested_room=b.get("requested_room"),
-                mandatory_for_groups=b.get("mandatory_for_groups"),
-                raw_text=b.get("raw_text"),
-                status="pending",
-                submitted_by=sub_id
-            ))
 
         # Seed priority config
         db.add(PriorityConfigModel(
@@ -227,8 +249,11 @@ def reset_demo(db: Session = Depends(get_db)):
             actor="system",
             action="RESET_DEMO_STATE",
             entity="Database",
-            after_json={"message": f"Demo state reset cleanly with {len(seeded_users)} accounts"}
+            after_json={"message": "Demo state reset cleanly with all accounts seeded"}
         ))
+
+        # 3. Seed all 62 accounts from the dataset
+        seeded_users = seed_users(db, data)
 
         db.commit()
     except Exception as e:
@@ -237,7 +262,7 @@ def reset_demo(db: Session = Depends(get_db)):
 
     return {
         "status": "success",
-        "message": f"Demo environment reset successfully with clean starter data and {len(seeded_users)} accounts seeded.",
-        "accounts_count": len(seeded_users)
+        "message": f"Demo environment reset successfully with {len(seeded_users)} accounts seeded.",
+        "total_seeded_accounts": len(seeded_users)
     }
 

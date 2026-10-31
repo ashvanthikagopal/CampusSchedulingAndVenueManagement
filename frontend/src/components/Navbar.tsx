@@ -13,48 +13,22 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  // Build role-aware navigation links
-  const navLinks = [];
+  const allNavLinks = [
+    { name: 'Dashboard', path: '/', icon: BarChart3, roles: ['admin', 'department_coordinator'] },
+    { name: 'Timetable', path: '/timetable', icon: Calendar, roles: ['admin', 'department_coordinator', 'faculty'] },
+    { name: 'Book Venue', path: '/bookings', icon: PlusCircle, roles: ['admin', 'department_coordinator', 'faculty', 'club'] },
+    { name: 'Approvals & Diff', path: '/approvals', icon: ShieldCheck, roles: ['admin', 'department_coordinator'] },
+    { name: 'Exams Calendar', path: '/exams', icon: Clock, roles: ['admin', 'department_coordinator', 'faculty'] },
+    { name: 'Assistant', path: '/assistant', icon: MessageSquare, roles: ['admin', 'department_coordinator', 'faculty', 'club'] },
+    { name: 'Admin Console', path: '/admin', icon: Award, roles: ['admin'] },
+  ];
 
-  if (user?.role === 'admin') {
-    navLinks.push(
-      { name: 'Dashboard', shortName: 'Dashboard', path: '/', icon: BarChart3 },
-      { name: 'Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar },
-      { name: 'Book Venue', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
-      { name: 'Approvals & Diff', shortName: 'Approvals', path: '/approvals', icon: ShieldCheck },
-      { name: 'Exams Calendar', shortName: 'Exams', path: '/exams', icon: Clock },
-      { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare },
-      { name: 'Admin Console', shortName: 'Admin', path: '/admin', icon: Award }
-    );
-  } else if (user?.role === 'department_coordinator') {
-    navLinks.push(
-      { name: 'Department Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar },
-      { name: 'Book Venue', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
-      { name: 'Exams Calendar', shortName: 'Exams', path: '/exams', icon: Clock },
-      { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare }
-    );
-  } else if (user?.role === 'faculty') {
-    navLinks.push(
-      { name: 'My Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar },
-      { name: 'Book Venue', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
-      { name: 'Exams Calendar', shortName: 'Exams', path: '/exams', icon: Clock },
-      { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare }
-    );
-  } else if (user?.role === 'club') {
-    navLinks.push(
-      { name: 'Room Availability', shortName: 'Rooms', path: '/club-timetable', icon: Calendar },
-      { name: 'Club Bookings', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
-      { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare }
-    );
-  } else {
-    navLinks.push(
-      { name: 'Dashboard', shortName: 'Dashboard', path: '/', icon: BarChart3 },
-      { name: 'Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar }
-    );
-  }
+  const visibleLinks = allNavLinks.filter(link => 
+    !user || link.roles.includes(user.role)
+  );
 
   const handleResetDemo = async () => {
-    if (!window.confirm('Reset demo state to clean starter baseline? (Restores all 62 rule-generated accounts)')) return;
+    if (!window.confirm('Reset demo state to clean starter baseline with all 62 accounts?')) return;
     setIsResetting(true);
     try {
       await api.post('/admin/reset-demo');
@@ -67,66 +41,60 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/90 border-b border-zinc-800/80 font-sans">
-      <div className="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
-          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0 py-1">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-transform">
               <Calendar className="w-5 h-5 text-white" />
             </div>
-            <div className="flex flex-col justify-center">
-              <div className="flex items-center gap-2 whitespace-nowrap leading-none">
-                <span className="font-extrabold text-base sm:text-lg text-white tracking-tight">
-                  CIT Scheduler
-                </span>
-                <span className="hidden xl:inline-flex text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold shrink-0">
+            <div>
+              <span className="font-bold text-lg text-white tracking-tight flex items-center gap-1.5">
+                CIT Scheduler
+                <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">
                   Zero Clashes
                 </span>
-              </div>
-              <p className="text-[10px] text-zinc-400 hidden 2xl:block leading-none mt-1">
-                Campus Scheduling & Venue Management
-              </p>
+              </span>
+              <p className="text-xs text-slate-400">Campus Scheduling & Venue Management</p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 shrink-0">
-            {navLinks.map((link) => {
+          <nav className="hidden md:flex items-center gap-1">
+            {visibleLinks.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname === link.path;
               return (
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-lg text-xs xl:text-sm font-medium transition-all shrink-0 ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-white text-zinc-950 font-bold shadow-md shadow-white/10'
-                      : 'text-zinc-300 hover:text-white hover:bg-zinc-800/60'
+                      ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                   }`}
-                  title={link.name}
                 >
-                  <Icon className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0" />
-                  <span className="hidden xl:inline whitespace-nowrap">{link.name}</span>
-                  <span className="inline xl:hidden whitespace-nowrap">{link.shortName}</span>
+                  <Icon className="w-4 h-4" />
+                  {link.name}
                 </Link>
               );
             })}
           </nav>
 
           {/* User Profile & Demo Controls */}
-          <div className="hidden md:flex items-center gap-2 xl:gap-3 shrink-0">
+          <div className="hidden md:flex items-center gap-3">
             {user ? (
-              <div className="flex items-center gap-2 xl:gap-3 shrink-0">
-                <div className="text-right hidden sm:block shrink-0 leading-tight">
-                  <div className="text-xs font-semibold text-white whitespace-nowrap">{user.name}</div>
-                  <div className="flex items-center gap-1.5 justify-end mt-0.5">
-                    <span className="text-[10px] text-emerald-400 font-mono capitalize">
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-xs font-semibold text-white">{user.name}</div>
+                  <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                    <span className="text-[11px] text-sky-400 font-mono capitalize">
                       {user.role.replace('_', ' ')}
                     </span>
                     {(user.department || user.club_name || user.faculty_id) && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-                        {user.club_name || (user.faculty_id ? `${user.department} (${user.faculty_id})` : user.department)}
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono border border-slate-700">
+                        {user.faculty_id ? `${user.faculty_id} · ${user.department}` : (user.department || user.club_name)}
                       </span>
                     )}
                   </div>
@@ -134,9 +102,8 @@ export const Navbar: React.FC = () => {
 
                 <button
                   onClick={logout}
-                  className="p-1.5 xl:p-2 rounded-lg bg-zinc-800/80 text-zinc-400 hover:text-rose-400 hover:bg-zinc-800 transition-colors shrink-0"
+                  className="p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
                   title="Logout"
-                  aria-label="Logout"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -147,33 +114,22 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={handleResetDemo}
                 disabled={isResetting}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-all hover:border-zinc-600 disabled:opacity-50 shrink-0 whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all hover:border-slate-600 disabled:opacity-50"
                 title="Reset Database to Clean Baseline State"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-emerald-400' : ''}`} />
-                <span className="hidden xl:inline">Reset Demo</span>
+                <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-sky-400' : ''}`} />
+                Reset Demo
               </button>
             )}
           </div>
 
-          {/* Mobile / Tablet Menu Button */}
-          <div className="lg:hidden flex items-center gap-2">
-            {user?.role === 'admin' && (
-              <button
-                onClick={handleResetDemo}
-                disabled={isResetting}
-                className="p-1.5 text-xs rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700"
-                title="Reset Demo"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-emerald-400' : ''}`} />
-              </button>
-            )}
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-zinc-800 text-zinc-300 hover:text-white"
-              aria-label="Toggle menu"
+              className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
@@ -181,8 +137,8 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-zinc-800 bg-zinc-950/95 px-4 pt-2 pb-4 space-y-1">
-          {navLinks.map((link) => {
+        <div className="md:hidden border-b border-slate-800 bg-slate-950/95 px-4 pt-2 pb-4 space-y-1">
+          {visibleLinks.map((link) => {
             const Icon = link.icon;
             const isActive = location.pathname === link.path;
             return (
@@ -191,7 +147,7 @@ export const Navbar: React.FC = () => {
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium ${
-                  isActive ? 'bg-white text-zinc-950 font-bold' : 'text-zinc-300 hover:bg-zinc-800'
+                  isActive ? 'bg-sky-500/20 text-sky-400' : 'text-slate-300 hover:bg-slate-800'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -200,14 +156,14 @@ export const Navbar: React.FC = () => {
             );
           })}
           {user && (
-            <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
+            <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-white">{user.name}</div>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-xs text-emerald-400 capitalize">{user.role.replace('_', ' ')}</span>
+                <div className="text-xs text-sky-400 capitalize flex items-center gap-1.5">
+                  <span>{user.role.replace('_', ' ')}</span>
                   {(user.department || user.club_name || user.faculty_id) && (
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-                      {user.club_name || (user.faculty_id ? `${user.department} (${user.faculty_id})` : user.department)}
+                    <span className="text-[10px] px-1 rounded bg-slate-800 text-slate-300 font-mono">
+                      {user.faculty_id ? `${user.faculty_id} · ${user.department}` : (user.department || user.club_name)}
                     </span>
                   )}
                 </div>

@@ -4,7 +4,7 @@ Authentication and security utilities: direct bcrypt password hashing and JWT ma
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, Dict
 import bcrypt
-import jwt
+from jose import jwt, JWTError
 from backend.app.core.config import settings
 
 
@@ -38,5 +38,5 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         return payload
-    except jwt.PyJWTError:
+    except JWTError:
         return None

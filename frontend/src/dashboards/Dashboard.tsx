@@ -118,19 +118,19 @@ export const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Top Welcome Banner */}
-      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/10 bg-gradient-to-r from-zinc-900/95 via-zinc-900/80 to-zinc-800/60 relative overflow-hidden">
+      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900/90 via-slate-900/50 to-sky-950/40 relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-semibold mb-3">
               <CheckCircle2 className="w-3.5 h-3.5" />
               Verified by Official Validator.py
             </div>
             <h1 className="text-3xl font-extrabold text-white tracking-tight">
               Welcome back, {user?.name}
             </h1>
-            <p className="text-sm text-zinc-400 mt-1 max-w-xl">
+            <p className="text-sm text-slate-400 mt-1 max-w-xl">
               Chilika Institute of Technology central scheduling matrix is active. All weekly lecture, lab, and tutorial sessions are synchronized with zero timetable collisions.
             </p>
           </div>
@@ -140,7 +140,7 @@ export const Dashboard: React.FC = () => {
               <button
                 onClick={handleRunGenerator}
                 disabled={isGenerating}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-zinc-950 bg-white hover:bg-zinc-200 shadow-xl shadow-white/10 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/25 transition-all disabled:opacity-50"
               >
                 <Cpu className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
                 {isGenerating ? 'Optimizing...' : 'Re-Solve Timetable'}
@@ -150,8 +150,8 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {generateMsg && (
-          <div className="mt-4 p-3 rounded-xl bg-white/10 border border-white/20 text-white text-xs flex items-center gap-2 font-mono">
-            <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse flex-shrink-0" />
+          <div className="mt-4 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300 text-xs flex items-center gap-2">
+            <Sparkles className="w-4 h-4 animate-pulse flex-shrink-0" />
             {generateMsg}
           </div>
         )}
@@ -160,57 +160,57 @@ export const Dashboard: React.FC = () => {
       {/* KPI Cards Band */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
-        <div className="glass-panel p-5 rounded-xl border border-white/10 bg-zinc-900/60">
-          <div className="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="glass-panel p-5 rounded-xl border border-slate-800 bg-slate-900/60">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Sessions Scheduled</span>
-            <Calendar className="w-4 h-4 text-white" />
+            <Calendar className="w-4 h-4 text-sky-400" />
           </div>
           <div className="text-3xl font-extrabold text-white">
-            {metrics.sessions_scheduled} <span className="text-sm font-normal text-zinc-500">/ {metrics.total_sessions}</span>
+            {metrics.sessions_scheduled} <span className="text-sm font-normal text-slate-500">/ {metrics.total_sessions}</span>
           </div>
-          <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1 font-medium">
+          <div className="text-xs text-sky-400 mt-1 flex items-center gap-1 font-medium">
             <CheckCircle2 className="w-3.5 h-3.5" /> 100% of curriculum placed
           </div>
         </div>
 
         {/* Metric 2 */}
-        <div className="glass-panel p-5 rounded-xl border border-white/10 bg-zinc-900/60">
-          <div className="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="glass-panel p-5 rounded-xl border border-slate-800 bg-slate-900/60">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Hard Violations</span>
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-3xl font-extrabold text-emerald-400">
             {metrics.hard_conflicts}
           </div>
-          <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1 font-medium">
+          <div className="text-xs text-emerald-400/90 mt-1 flex items-center gap-1 font-medium">
             <CheckCircle2 className="w-3.5 h-3.5" /> Zero Double-Bookings
           </div>
         </div>
 
         {/* Metric 3 */}
-        <div className="glass-panel p-5 rounded-xl border border-white/10 bg-zinc-900/60">
-          <div className="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="glass-panel p-5 rounded-xl border border-slate-800 bg-slate-900/60">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Spectra Booking Score</span>
-            <Sparkles className="w-4 h-4 text-teal-300" />
+            <Sparkles className="w-4 h-4 text-cyan-400" />
           </div>
-          <div className="text-3xl font-extrabold text-teal-300">
-            {metrics.booking_score} <span className="text-sm font-normal text-zinc-500">/ 70.0</span>
+          <div className="text-3xl font-extrabold text-cyan-400">
+            {metrics.booking_score} <span className="text-sm font-normal text-slate-500">/ 70.0</span>
           </div>
-          <div className="text-xs text-teal-300 mt-1 flex items-center gap-1 font-medium">
+          <div className="text-xs text-cyan-400/90 mt-1 flex items-center gap-1 font-medium">
             <TrendingUp className="w-3.5 h-3.5" /> At Realistic Mathematical Ceiling
           </div>
         </div>
 
         {/* Metric 4 */}
-        <div className="glass-panel p-5 rounded-xl border border-white/10 bg-zinc-900/60">
-          <div className="flex items-center justify-between text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">
+        <div className="glass-panel p-5 rounded-xl border border-slate-800 bg-slate-900/60">
+          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Room Utilization</span>
-            <Building2 className="w-4 h-4 text-violet-400" />
+            <Building2 className="w-4 h-4 text-indigo-400" />
           </div>
-          <div className="text-3xl font-extrabold text-violet-400">
+          <div className="text-3xl font-extrabold text-indigo-400">
             {metrics.room_utilization_rate}%
           </div>
-          <div className="text-xs text-zinc-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1">
             27 Venues across Campus
           </div>
         </div>
@@ -223,10 +223,10 @@ export const Dashboard: React.FC = () => {
         <div className="lg:col-span-8 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Clock className="w-5 h-5 text-white" />
+              <Clock className="w-5 h-5 text-sky-400" />
               Spectra Week Decisions & Reasons
             </h2>
-            <Link to="/bookings" className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1">
+            <Link to="/bookings" className="text-xs text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1">
               View All 25 Requests <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -235,26 +235,26 @@ export const Dashboard: React.FC = () => {
             {recentDecisions.map((item) => (
               <div
                 key={item.id}
-                className="glass-panel p-4 rounded-xl border border-white/10 hover:border-white/20 bg-zinc-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
+                className="glass-panel p-4 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2.5">
-                    <span className="font-mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded border border-white/20">{item.id}</span>
+                    <span className="font-mono text-xs font-bold text-sky-400">{item.id}</span>
                     <span className="font-semibold text-sm text-white">{item.title}</span>
                     <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${item.badgeClass}`}>
                       {item.decision}
                     </span>
                   </div>
-                  <div className="text-xs text-zinc-400">
-                    {item.venue} · <span className="text-zinc-500">{item.requester}</span>
+                  <div className="text-xs text-slate-400">
+                    {item.venue} · <span className="text-slate-500">{item.requester}</span>
                   </div>
-                  <div className="text-xs text-zinc-300 italic pt-0.5">
+                  <div className="text-xs text-slate-300 italic pt-0.5">
                     "{item.reason}"
                   </div>
                 </div>
 
                 <div className="text-right sm:flex-shrink-0">
-                  <span className="text-[11px] font-mono text-zinc-400 px-2 py-1 rounded bg-zinc-800/80 border border-zinc-700/60">
+                  <span className="text-[11px] font-mono text-slate-400 px-2 py-1 rounded bg-slate-800/80">
                     Rule Verified
                   </span>
                 </div>
@@ -265,63 +265,63 @@ export const Dashboard: React.FC = () => {
 
         {/* Right Column: Quick Navigation & Help */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-zinc-900/60 space-y-4">
+          <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
             <h3 className="font-bold text-base text-white">Quick Workflows</h3>
             
             <div className="space-y-2.5">
               <Link
                 to="/timetable"
-                className="flex items-center justify-between p-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 hover:border-white/30 transition-all text-sm font-medium text-zinc-200 group"
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 transition-all text-sm font-medium text-slate-200 group"
               >
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-white" />
+                  <Calendar className="w-4 h-4 text-sky-400" />
                   <span>Interactive Timetable Grid</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors" />
+                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-sky-400 transition-colors" />
               </Link>
 
               <Link
                 to="/bookings"
-                className="flex items-center justify-between p-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 hover:border-purple-500/40 transition-all text-sm font-medium text-zinc-200 group"
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 transition-all text-sm font-medium text-slate-200 group"
               >
                 <div className="flex items-center gap-3">
                   <Sparkles className="w-4 h-4 text-purple-400" />
                   <span>Book Venue (AI & Hinglish)</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-purple-400 transition-colors" />
+                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
               </Link>
 
               <Link
                 to="/approvals"
-                className="flex items-center justify-between p-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 hover:border-emerald-500/40 transition-all text-sm font-medium text-zinc-200 group"
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 transition-all text-sm font-medium text-slate-200 group"
               >
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span>Reschedule Diff & Approvals</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-emerald-400 transition-colors" />
+                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" />
               </Link>
 
               <Link
                 to="/exams"
-                className="flex items-center justify-between p-3 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/60 hover:border-amber-500/40 transition-all text-sm font-medium text-zinc-200 group"
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 transition-all text-sm font-medium text-slate-200 group"
               >
                 <div className="flex items-center gap-3">
                   <Clock className="w-4 h-4 text-amber-400" />
                   <span>Midsem Exams (Half-Capacity)</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-amber-400 transition-colors" />
+                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-amber-400 transition-colors" />
               </Link>
             </div>
           </div>
 
           {/* Validation Guarantee Pill Card */}
-          <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 text-xs text-zinc-300 space-y-2">
+          <div className="glass-panel p-5 rounded-2xl border border-emerald-500/20 bg-emerald-950/10 text-xs text-slate-300 space-y-2">
             <div className="flex items-center gap-2 text-emerald-400 font-bold">
               <ShieldCheck className="w-4 h-4" />
               Validation Integrity Rule
             </div>
-            <p className="text-zinc-400 leading-relaxed">
+            <p className="text-slate-400 leading-relaxed">
               Every timetable export is verified via the official <code className="text-emerald-300 font-mono">validator.py</code>. The LLM never decides validity or booking approvals.
             </p>
           </div>

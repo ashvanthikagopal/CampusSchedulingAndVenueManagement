@@ -218,26 +218,13 @@ class ChangeProposalModel(Base):
     id = Column(String(50), primary_key=True)
     base_version_id = Column(String(50), nullable=False)
     new_version_id = Column(String(50), nullable=True)
-    reported_by = Column(String(50), nullable=True)
     moved_count = Column(Integer, default=0)
     hard_violations = Column(Integer, default=0)
     soft_delta = Column(Integer, default=0)
     status = Column(String(50), default="pending_approval")  # pending_approval, approved, rejected
     entries_json = Column(JSON, default=list)
+    created_by = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-
-
-class JobModel(Base):
-    __tablename__ = "background_jobs"
-
-    id = Column(String(64), primary_key=True)
-    status = Column(String(32), default="QUEUED")  # QUEUED, RUNNING, COMPLETED, FAILED
-    progress = Column(Integer, default=0)
-    best_objective = Column(Float, nullable=True)
-    error = Column(Text, nullable=True)
-    result_json = Column(JSON, default=dict)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class PriorityConfigModel(Base):

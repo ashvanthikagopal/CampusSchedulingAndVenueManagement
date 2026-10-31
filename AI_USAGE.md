@@ -24,8 +24,8 @@ By strict architectural non-negotiable principle, **the LLM never makes operatio
 - **Room Choice & Slot Assignment**: Allocated strictly by the CP-SAT solver and deterministic candidate search.
 - **Conflict Detection & Priority Inversion**: Checked by exact set intersections and room/group/faculty occupancy intervals.
 - **Disruption Approvals & Schedule Activation**: Requires authenticated human Admin approval via transactional database operations.
+- **Authentication & Permission Decisions**: Authentication (JWT tokens, password verification), role scoping, anti-self-approval enforcement, and authorization decisions are 100% deterministic pure Python/FastAPI logic. No LLM is involved in authentication or permission decisions.
 - **AI Output Validation**: Every JSON response from Gemini is strictly parsed into Pydantic models (`BookingParseResult`, `AssistantResponse`), validated against the active database entities (rooms, faculty, groups), and run through the deterministic rules engine before any state is touched.
-- **Authentication & Authorization Decisions**: Authentication (passwords, JWT tokens), role assignment, department scoping, lab approval authorization, and anti-self-approval constraints are enforced 100% deterministically by Python/FastAPI code and database queries. No LLM or AI model is involved in authentication, authorization, or access control decisions.
 - **Zero-AI Fallback**: The platform functions completely with AI disabled (e.g., if `GEMINI_API_KEY` is omitted, rate-limited, or offline), utilizing a built-in deterministic rule-based natural language parser supporting Hinglish lexicon and regex patterns.
 
 ---

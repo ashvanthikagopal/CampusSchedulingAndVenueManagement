@@ -1,57 +1,24 @@
-# ==========================================
-# Python & Virtual Environments
-# ==========================================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.pytest_cache/
-.coverage
-htmlcov/
-.venv/
-venv/
-ENV/
-env/
-*.sqlite3
-*.db
+# Logs
+logs
 *.log
-
-# ==========================================
-# Node.js & Frontend Build Outputs
-# ==========================================
-node_modules/
-**/node_modules/
-dist/
-**/dist/
-dist-ssr/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
 *.local
 
-# ==========================================
-# Environment Variables & Secrets
-# ==========================================
-.env
-.env.*
-!.env.example
-
-# ==========================================
-# Operating System & IDE Artifacts
-# ==========================================
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
-desktop.ini
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# ==========================================
-# Raw Archives & Starter Pack Materials
-# ==========================================
-CrunchWeek_StarterPack.zip
-Problem_statement.pdf
-starter_pack/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

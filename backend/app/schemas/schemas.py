@@ -13,45 +13,6 @@ class LoginRequest(BaseModel):
     password: str
 
 
-class DirectoryAdmin(BaseModel):
-    name: str
-    email: str
-
-
-class DirectoryCoordinator(BaseModel):
-    name: str
-    department: Optional[str] = None
-    email: str
-
-
-class DirectoryFaculty(BaseModel):
-    name: str
-    department: Optional[str] = None
-    faculty_id: Optional[str] = None
-    email: str
-
-
-class DirectoryClub(BaseModel):
-    club_name: str
-    email: str
-
-
-class DirectoryResponse(BaseModel):
-    admins: List[DirectoryAdmin]
-    coordinators: List[DirectoryCoordinator]
-    faculty: List[DirectoryFaculty]
-    clubs: List[DirectoryClub]
-    role_passwords_hint: bool = False
-
-
-class PublicStatsResponse(BaseModel):
-    sessions_scheduled: int
-    hard_violations: int
-    booking_score: float
-    bookings_count: int
-    last_reschedule_moved_count: int
-
-
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -66,6 +27,46 @@ class UserResponse(BaseModel):
     department: Optional[str] = None
     faculty_id: Optional[str] = None
     club_name: Optional[str] = None
+
+
+class DirectoryAdminItem(BaseModel):
+    name: str
+    email: str
+
+
+class DirectoryCoordinatorItem(BaseModel):
+    name: str
+    department: Optional[str] = None
+    email: str
+
+
+class DirectoryFacultyItem(BaseModel):
+    name: str
+    department: Optional[str] = None
+    faculty_id: Optional[str] = None
+    email: str
+
+
+class DirectoryClubItem(BaseModel):
+    club_name: str
+    email: str
+
+
+class DirectoryResponse(BaseModel):
+    admins: List[DirectoryAdminItem]
+    coordinators: List[DirectoryCoordinatorItem]
+    faculty: List[DirectoryFacultyItem]
+    clubs: List[DirectoryClubItem]
+    role_passwords_hint: bool = False
+
+
+# --- Public Schemas ---
+class PublicStatsResponse(BaseModel):
+    sessions_scheduled: int
+    hard_violations: int
+    booking_score: float
+    bookings_count: int
+    last_reschedule_moved_count: int
 
 
 # --- Timetable Schemas ---
@@ -170,6 +171,7 @@ class BookingParseResponse(BaseModel):
     assumptions: List[str] = []
     follow_up_question: Optional[str] = None
     effective_category: str
+    rule_trace: Optional[str] = None
     raw_text: str
     parsed_by: str  # "gemini" or "rule_fallback"
 
@@ -223,12 +225,7 @@ class ChangeProposalResponse(BaseModel):
     soft_delta: int
     status: str
     moved_sessions: List[Dict[str, Any]]
-    validator_report: Optional[Dict[str, Any]] = None
-    minimum_possible_moves: Optional[int] = None
-    proved_optimal: Optional[bool] = None
-    forced_count: Optional[int] = None
-    active_widening_tier: Optional[int] = None
-    variants: Optional[List[Dict[str, Any]]] = None
+    validator_report: Dict[str, Any]
 
 
 # --- AI Chat & Explanation Schemas ---
