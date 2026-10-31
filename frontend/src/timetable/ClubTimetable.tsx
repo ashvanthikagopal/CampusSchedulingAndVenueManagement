@@ -83,27 +83,52 @@ export const ClubTimetable: React.FC = () => {
   // Cell multi-selection state for drag/multi-hour booking
   const [selectedCells, setSelectedCells] = useState<{ day: string; period: number; roomId: string }[]>([]);
 
-  const daysList = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+  const [periodScope, setPeriodScope] = useState<'all' | 'evening'>('all');
+
+  const daysList = week === 8 
+    ? ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] 
+    : ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+
   const dayNames: { [key: string]: string } = {
     MON: 'Monday',
     TUE: 'Tuesday',
     WED: 'Wednesday',
     THU: 'Thursday',
     FRI: 'Friday',
+    SAT: 'Saturday',
   };
 
-  const periodsList = [
-    { p: 10, label: 'P10', time: '18:00 - 19:00', eventOnly: true },
-    { p: 11, label: 'P11', time: '19:00 - 20:00', eventOnly: true },
-    { p: 12, label: 'P12', time: '20:00 - 21:00', eventOnly: true },
-    { p: 13, label: 'P13', time: '21:00 - 22:00', eventOnly: true },
+  const ALL_PERIODS: { p: number | string; label: string; time: string; eventOnly?: boolean; isLunch?: boolean }[] = [
+    { p: 1, label: 'P1', time: '08:00 - 09:00', eventOnly: false, isLunch: false },
+    { p: 2, label: 'P2', time: '09:00 - 10:00', eventOnly: false, isLunch: false },
+    { p: 3, label: 'P3', time: '10:00 - 11:00', eventOnly: false, isLunch: false },
+    { p: 4, label: 'P4', time: '11:00 - 12:00', eventOnly: false, isLunch: false },
+    { p: 5, label: 'P5', time: '12:00 - 13:00', eventOnly: false, isLunch: false },
+    { p: 'LUNCH', label: 'Lunch', time: '13:00 - 14:00', eventOnly: false, isLunch: true },
+    { p: 6, label: 'P6', time: '14:00 - 15:00', eventOnly: false, isLunch: false },
+    { p: 7, label: 'P7', time: '15:00 - 16:00', eventOnly: false, isLunch: false },
+    { p: 8, label: 'P8', time: '16:00 - 17:00', eventOnly: false, isLunch: false },
+    { p: 9, label: 'P9', time: '17:00 - 18:00', eventOnly: false, isLunch: false },
+    { p: 10, label: 'P10', time: '18:00 - 19:00', eventOnly: true, isLunch: false },
+    { p: 11, label: 'P11', time: '19:00 - 20:00', eventOnly: true, isLunch: false },
+    { p: 12, label: 'P12', time: '20:00 - 21:00', eventOnly: true, isLunch: false },
+    { p: 13, label: 'P13', time: '21:00 - 22:00', eventOnly: true, isLunch: false },
   ];
+
+  const EVENING_PERIODS: { p: number | string; label: string; time: string; eventOnly?: boolean; isLunch?: boolean }[] = [
+    { p: 10, label: 'P10', time: '18:00 - 19:00', eventOnly: true, isLunch: false },
+    { p: 11, label: 'P11', time: '19:00 - 20:00', eventOnly: true, isLunch: false },
+    { p: 12, label: 'P12', time: '20:00 - 21:00', eventOnly: true, isLunch: false },
+    { p: 13, label: 'P13', time: '21:00 - 22:00', eventOnly: true, isLunch: false },
+  ];
+
+  const periodsList = periodScope === 'all' ? ALL_PERIODS : EVENING_PERIODS;
 
   const fetchAvailability = async () => {
     setLoading(true);
     setError(null);
     try {
-      let url = `/rooms/availability?week=${week}`;
+      let url = `/rooms/availability?week=${week}&event_only=false`;
       if (selectedClub) {
         url += `&club=${encodeURIComponent(selectedClub)}`;
       }

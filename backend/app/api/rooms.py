@@ -23,6 +23,7 @@ from backend.app.api.deps import get_current_user, get_current_user_optional
 router = APIRouter(prefix="/rooms", tags=["rooms"])
 
 DAYS = ["MON", "TUE", "WED", "THU", "FRI"]
+EXAM_DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
 EVENT_PERIODS = [
     {"p": 10, "time": "18:00 - 19:00", "label": "P10"},
     {"p": 11, "time": "19:00 - 20:00", "label": "P11"},
@@ -62,20 +63,50 @@ def get_dataset_data(db: Session) -> Dict[str, Any]:
 
 def get_schedule_data(db: Session) -> Dict[str, Any]:
     ver = db.query(ScheduleVersion).filter(ScheduleVersion.status == "active").order_by(ScheduleVersion.created_at.desc()).first()
+
+    file_exams = []
+    schedule_file = REPO_ROOT / "exports" / "schedule.json"
+    if schedule_file.exists():
+        try:
+            with open(schedule_file, encoding="utf-8") as f:
+                file_sched = json.load(f)
+                file_exams = file_sched.get("exams", [])
+        except Exception:
+            file_exams = []
+
     if ver:
         entries = db.query(ScheduleEntry).filter(ScheduleEntry.version_id == ver.id).all()
         overrides = db.query(SessionOverride).filter(SessionOverride.version_id == ver.id).all()
         decisions = db.query(BookingDecisionModel).filter(BookingDecisionModel.version_id == ver.id).all()
+        exams_db = db.query(ExamAssignment).filter(ExamAssignment.version_id == ver.id).all()
+
+        exams_list = []
+        if exams_db:
+            for ex in exams_db:
+                rooms = ex.rooms
+                if isinstance(rooms, str):
+                    try:
+                        rooms = json.loads(rooms)
+                    except Exception:
+                        rooms = []
+                exams_list.append({
+                    "exam_id": ex.exam_id,
+                    "day": ex.day,
+                    "session": ex.session,
+                    "rooms": rooms
+                })
+        else:
+            exams_list = file_exams
+
         return {
             "sessions": [{"session_id": e.session_id, "day": e.day, "start_period": e.start_period, "room_id": e.room_id} for e in entries],
             "fest_week": {
                 "session_overrides": [{"session_id": o.session_id, "day": o.day, "start_period": o.start_period, "room_id": o.room_id, "displaced_by": o.displaced_by} for o in overrides],
                 "bookings": [{"request_id": d.request_id, "status": d.decision, "day": d.assigned_day, "start_period": d.assigned_start_period, "end_period": d.assigned_end_period, "room_id": d.assigned_room_id} for d in decisions]
             },
-            "exams": []
+            "exams": exams_list
         }
 
-    schedule_file = REPO_ROOT / "exports" / "schedule.json"
     if schedule_file.exists():
         with open(schedule_file, encoding="utf-8") as f:
             return json.load(f)
@@ -85,10 +116,10 @@ def get_schedule_data(db: Session) -> Dict[str, Any]:
 @router.get("/availability")
 def get_room_availability(
     room: Optional[str] = Query(None, description="Specific room ID, or omit for all rooms"),
-    week: int = Query(7, description="Week number: 7 for Spectra fest week, 8 for exams, 1 for regular"),
-    day: Optional[str] = Query(None, description="Day filter (MON, TUE, WED, THU, FRI)"),
+    week: int = Query(7, description="Week number: 7 for Spectra fest week, 8 for exams, 1 for regular academic"),
+    day: Optional[str] = Query(None, description="Day filter (MON, TUE, WED, THU, FRI, SAT)"),
     club: Optional[str] = Query(None, description="Club name for distinguishing own bookings"),
-    event_only: bool = Query(True, description="Filter for bookable event periods P10 to P13 only"),
+    event_only: bool = Query(False, description="Filter for bookable event periods P10 to P13 only"),
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
@@ -135,63 +166,72 @@ def get_room_availability(
             unavail_map[(r_id, d_day, p)] = un.get("reason", "Room maintenance / repair")
 
     # Sessions (classes)
-    session_map = {} # (room_id, day, period) -> True
+    session_map = {} # (room_id, day, period) -> session info
     session_meta = {s["id"]: s for s in dataset.get("sessions", [])}
     baseline_sessions = sched.get("sessions", [])
 
-    # Effective sessions in week 7 consider overrides
-    effective_sessions = {}
-    for s in baseline_sessions:
-        effective_sessions[s["session_id"]] = (s["day"], s["start_period"], s["room_id"])
+    # Regular classes run in Week 1 and Week 7. In Week 8 (Exam week), classes are suspended for midsem exams.
+    if week != 8:
+        effective_sessions = {}
+        for s in baseline_sessions:
+            effective_sessions[s["session_id"]] = (s["day"], s["start_period"], s["room_id"])
 
-    if week == 7:
-        for ov in sched.get("fest_week", {}).get("session_overrides", []):
-            if ov.get("room_id") and ov.get("day") and ov.get("start_period"):
-                effective_sessions[ov["session_id"]] = (ov["day"], ov["start_period"], ov["room_id"])
+        if week == 7:
+            for ov in sched.get("fest_week", {}).get("session_overrides", []):
+                if ov.get("room_id") and ov.get("day") and ov.get("start_period"):
+                    effective_sessions[ov["session_id"]] = (ov["day"], ov["start_period"], ov["room_id"])
 
-    for sid, (s_day, s_start, s_room) in effective_sessions.items():
-        s_obj = session_meta.get(sid, {})
-        duration = s_obj.get("duration", 1)
-        for p_offset in range(duration):
-            p = s_start + p_offset
-            session_map[(s_room, s_day, p)] = True
+        for sid, (s_day, s_start, s_room) in effective_sessions.items():
+            s_obj = session_meta.get(sid, {})
+            duration = s_obj.get("duration", 1)
+            course_id = s_obj.get("course_id", "")
+            for p_offset in range(duration):
+                p = s_start + p_offset
+                session_map[(s_room, s_day, p)] = {
+                    "session_id": sid,
+                    "course_id": course_id,
+                    "session_type": s_obj.get("session_type", "lecture")
+                }
 
     # Bookings map
     # (room_id, day, period) -> booking info
+    # Fest bookings ONLY occur during Week 7 (Spectra week)
     bookings_map = {}
-    for b in sched.get("fest_week", {}).get("bookings", []):
-        if b.get("status") in ("approved", "APPROVED_PRIMARY", "OFFERED_ALTERNATIVE"):
-            b_room = b.get("room_id")
-            b_day = b.get("day")
-            b_start = b.get("start_period")
-            b_end = b.get("end_period", b_start)
-            req = req_meta.get(b.get("request_id"), {})
-            req_cat = req.get("requested_category")
-            requester = req.get("requester")
-            b_title = req.get("title", "Event")
+    if week == 7:
+        for b in sched.get("fest_week", {}).get("bookings", []):
+            if b.get("status") in ("approved", "APPROVED_PRIMARY", "OFFERED_ALTERNATIVE"):
+                b_room = b.get("room_id")
+                b_day = b.get("day")
+                b_start = b.get("start_period")
+                b_end = b.get("end_period", b_start)
+                req = req_meta.get(b.get("request_id"), {})
+                req_cat = req.get("requested_category")
+                requester = req.get("requester")
+                b_title = req.get("title", "Event")
 
-            # Check if this booking belongs to current user's club
-            is_mine = False
-            if user_club and requester and (user_club.lower() in requester.lower() or requester.lower() in user_club.lower()):
-                is_mine = True
-            elif current_user and current_user.role == "club" and user_club and user_club == "Student Clubs":
-                # If logged in as generic Student Clubs rep, matches any club event when explicitly selected
-                if club and requester and club.lower() in requester.lower():
+                # Check if this booking belongs to current user's club
+                is_mine = False
+                if user_club and requester and (user_club.lower() in requester.lower() or requester.lower() in user_club.lower()):
                     is_mine = True
+                elif current_user and current_user.role == "club" and user_club and user_club == "Student Clubs":
+                    # If logged in as generic Student Clubs rep, matches any club event when explicitly selected
+                    if club and requester and club.lower() in requester.lower():
+                        is_mine = True
 
-            for p in range(b_start, b_end + 1):
-                bookings_map[(b_room, b_day, p)] = {
-                    "is_mine": is_mine,
-                    "is_institute": (req_cat == "institute_event"),
-                    "title": b_title if is_mine else None,
-                    "club_name": requester if is_mine else None,
-                    "status": "approved",
-                    "request_id": b.get("request_id") if is_mine else None
-                }
+                for p in range(b_start, b_end + 1):
+                    bookings_map[(b_room, b_day, p)] = {
+                        "is_mine": is_mine,
+                        "is_institute": (req_cat == "institute_event"),
+                        "title": b_title if is_mine else None,
+                        "club_name": requester if is_mine else None,
+                        "status": "approved",
+                        "request_id": b.get("request_id") if is_mine else None
+                    }
 
-    # Also map user pending requests from DB
+    # Also map user pending requests from DB (for the matching week)
     for ur in db_user_requests:
-        if ur.status == "pending" and ur.requested_room:
+        req_wk = getattr(ur, "week", 7)
+        if ur.status == "pending" and ur.requested_room and req_wk == week:
             windows = ur.windows or []
             if isinstance(windows, str):
                 try:
@@ -219,13 +259,18 @@ def get_room_availability(
             ex_day = ex.get("day")
             session_slot = ex.get("session") # AM or PM
             exam_periods = [2, 3, 4] if session_slot == "AM" else [6, 7]
+            eid = ex.get("exam_id", "Exam")
             for r_id in ex.get("rooms", []):
                 for p in exam_periods:
-                    exams_map[(r_id, ex_day, p)] = True
+                    exams_map[(r_id, ex_day, p)] = {
+                        "exam_id": eid,
+                        "session": session_slot
+                    }
 
     # Build response for rooms
+    active_days = EXAM_DAYS if week == 8 else DAYS
+    days_to_check = [day] if day and day in active_days else active_days
     result_rooms = []
-    days_to_check = [day] if day and day in DAYS else DAYS
 
     for r in rooms_list:
         r_id = r["id"]
@@ -273,13 +318,15 @@ def get_room_availability(
                         "detail": "Room unavailable / maintenance"
                     })
                 elif cell_key in exams_map:
+                    ex_data = exams_map[cell_key]
+                    eid = ex_data.get("exam_id", "Exam")
                     day_cells.append({
                         "period": p,
                         "time": item["time"],
                         "state": "exam",
-                        "label": "Exam",
+                        "label": f"Exam ({eid})",
                         "is_free": False,
-                        "detail": None
+                        "detail": ex_data
                     })
                 elif cell_key in bookings_map:
                     b_info = bookings_map[cell_key]
@@ -316,13 +363,16 @@ def get_room_availability(
                             "detail": None
                         })
                 elif cell_key in session_map:
+                    s_data = session_map[cell_key]
+                    c_id = s_data.get("course_id", "")
+                    lbl = f"Class ({c_id})" if c_id else "Class"
                     day_cells.append({
                         "period": p,
                         "time": item["time"],
                         "state": "class",
-                        "label": "Class",
+                        "label": lbl,
                         "is_free": False,
-                        "detail": None
+                        "detail": s_data
                     })
                 else:
                     day_cells.append({
@@ -346,10 +396,17 @@ def get_room_availability(
         b.get("requester") for b in dataset.get("booking_requests", []) if b.get("role") == "club" and b.get("requester")
     }))
 
+    if week == 7:
+        spectra_banner = "Spectra week: institute events have priority. Your request may be displaced."
+    elif week == 8:
+        spectra_banner = "Midsem Exams week: exam allocations have absolute priority in designated venues. Regular lectures are suspended."
+    else:
+        spectra_banner = "Week 1: Standard Academic Timetable. Daytime periods (P1–P9) reserved for lectures, labs and tutorials; evening periods (P10–P13) open for bookings."
+
     return {
         "week": week,
         "is_spectra_week": (week == 7),
-        "spectra_banner": "Spectra week: institute events have priority. Your request may be displaced." if week == 7 else None,
+        "spectra_banner": spectra_banner,
         "active_club": user_club,
         "available_clubs": all_clubs,
         "rooms": result_rooms,

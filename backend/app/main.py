@@ -43,16 +43,9 @@ def seed_demo_accounts_if_empty():
 seed_demo_accounts_if_empty()
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    seed_demo_accounts_if_empty()
-    yield
-
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    lifespan=lifespan
+    version=settings.VERSION
 )
 
 # CORS Middleware

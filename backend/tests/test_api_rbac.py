@@ -274,3 +274,43 @@ def test_reset_demo_idempotency():
     assert res2.status_code == 200
     data2 = res2.json()
     assert data2["demo_accounts_count"] == 62
+
+
+def test_room_availability_week_differentiation():
+    # Week 1: Academic week (classes present, no fest bookings, no exams)
+    res_w1 = client.get("/rooms/availability?week=1&event_only=false")
+    assert res_w1.status_code == 200
+    d1 = res_w1.json()
+    assert d1["week"] == 1
+    assert "Week 1" in d1["spectra_banner"]
+    assert d1["days"] == ["MON", "TUE", "WED", "THU", "FRI"]
+    w1_states = [c["state"] for r in d1["rooms"] for d in r["days"].values() for c in d]
+    assert "class" in w1_states
+    assert "exam" not in w1_states
+    assert "booked" not in w1_states
+    assert "reserved_institute" not in w1_states
+
+    # Week 7: Fest week (classes + fest bookings + institute reservations)
+    res_w7 = client.get("/rooms/availability?week=7&event_only=false")
+    assert res_w7.status_code == 200
+    d7 = res_w7.json()
+    assert d7["week"] == 7
+    assert "Spectra week" in d7["spectra_banner"]
+    w7_states = [c["state"] for r in d7["rooms"] for d in r["days"].values() for c in d]
+    assert "class" in w7_states
+    assert "booked" in w7_states
+    assert "reserved_institute" in w7_states
+    assert "exam" not in w7_states
+
+    # Week 8: Midsem Exam week (exams present, classes suspended, Saturday included)
+    res_w8 = client.get("/rooms/availability?week=8&event_only=false")
+    assert res_w8.status_code == 200
+    d8 = res_w8.json()
+    assert d8["week"] == 8
+    assert "Midsem Exams" in d8["spectra_banner"]
+    assert "SAT" in d8["days"]
+    w8_states = [c["state"] for r in d8["rooms"] for d in r["days"].values() for c in d]
+    assert "exam" in w8_states
+    assert "class" not in w8_states
+    assert "booked" not in w8_states
+
