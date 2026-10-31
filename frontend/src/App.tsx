@@ -11,6 +11,7 @@ import { RescheduleDiffPage } from './rescheduling/RescheduleDiffPage';
 import { ExamsPage } from './exams/ExamsPage';
 import { AssistantPage } from './ai/AssistantPage';
 import { AdminPage } from './pages/AdminPage';
+import { ClubTimetable } from './timetable/ClubTimetable';
 
 const queryClient = new QueryClient();
 
@@ -22,7 +23,7 @@ const AuthenticatedApp: React.FC = () => {
   }
 
   const getDefaultElement = () => {
-    if (user.role === 'club') return <BookingsPage />;
+    if (user.role === 'club') return <ClubTimetable />;
     if (user.role === 'faculty' || user.role === 'department_coordinator') return <TimetableGrid />;
     return <Dashboard />;
   };
@@ -35,6 +36,7 @@ const AuthenticatedApp: React.FC = () => {
           <Routes>
             <Route path="/" element={getDefaultElement()} />
             <Route path="/timetable" element={<TimetableGrid />} />
+            <Route path="/club-timetable" element={user.role === 'club' ? <ClubTimetable /> : <Navigate to="/" replace />} />
             <Route path="/bookings" element={<BookingsPage />} />
             <Route 
               path="/approvals" 

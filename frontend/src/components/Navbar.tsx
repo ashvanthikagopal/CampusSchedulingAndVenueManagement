@@ -42,6 +42,7 @@ export const Navbar: React.FC = () => {
     );
   } else if (user?.role === 'club') {
     navLinks.push(
+      { name: 'Room Availability', shortName: 'Rooms', path: '/club-timetable', icon: Calendar },
       { name: 'Club Bookings', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
       { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare }
     );

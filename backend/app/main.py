@@ -21,6 +21,7 @@ from backend.app.api.disruptions import router as disruptions_router
 from backend.app.api.ai import router as ai_router
 from backend.app.api.admin import router as admin_router
 from backend.app.api.public import router as public_router
+from backend.app.api.rooms import router as rooms_router
 from backend.app.core.seed_users import seed_users
 
 
@@ -72,6 +73,7 @@ app.include_router(ai_router, prefix=settings.API_PREFIX)
 app.include_router(admin_router, prefix=settings.API_PREFIX)
 app.include_router(public_router, prefix=settings.API_PREFIX)
 app.include_router(public_router)
+app.include_router(rooms_router, prefix=settings.API_PREFIX)
 
 
 @app.get("/api/health")
