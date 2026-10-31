@@ -1,0 +1,34 @@
+{
+  "admins": [
+    {
+      "id": "usr_admin1",
+      "email": "admin@cit.edu",
+      "name": "Dean's Office",
+      "role": "admin",
+      "department": "Administration"
+    },
+    {
+      "id": "usr_admin2",
+      "email": "admin2@cit.edu",
+      "name": "Spectra Core Team",
+      "role": "admin",
+      "department": "Administration"
+    }
+  ],
+  "extra_coordinators": [
+    {
+      "id": "usr_coord_tnp",
+      "email": "coord_tnp@cit.edu",
+      "name": "Training & Placement Cell",
+      "role": "department_coordinator",
+      "department": "CSE"
+    }
+  ],
+  "role_passwords": {
+    "admin": "Admin@123",
+    "department_coordinator": "Coord@123",
+    "faculty": "Faculty@123",
+    "club": "Club@123"
+  }
+}
+

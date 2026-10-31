@@ -15,6 +15,8 @@ from backend.app.models.entities import (
 )
 from backend.app.api.deps import require_admin, get_current_user
 from backend.app.core.security import get_password_hash
+from backend.app.core.seed_users import seed_users, get_requester_user_id
+from backend.app.core.stats import get_real_stats
 from backend.app.schemas.schemas import DashboardMetrics, PriorityUpdateRequest
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -22,29 +24,26 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.get("/dashboard", response_model=DashboardMetrics)
 def get_dashboard_metrics(db: Session = Depends(get_db)):
-    """Provides high-level dashboard KPIs read from the active schedule and dataset."""
+    """Provides high-level dashboard KPIs dynamically read from active schedule and dataset."""
+    stats = get_real_stats(db=db)
+
     try:
         with open("exports/schedule.json", encoding="utf-8") as f:
             sched = json.load(f)
     except Exception:
         sched = {"sessions": [], "fest_week": {"bookings": []}}
 
-    sessions_count = len(sched.get("sessions", []))
     bookings = sched.get("fest_week", {}).get("bookings", [])
-    approved_b = sum(1 for b in bookings if b.get("status") == "approved")
-
-    # Read validator report if available
-    soft_total = sched.get("soft_total", 3)
-    hard_conflicts = 0
+    pending = sum(1 for b in bookings if b.get("status") == "pending")
 
     return DashboardMetrics(
-        sessions_scheduled=sessions_count,
+        sessions_scheduled=stats["sessions_scheduled"],
         total_sessions=189,
-        hard_conflicts=hard_conflicts,
-        soft_penalty_total=soft_total,
-        pending_approvals=sum(1 for b in bookings if b.get("status") == "pending"),
-        approved_bookings=approved_b,
-        booking_score=67.0,
+        hard_conflicts=stats["hard_violations"],
+        soft_penalty_total=stats["soft_penalty_total"],
+        pending_approvals=pending,
+        approved_bookings=stats["approved_bookings"],
+        booking_score=stats["booking_score"],
         max_booking_score=70.0,
         room_utilization_rate=68.4,
         active_dataset_id="cit-public-v1"
@@ -168,70 +167,50 @@ def update_priority_config(
 def reset_demo(db: Session = Depends(get_db)):
     """
     Idempotent Admin reset: restores database to a pristine demo state,
-    seeds demo accounts, loads starter dataset, and resets active schedule.
+    seeds demo accounts for all 62 roles from dataset, loads starter dataset,
+    and resets active schedule.
     """
     # 1. Recreate tables
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
-    # 2. Seed the 5 official demo accounts
-    demo_users = [
-        User(
-            id="usr_admin1",
-            name="Campus Administrator",
-            email="admin@cit.edu",
-            password_hash=get_password_hash("Admin@123"),
-            role="admin",
-            department="Administration"
-        ),
-        User(
-            id="usr_admin2",
-            name="Dean of Academics",
-            email="admin2@cit.edu",
-            password_hash=get_password_hash("Admin@123"),
-            role="admin",
-            department="Administration"
-        ),
-        User(
-            id="usr_coord_cse",
-            name="CSE Coordinator",
-            email="coord_cse@cit.edu",
-            password_hash=get_password_hash("Coord@123"),
-            role="department_coordinator",
-            department="CSE"
-        ),
-        User(
-            id="usr_fac_f06",
-            name="Prof. Sharma (F06)",
-            email="faculty_f06@cit.edu",
-            password_hash=get_password_hash("Faculty@123"),
-            role="faculty",
-            department="CSE",
-            faculty_id="F06"
-        ),
-        User(
-            id="usr_club",
-            name="Club Representative",
-            email="club@cit.edu",
-            password_hash=get_password_hash("Club@123"),
-            role="club",
-            club_name="Student Clubs"
-        ),
-    ]
-    for u in demo_users:
-        db.add(u)
-
-    # 3. Load starter dataset
     try:
         with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
             data = json.load(f)
 
+        # 2. Seed all 62 accounts idempotently using seed_users
+        seeded_users = seed_users(db, dataset=data)
+
+        # 3. Load starter dataset
         db.add(DatasetModel(
             dataset_id=data.get("dataset_id", "cit-public-v1"),
             raw_json=data,
             imported_by="system_demo_reset",
             is_active=True
         ))
+
+        # Seed booking requests with correct submitted_by mappings
+        for b in data.get("booking_requests", []):
+            sub_id = get_requester_user_id(b.get("requester", ""), b.get("role", "club"))
+            db.add(BookingRequestModel(
+                id=b["id"],
+                submitted_at=b.get("submitted_at"),
+                requester=b.get("requester"),
+                role=b.get("role"),
+                requested_category=b.get("requested_category"),
+                effective_category=b.get("effective_category", b.get("requested_category")),
+                title=b.get("title"),
+                attendance=b.get("attendance"),
+                duration_periods=b.get("duration_periods"),
+                windows=b.get("windows"),
+                room_types=b.get("room_types"),
+                needs=b.get("needs"),
+                requested_room=b.get("requested_room"),
+                mandatory_for_groups=b.get("mandatory_for_groups"),
+                raw_text=b.get("raw_text"),
+                status="pending",
+                submitted_by=sub_id
+            ))
 
         # Seed priority config
         db.add(PriorityConfigModel(
@@ -248,7 +227,7 @@ def reset_demo(db: Session = Depends(get_db)):
             actor="system",
             action="RESET_DEMO_STATE",
             entity="Database",
-            after_json={"message": "Demo state reset cleanly with 5 demo accounts"}
+            after_json={"message": f"Demo state reset cleanly with {len(seeded_users)} accounts"}
         ))
 
         db.commit()
@@ -258,13 +237,7 @@ def reset_demo(db: Session = Depends(get_db)):
 
     return {
         "status": "success",
-        "message": "Demo environment reset successfully with clean starter data and 5 demo accounts seeded.",
-        "demo_accounts": [
-            {"email": "admin@cit.edu", "role": "admin", "password": "Admin@123"},
-            {"email": "admin2@cit.edu", "role": "admin (anti-self-approval)", "password": "Admin@123"},
-            {"email": "coord_cse@cit.edu", "role": "department_coordinator", "password": "Coord@123"},
-            {"email": "faculty_f06@cit.edu", "role": "faculty", "password": "Faculty@123"},
-            {"email": "club@cit.edu", "role": "club", "password": "Club@123"}
-        ]
+        "message": f"Demo environment reset successfully with clean starter data and {len(seeded_users)} accounts seeded.",
+        "accounts_count": len(seeded_users)
     }
 

@@ -1,7 +1,3 @@
-<<<<<<< Updated upstream
-# CampusSchedulingAndVenueManagement
-An intelligent campus management platform that automates academic timetable generation, examination scheduling, and venue bookings using constraint-based optimization. Features AI-powered natural language assistance, conflict-free rescheduling, role-based access, and efficient campus resource management.
-=======
 # CIT Campus Scheduling and Venue Management Platform
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue.svg)](https://www.python.org/)
@@ -159,15 +155,108 @@ python backend/validator/validator.py --data data/starter_dataset/cit_public.jso
 
 ## Demo Accounts & Role-Based Access
 
-The database automatically seeds 5 distinct role accounts on startup:
+The system replaces hard-coded demo credentials with **deterministic, rule-based account generation** derived directly from `data/starter_dataset/cit_public.json` and `backend/app/core/accounts_config.json`. Every member of every role receives an active account (**62 total accounts**).
 
-| Account Role | Email | Password | Allowed Capabilities |
-|---|---|---|---|
-| **Admin (Timetable Officer)** | `admin@cit.edu` | `Admin@123` | Full access: Generate timetable, approve disruptions, system reset |
-| **Admin 2 (Dean Academic)** | `admin2@cit.edu` | `Admin@123` | Dual administrative authority; approves Admin 1's proposals |
-| **Department Coordinator** | `coord_cse@cit.edu` | `Coord@123` | Submit booking requests (`category: department`), submit disruptions |
-| **Faculty Member** | `faculty_f06@cit.edu` | `Faculty@123` | Submit booking requests (`category: faculty`), query personal classes |
-| **Club Representative** | `club@cit.edu` | `Club@123` | Submit fest bookings (`category: club`), view venue availability |
+### Role Passwords & Rules
+
+| Role | Email Rule / Login Identifier | Password | Role Category Cap | Allowed Capabilities |
+|---|---|---|---|---|
+| **Campus Admin** | `admin@cit.edu`, `admin2@cit.edu` | `Admin@123` | `institute_event` | Full timetable generation, disruption approval, global venue governance, demo reset |
+| **Department Coordinator** | `coord_<dept>@cit.edu` (e.g. `coord_cse@cit.edu`, `coord_tnp@cit.edu`) | `Coord@123` | `department_event` | Department timetable scoping, lab booking approval for own department's labs only |
+| **Faculty Member** | `faculty_<fid>@cit.edu` OR Faculty ID (e.g. `F06` / `f06`) | `Faculty@123` | `guest_lecture` | Own teaching timetable only, guest lecture booking requests, own leave declaration |
+| **Club Representative** | `club_<slug>@cit.edu` (e.g. `club_ecell@cit.edu`, `club_dance@cit.edu`) | `Club@123` | `club_event` | Submit fest venue requests, view own club requests, track alternative venues |
+
+### Key Access Rules
+- **Faculty Login by ID**: Any faculty member can log in using either their email (`faculty_f06@cit.edu`) or their faculty ID (case-insensitive `F06` or `f06`).
+- **Department Scoping**: Department coordinators can only view their own department's sessions and can only approve booking requests that target their department's labs (e.g. CSE coordinator only approves `lab_cs` venues).
+- **Anti-Self-Approval**: Under Non-negotiable #5, nobody can approve their own request (`approver.id != submitted_by`). For example, `admin2@cit.edu` (Spectra Core Team) cannot approve `BR-01` (Spectra Core Team), and `admin@cit.edu` (Dean's Office) cannot approve `BR-03` (Dean of Academics).
+- **Effective Category Capping**: A club requesting a `guest_lecture` is automatically capped to `club_event` with a stated rule trace explanation.
+- **DEMO_MODE Flag**: Set `DEMO_MODE=true` in `.env` to enable the `/auth/directory` endpoint for one-click browser testing. Passwords are never sent over the API directory.
+- **Admin Reset**: The "Reset Demo" button in the navigation bar executes `POST /api/admin/reset-demo`, which idempotently resets tables and re-seeds all 62 accounts.
+
+<details>
+<summary><strong>Complete Directory of all 62 Rule-Generated Demo Accounts (Click to expand)</strong></summary>
+
+### Admins (Password: `Admin@123`)
+| Name | Email | Role | Department |
+| :--- | :--- | :--- | :--- |
+| Dean's Office | `admin@cit.edu` | Admin | Administration |
+| Spectra Core Team | `admin2@cit.edu` | Admin | Administration |
+
+### Department Coordinators (Password: `Coord@123`)
+| Name | Email | Department |
+| :--- | :--- | :--- |
+| CE Department Coordinator | `coord_ce@cit.edu` | CE |
+| CSE Department Coordinator | `coord_cse@cit.edu` | CSE |
+| ECE Department Coordinator | `coord_ece@cit.edu` | ECE |
+| EE Department Coordinator | `coord_ee@cit.edu` | EE |
+| HSS Department Coordinator | `coord_hss@cit.edu` | HSS |
+| MA Department Coordinator | `coord_ma@cit.edu` | MA |
+| ME Department Coordinator | `coord_me@cit.edu` | ME |
+| PH Department Coordinator | `coord_ph@cit.edu` | PH |
+| Training & Placement Cell | `coord_tnp@cit.edu` | CSE |
+
+### Clubs (Password: `Club@123`)
+| Club Name | Email | Role |
+| :--- | :--- | :--- |
+| Astronomy Club | `club_astronomy@cit.edu` | Club Representative |
+| Coding Club | `club_coding@cit.edu` | Club Representative |
+| Dance Club | `club_dance@cit.edu` | Club Representative |
+| Dramatics Society | `club_dramatics@cit.edu` | Club Representative |
+| E-Cell | `club_ecell@cit.edu` | Club Representative |
+| Gaming Society | `club_gaming@cit.edu` | Club Representative |
+| Literary Society | `club_literary@cit.edu` | Club Representative |
+| Music Club | `club_music@cit.edu` | Club Representative |
+| Photography Club | `club_photography@cit.edu` | Club Representative |
+| Quiz Club | `club_quiz@cit.edu` | Club Representative |
+| Robotics Club | `club_robotics@cit.edu` | Club Representative |
+
+### Faculty Members (Password: `Faculty@123` / Login by Faculty ID)
+| Faculty ID | Name | Department | Email |
+| :--- | :--- | :--- | :--- |
+| F01 | Dr. Ananya Mishra | CSE | `faculty_f01@cit.edu` |
+| F02 | Dr. Rohit Sahoo | CSE | `faculty_f02@cit.edu` |
+| F03 | Dr. Kavya Iyer | CSE | `faculty_f03@cit.edu` |
+| F04 | Dr. Sandeep Patnaik | CSE | `faculty_f04@cit.edu` |
+| F05 | Dr. Meera Nair | CSE | `faculty_f05@cit.edu` |
+| F06 | Dr. Arjun Mehta | CSE | `faculty_f06@cit.edu` |
+| F07 | Dr. Pooja Das | CSE | `faculty_f07@cit.edu` |
+| F08 | Prof. Vikram Rao (Visiting) | CSE | `faculty_f08@cit.edu` |
+| F09 | Dr. Ishita Banerjee | ECE | `faculty_f09@cit.edu` |
+| F10 | Dr. Suresh Pradhan | ECE | `faculty_f10@cit.edu` |
+| F11 | Dr. Neha Kulkarni | ECE | `faculty_f11@cit.edu` |
+| F12 | Dr. Amit Behera | ECE | `faculty_f12@cit.edu` |
+| F13 | Dr. Ritu Sharma | ECE | `faculty_f13@cit.edu` |
+| F14 | Dr. Kunal Joshi | EE | `faculty_f14@cit.edu` |
+| F15 | Dr. Sneha Mohanty | EE | `faculty_f15@cit.edu` |
+| F16 | Dr. Rakesh Panda | EE | `faculty_f16@cit.edu` |
+| F17 | Dr. Divya Menon | EE | `faculty_f17@cit.edu` |
+| F18 | Dr. Manoj Tripathy | EE | `faculty_f18@cit.edu` |
+| F19 | Dr. Shalini Gupta | MA | `faculty_f19@cit.edu` |
+| F20 | Dr. Prakash Nayak | MA | `faculty_f20@cit.edu` |
+| F21 | Dr. Lakshmi Reddy | PH | `faculty_f21@cit.edu` |
+| F22 | Dr. Harish Dash | PH | `faculty_f22@cit.edu` |
+| F23 | Dr. Farah Khan | PH | `faculty_f23@cit.edu` |
+| F24 | Dr. Gaurav Jena | PH | `faculty_f24@cit.edu` |
+| F25 | Dr. Tanvi Desai | ME | `faculty_f25@cit.edu` |
+| F26 | Dr. Abhishek Rout | ME | `faculty_f26@cit.edu` |
+| F27 | Dr. Sunita Bose | ME | `faculty_f27@cit.edu` |
+| F28 | Dr. Nikhil Swain | ME | `faculty_f28@cit.edu` |
+| F29 | Dr. Priya Raman | ME | `faculty_f29@cit.edu` |
+| F30 | Dr. Debashish Sethi | ME | `faculty_f30@cit.edu` |
+| F31 | Dr. Anjali Verma | CE | `faculty_f31@cit.edu` |
+| F32 | Dr. Sameer Khuntia | CE | `faculty_f32@cit.edu` |
+| F33 | Dr. Rekha Pillai | CE | `faculty_f33@cit.edu` |
+| F34 | Dr. Varun Acharya | CE | `faculty_f34@cit.edu` |
+| F35 | Dr. Bhavna Saxena | CE | `faculty_f35@cit.edu` |
+| F36 | Dr. Ashok Mahapatra | HSS | `faculty_f36@cit.edu` |
+| F37 | Prof. Shreya Kapoor (Dean) | ADMIN | `faculty_f37@cit.edu` |
+| F38 | Dr. Imran Qureshi | HSS | `faculty_f38@cit.edu` |
+| F39 | Dr. Radhika Hegde | HSS | `faculty_f39@cit.edu` |
+| F40 | Dr. Om Prakash Sahu | HSS | `faculty_f40@cit.edu` |
+
+*(Generated with `scripts/print_accounts.py`)*
+</details>
 
 ---
 
@@ -376,4 +465,3 @@ Expected result:
 
 Developed for the **Chilika Institute of Technology (CIT) Scheduling Platform**. Distributed under the MIT License.
 
->>>>>>> Stashed changes

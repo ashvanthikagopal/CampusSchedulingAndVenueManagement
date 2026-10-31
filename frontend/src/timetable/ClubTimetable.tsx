@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
-import { 
-  Building2, Calendar, Clock, Filter, ChevronLeft, ChevronRight, 
+import {
+  Building2, Calendar, Clock, Filter, ChevronLeft, ChevronRight,
   Info, Sparkles, CheckCircle2, AlertTriangle, ShieldAlert,
   Search, Users, ExternalLink, HelpCircle, Layers, Check, X
 } from 'lucide-react';
@@ -157,7 +157,7 @@ export const ClubTimetable: React.FC = () => {
   const handleCellClick = (room: RoomMeta, day: string, cell: RoomCell) => {
     if (!cell.is_free) return;
     const pNum = typeof cell.period === 'number' ? cell.period : 1;
-    
+
     // Check if cell is part of multi-select
     if (selectedCells.length > 0 && selectedCells[0].day === day && selectedCells[0].roomId === room.id) {
       const periods = selectedCells.map((c) => c.period).sort((a, b) => a - b);
@@ -1149,4 +1149,3 @@ export const ClubTimetable: React.FC = () => {
     </div>
   );
 };
-

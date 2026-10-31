@@ -2,12 +2,8 @@
 Application configuration and environment variables.
 """
 import os
-from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
-
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-DEFAULT_DB_PATH = (REPO_ROOT / "cit_scheduler.db").as_posix()
 
 
 class Settings(BaseSettings):
@@ -16,7 +12,7 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api"
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./cit_scheduler.db")
 
     # JWT Authentication
     JWT_SECRET: str = os.getenv("JWT_SECRET", "super-secret-cit-scheduler-demo-jwt-key-32-chars")
@@ -34,6 +30,7 @@ class Settings(BaseSettings):
 
     # Demo Simulation Settings
     DEMO_TODAY_DATE: str = os.getenv("DEMO_TODAY_DATE", "2027-01-25")
+    DEMO_MODE: bool = os.getenv("DEMO_MODE", "true").lower() in ("true", "1", "yes")
 
     # CORS
     CORS_ORIGINS: List[str] = [

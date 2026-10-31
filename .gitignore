@@ -1,133 +1,57 @@
-# ==============================================================================
-# Byte-compiled / Python artifacts
-# ==============================================================================
+# ==========================================
+# Python & Virtual Environments
+# ==========================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-
-# Distribution / packaging
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environments
+.pytest_cache/
+.coverage
+htmlcov/
 .venv/
 venv/
 ENV/
 env/
-env.bak/
-venv.bak/
-python-env/
+*.sqlite3
+*.db
+*.log
 
-# Pytest / Unit test / Coverage
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-.nox/
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-
-# ==============================================================================
-# Node.js & Frontend (React / Vite / TypeScript)
-# ==============================================================================
+# ==========================================
+# Node.js & Frontend Build Outputs
+# ==========================================
 node_modules/
-frontend/node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-ssr/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
+*.local
 
-# Vite / Frontend build output
-frontend/dist/
-frontend/dist-ssr/
-.oxlintcache
-*.tsbuildinfo
-.eslintcache
-
-# ==============================================================================
-# Environment, Credentials & Local Config
-# ==============================================================================
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
+.env.*
 !.env.example
 
-# ==============================================================================
-# Databases & Local Runtime Storage
-# ==============================================================================
-*.db
-*.sqlite
-*.sqlite3
-*.db-journal
-*.db-wal
-*.db-shm
-data/
-starter_pack/
-
-# ==============================================================================
-# Operating System & IDE Files
-# ==============================================================================
-# Windows
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
-[Dd]esktop.ini
-
-# macOS
+# ==========================================
+# Operating System & IDE Artifacts
+# ==========================================
 .DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Linux
-*~
-
-# IDEs & Editors
-.idea/
+Thumbs.db
+desktop.ini
 .vscode/
-*.sublime-project
-*.sublime-workspace
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw[a-p]
+.idea/
 *.swp
+*.swo
 
-# ==============================================================================
-# Logs & Temporary Files
-# ==============================================================================
-*.log
-logs/
-*.tmp
-*.temp
-*.bak
-
-# Archives (Optional)
-*.zip
+# ==========================================
+# Raw Archives & Starter Pack Materials
+# ==========================================
+CrunchWeek_StarterPack.zip
+Problem_statement.pdf
+starter_pack/

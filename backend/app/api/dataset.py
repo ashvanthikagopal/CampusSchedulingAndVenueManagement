@@ -12,6 +12,7 @@ from backend.app.models.entities import (
 )
 from backend.app.api.deps import require_admin, get_current_user
 from backend.app.rules.models import DatasetContext, effective_category
+from backend.app.core.seed_users import seed_users, get_requester_user_id
 
 router = APIRouter(prefix="/dataset", tags=["dataset"])
 
@@ -124,6 +125,7 @@ def import_dataset(
     # Sync booking requests
     for b in ctx.booking_requests.values():
         eff_cat = effective_category(ctx, b)
+        sub_id = get_requester_user_id(b.requester, b.role)
         existing_b = db.query(BookingRequestModel).filter(BookingRequestModel.id == b.id).first()
         if not existing_b:
             db.add(BookingRequestModel(
@@ -133,8 +135,13 @@ def import_dataset(
                 duration_periods=b.duration_periods, windows=b.windows,
                 room_types=b.room_types, needs=b.needs, requested_room=b.requested_room,
                 mandatory_for_groups=b.mandatory_for_groups, series_id=b.series_id,
-                raw_text=b.raw_text, status="pending"
+                raw_text=b.raw_text, status="pending", submitted_by=sub_id
             ))
+        else:
+            existing_b.submitted_by = sub_id
+
+    # Sync and seed users for any new faculty or clubs
+    seed_users(db, data)
 
     db.commit()
 

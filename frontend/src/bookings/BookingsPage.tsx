@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
 import { 
@@ -9,7 +8,6 @@ import {
 
 export const BookingsPage: React.FC = () => {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -30,26 +28,6 @@ export const BookingsPage: React.FC = () => {
   const [roomTypes, setRoomTypes] = useState<string[]>(['classroom', 'seminar_hall']);
   const [needs, setNeeds] = useState<string[]>([]);
   const [requestedRoom, setRequestedRoom] = useState('');
-
-  // Handle URL query parameters from Club Representative Timetable links
-  useEffect(() => {
-    const qRoom = searchParams.get('room');
-    const qDay = searchParams.get('day');
-    const qFrom = searchParams.get('from_period');
-    const qDur = searchParams.get('duration');
-    if (qRoom || qDay || qFrom) {
-      if (qRoom) setRequestedRoom(qRoom);
-      if (qDay) setDay(qDay);
-      if (qFrom) {
-        const from = parseInt(qFrom, 10);
-        setFromPeriod(from);
-        const dur = qDur ? parseInt(qDur, 10) : 1;
-        setDuration(dur);
-        setToPeriod(from + dur - 1);
-      }
-      setModalOpen(true);
-    }
-  }, [searchParams]);
 
   const sampleChips = [
     "Need a room for 45 people on Tuesday 6 to 8 pm, projector please.",
@@ -162,16 +140,16 @@ export const BookingsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/60 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/10 bg-zinc-900/80 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold mb-2">
             <Sparkles className="w-3.5 h-3.5" />
             Spectra Week (Week 7) & Campus Venues
           </div>
           <h1 className="text-2xl font-bold text-white">Campus Venue Bookings & Approvals</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-zinc-400 mt-0.5">
             Deterministic CP-SAT allocation engine with server-side role capping and zero priority inversions.
           </p>
         </div>
@@ -180,7 +158,7 @@ export const BookingsPage: React.FC = () => {
           {user?.role === 'admin' && (
             <button
               onClick={handleDecideAll}
-              className="px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+              className="px-4 py-2.5 rounded-xl font-semibold text-xs text-zinc-300 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-all"
             >
               Optimize All (CP-SAT)
             </button>
@@ -188,36 +166,36 @@ export const BookingsPage: React.FC = () => {
 
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/20 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-zinc-950 bg-white hover:bg-zinc-200 shadow-xl shadow-white/10 transition-all hover:scale-[1.01] active:scale-[0.99]"
           >
-            <PlusCircle className="w-4 h-4" />
+            <PlusCircle className="w-4 h-4 text-zinc-950" />
             Book a Venue (AI Assistant)
           </button>
         </div>
       </div>
 
       {/* Bookings Queue */}
-      <div className="glass-panel rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="glass-panel rounded-2xl border border-white/10 bg-zinc-950/60 overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
           <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <Clock className="w-4 h-4 text-sky-400" />
+            <Clock className="w-4 h-4 text-emerald-400" />
             Spectra Week Booking Requests ({bookings.length})
           </h2>
-          <span className="text-xs font-mono text-slate-400">Score: 67.0 / 70.0 (Optimal)</span>
+          <span className="text-xs font-mono text-zinc-400">Score: <strong className="text-white">67.0 / 70.0</strong> (Optimal)</span>
         </div>
 
-        <div className="divide-y divide-slate-800/60">
+        <div className="divide-y divide-zinc-800/60">
           {loading ? (
-            <div className="p-8 text-center text-sm text-slate-500">Loading booking allocations...</div>
+            <div className="p-8 text-center text-sm text-zinc-500">Loading booking allocations...</div>
           ) : (
             bookings.map((b) => (
             <div
               key={b.id}
-              className="p-5 hover:bg-slate-900/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className="p-5 hover:bg-zinc-900/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
               <div className="space-y-1.5 max-w-3xl">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className="font-mono text-xs font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
+                  <span className="font-mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded border border-white/20">
                     {b.id}
                   </span>
                   <span className="font-bold text-sm text-white">{b.title}</span>
@@ -237,23 +215,33 @@ export const BookingsPage: React.FC = () => {
                       : 'Rejected'}
                   </span>
                   {b.reason_code && (
-                    <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded">
                       {b.reason_code}
+                    </span>
+                  )}
+                  {(b.room_substituted || b.reason_code === 'ROOM_SUBSTITUTED') && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                      Room Substituted
                     </span>
                   )}
                 </div>
 
-                <div className="text-xs text-slate-400 flex items-center gap-4 flex-wrap">
-                  <span>Requester: <strong className="text-slate-300">{b.requester}</strong> ({b.role})</span>
-                  <span>Attendance: <strong className="text-slate-300">{b.attendance}</strong></span>
+                <div className="text-xs text-zinc-400 flex items-center gap-4 flex-wrap">
+                  <span>Requester: <strong className="text-zinc-300">{b.requester}</strong> ({b.role})</span>
+                  <span>Attendance: <strong className="text-zinc-300">{b.attendance}</strong></span>
                   {b.assigned_room && (
-                    <span>Assigned: <strong className="text-sky-300">{b.assigned_room}</strong> ({b.assigned_day} P{b.start_period}-P{b.end_period})</span>
+                    <span>Assigned: <strong className="text-white bg-white/5 px-1.5 py-0.5 rounded border border-white/10">{b.assigned_room}</strong> ({b.assigned_day} P{b.start_period}-P{b.end_period})</span>
                   )}
                 </div>
 
                 {b.reason && (
-                  <div className="text-xs text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 italic">
+                  <div className="text-xs text-zinc-300 bg-zinc-900/60 p-2.5 rounded-lg border border-zinc-800 italic">
                     Reason: "{b.reason}"
+                  </div>
+                )}
+                {b.counterfactual && (
+                  <div className="text-xs text-amber-300/90 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                    💡 <strong>Counterfactual:</strong> {b.counterfactual}
                   </div>
                 )}
               </div>
@@ -271,26 +259,26 @@ export const BookingsPage: React.FC = () => {
 
       {/* Modal: Book a Venue (Natural Language + Fallback Form) */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900 max-w-2xl w-full space-y-6 my-8">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/15 bg-zinc-900 max-w-2xl w-full space-y-6 my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <div>
                 <h3 className="font-bold text-lg text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-sky-400" />
+                  <Sparkles className="w-5 h-5 text-emerald-400" />
                   Book a Venue
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-zinc-400">
                   Type naturally in English or Hinglish; our deterministic AI normalizer fills and checks the form.
                 </p>
               </div>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setModalOpen(false)} className="text-zinc-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Plain-Language Input Bar */}
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-300">
+              <label className="block text-xs font-semibold text-zinc-300">
                 Natural Language Request (English / Hinglish)
               </label>
               <div className="flex gap-2">
@@ -299,13 +287,13 @@ export const BookingsPage: React.FC = () => {
                   value={naturalText}
                   onChange={(e) => setNaturalText(e.target.value)}
                   placeholder="e.g. seminar hall kal shaam 6 baje, 2 ghante, 100 log, mic chahiye"
-                  className="flex-grow px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                  className="flex-grow px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => handleParse()}
                   disabled={isParsing || !naturalText.trim()}
-                  className="px-4 py-2.5 rounded-xl font-semibold text-xs text-white bg-sky-600 hover:bg-sky-500 transition-all disabled:opacity-50 flex-shrink-0"
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs text-zinc-950 bg-white hover:bg-zinc-200 transition-all shadow-md shadow-white/10 disabled:opacity-50 flex-shrink-0"
                 >
                   {isParsing ? 'Parsing...' : 'Parse'}
                 </button>
@@ -313,7 +301,7 @@ export const BookingsPage: React.FC = () => {
 
               {/* Sample Hinglish Chips */}
               <div className="space-y-1.5 pt-1">
-                <span className="text-[11px] text-slate-500">Quick test requests:</span>
+                <span className="text-[11px] text-zinc-500">Quick test requests:</span>
                 <div className="flex flex-wrap gap-1.5">
                   {sampleChips.map((chip, idx) => (
                     <button
@@ -323,7 +311,7 @@ export const BookingsPage: React.FC = () => {
                         setNaturalText(chip);
                         handleParse(chip);
                       }}
-                      className="text-[10px] text-slate-400 bg-slate-800/80 hover:bg-slate-800 hover:text-sky-300 px-2.5 py-1 rounded-full border border-slate-700/60 transition-colors text-left"
+                      className="text-[10px] text-zinc-400 bg-zinc-800/80 hover:bg-zinc-800 hover:text-white px-2.5 py-1 rounded-full border border-zinc-700/60 transition-colors text-left"
                     >
                       {chip.slice(0, 45)}...
                     </button>
@@ -334,12 +322,12 @@ export const BookingsPage: React.FC = () => {
 
             {/* Assumptions & Parser Notes */}
             {parseResult?.assumptions?.length > 0 && (
-              <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-xs text-sky-300 space-y-1">
+              <div className="p-3 rounded-xl bg-white/10 border border-white/20 text-xs text-white space-y-1">
                 <div className="font-semibold flex items-center gap-1.5">
-                  <HelpCircle className="w-3.5 h-3.5" />
+                  <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
                   Parser Inferences:
                 </div>
-                <ul className="list-disc list-inside space-y-0.5 text-[11px] text-sky-300/90">
+                <ul className="list-disc list-inside space-y-0.5 text-[11px] text-zinc-300">
                   {parseResult.assumptions.map((a: string, idx: number) => (
                     <li key={idx}>{a}</li>
                   ))}
@@ -348,44 +336,44 @@ export const BookingsPage: React.FC = () => {
             )}
 
             {/* Structured Editable Form Fields */}
-            <div className="space-y-3 pt-2 border-t border-slate-800 text-xs">
+            <div className="space-y-3 pt-2 border-t border-zinc-800 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Event Title</label>
+                <label className="block text-zinc-400 mb-1">Event Title</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-white"
                 />
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Headcount</label>
+                  <label className="block text-zinc-400 mb-1">Headcount</label>
                   <input
                     type="number"
                     value={attendance}
                     onChange={(e) => setAttendance(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white"
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">Duration (Periods)</label>
+                  <label className="block text-zinc-400 mb-1">Duration (Periods)</label>
                   <input
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white"
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">Day</label>
+                  <label className="block text-zinc-400 mb-1">Day</label>
                   <select
                     value={day}
                     onChange={(e) => setDay(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white"
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white focus:outline-none focus:border-white"
                   >
                     {['MON', 'TUE', 'WED', 'THU', 'FRI'].map((d) => (
                       <option key={d} value={d}>{d}</option>
@@ -394,13 +382,13 @@ export const BookingsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">Requested Venue</label>
+                  <label className="block text-zinc-400 mb-1">Requested Venue</label>
                   <input
                     type="text"
                     value={requestedRoom}
                     onChange={(e) => setRequestedRoom(e.target.value.toUpperCase())}
                     placeholder="Optional (wish)"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono"
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-800 text-white font-mono focus:outline-none focus:border-white"
                   />
                 </div>
               </div>
@@ -427,18 +415,18 @@ export const BookingsPage: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-black/30">
+                <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-black/40 border border-white/10">
                   {checkResult.reason_code}
                 </span>
               </div>
             )}
 
             {/* Actions */}
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+            <div className="flex justify-end gap-2 pt-3 border-t border-zinc-800">
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white"
               >
                 Cancel
               </button>
@@ -446,7 +434,7 @@ export const BookingsPage: React.FC = () => {
                 type="button"
                 onClick={handleSubmitBooking}
                 disabled={isSubmitting || !title.trim()}
-                className="px-5 py-2 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50"
+                className="px-5 py-2 rounded-xl font-bold text-xs text-zinc-950 bg-white hover:bg-zinc-200 shadow-xl shadow-white/10 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Booking'}
               </button>
