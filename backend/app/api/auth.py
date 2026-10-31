@@ -1,0 +1,51 @@
+"""
+Authentication endpoints: login and me.
+"""
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from backend.app.database.session import get_db
+from backend.app.models.entities import User
+from backend.app.schemas.schemas import LoginRequest, TokenResponse, UserResponse
+from backend.app.core.security import verify_password, create_access_token
+from backend.app.api.deps import get_current_user
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.post("/login", response_model=TokenResponse)
+def login(creds: LoginRequest, db: Session = Depends(get_db)):
+    search_email = creds.email
+    if creds.email in ("club@cit.edu", "club_dance@cit.edu"):
+        search_email = "club@cit.edu"
+    elif creds.email in ("student@cit.edu", "student_y1a@cit.edu"):
+        search_email = "student_y1a@cit.edu"
+
+    user = db.query(User).filter((User.email == creds.email) | (User.email == search_email)).first()
+    if not user or not verify_password(creds.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = create_access_token({"sub": user.id, "role": user.role})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "department": user.department,
+            "faculty_id": user.faculty_id,
+            "club_name": user.club_name,
+            "student_group": getattr(user, "student_group", None),
+        }
+    }
+
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
