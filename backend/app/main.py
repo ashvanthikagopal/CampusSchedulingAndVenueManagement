@@ -20,6 +20,8 @@ from backend.app.api.bookings import router as bookings_router
 from backend.app.api.disruptions import router as disruptions_router
 from backend.app.api.ai import router as ai_router
 from backend.app.api.admin import router as admin_router
+from backend.app.api.public import router as public_router
+from backend.app.core.seed_users import seed_users
 
 
 def seed_demo_accounts_if_empty():
@@ -27,54 +29,7 @@ def seed_demo_accounts_if_empty():
     try:
         # Create all tables if not exist
         Base.metadata.create_all(bind=engine)
-
-        if db.query(User).count() == 0:
-            demo_users = [
-                User(
-                    id="usr_admin1",
-                    name="Campus Administrator",
-                    email="admin@cit.edu",
-                    password_hash=get_password_hash("Admin@123"),
-                    role="admin",
-                    department="Administration"
-                ),
-                User(
-                    id="usr_admin2",
-                    name="Dean of Academics",
-                    email="admin2@cit.edu",
-                    password_hash=get_password_hash("Admin@123"),
-                    role="admin",
-                    department="Administration"
-                ),
-                User(
-                    id="usr_coord_cse",
-                    name="CSE Coordinator",
-                    email="coord_cse@cit.edu",
-                    password_hash=get_password_hash("Coord@123"),
-                    role="department_coordinator",
-                    department="CSE"
-                ),
-                User(
-                    id="usr_fac_f06",
-                    name="Prof. Sharma (F06)",
-                    email="faculty_f06@cit.edu",
-                    password_hash=get_password_hash("Faculty@123"),
-                    role="faculty",
-                    department="CSE",
-                    faculty_id="F06"
-                ),
-                User(
-                    id="usr_club_dance",
-                    name="Dance Club Representative",
-                    email="club_dance@cit.edu",
-                    password_hash=get_password_hash("Club@123"),
-                    role="club",
-                    club_name="Dance Club"
-                ),
-            ]
-            for u in demo_users:
-                db.add(u)
-            db.commit()
+        seed_users(db)
     except Exception as e:
         print(f"Warning during seed: {e}")
     finally:
@@ -115,6 +70,8 @@ app.include_router(bookings_router, prefix=settings.API_PREFIX)
 app.include_router(disruptions_router, prefix=settings.API_PREFIX)
 app.include_router(ai_router, prefix=settings.API_PREFIX)
 app.include_router(admin_router, prefix=settings.API_PREFIX)
+app.include_router(public_router, prefix=settings.API_PREFIX)
+app.include_router(public_router)
 
 
 @app.get("/api/health")
@@ -144,11 +101,6 @@ def health_check():
             "booking_score_max": 70.0,
             "exams_scheduled": 41
         },
-        "demo_accounts": [
-            {"email": "admin@cit.edu", "role": "admin"},
-            {"email": "admin2@cit.edu", "role": "admin (anti-self-approval)"},
-            {"email": "coord_cse@cit.edu", "role": "department_coordinator"},
-            {"email": "faculty_f06@cit.edu", "role": "faculty"},
-            {"email": "club_dance@cit.edu", "role": "club"}
-        ]
+        "accounts_count": 62,
+        "demo_mode": settings.DEMO_MODE
     }

@@ -13,7 +13,7 @@ from backend.app.models.entities import (
     ScheduleVersion, ScheduleEntry, SessionOverride, SessionModel, RoomModel,
     FacultyModel, StudentGroupModel, DatasetModel, AuditLogModel, User, JobModel
 )
-from backend.app.api.deps import require_admin, get_current_user
+from backend.app.api.deps import require_admin, get_current_user, get_current_user_optional
 from backend.app.schemas.schemas import (
     ScheduleViewResponse, ScheduleSessionItem, ScheduleJobResponse,
     SessionExplainResponse, ManualMoveRequest, ManualMoveResponse
@@ -251,7 +251,8 @@ def get_schedule(
     view: Optional[str] = Query(None, description="group, faculty, or room"),
     id: Optional[str] = Query(None, description="filter id"),
     week: Optional[int] = Query(1, description="Week number (e.g. 7 for Spectra Week)"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     # Get active version
     ver = db.query(ScheduleVersion).filter(ScheduleVersion.status == "active").order_by(ScheduleVersion.created_at.desc()).first()
@@ -311,6 +312,27 @@ def get_schedule(
     room_meta = {r["id"]: r for r in data.get("rooms", [])}
     fac_meta = {f["id"]: f for f in data.get("faculty", [])}
 
+    # Enforce role-based timetable scoping server-side
+    if current_user:
+        if current_user.role == "faculty":
+            # Faculty can only view their own timetable
+            if view == "faculty" and id and id.upper() != (current_user.faculty_id or "").upper():
+                raise HTTPException(
+                    status_code=403,
+                    detail="Faculty members can only access their own schedule."
+                )
+            view = "faculty"
+            id = current_user.faculty_id
+        elif current_user.role == "department_coordinator":
+            # Department coordinator: cannot touch or view other departments
+            if view == "faculty" and id:
+                target_fac = fac_meta.get(id, {})
+                if target_fac.get("department") != current_user.department:
+                    raise HTTPException(
+                        status_code=403,
+                        detail=f"Department coordinators cannot access schedules of other departments."
+                    )
+
     # If week == 7, apply session overrides
     effective_assign = {}
     for s in sessions_data:
@@ -326,6 +348,16 @@ def get_schedule(
         s_obj = session_meta.get(sid, {})
         r_obj = room_meta.get(rid, {})
         f_obj = fac_meta.get(s_obj.get("faculty_id"), {})
+
+        # Scope enforcement for department coordinators
+        if current_user and current_user.role == "department_coordinator":
+            if f_obj.get("department") != current_user.department:
+                continue
+
+        # Scope enforcement for faculty
+        if current_user and current_user.role == "faculty":
+            if s_obj.get("faculty_id") != current_user.faculty_id:
+                continue
 
         # Apply filtering
         if view == "group" and id:

@@ -34,8 +34,25 @@ def submit_disruption(
     # If faculty, ensure changes only affect themselves
     if current_user.role == "faculty":
         for ch in req.changes:
-            if ch.get("type") == "faculty_unavailable" and ch.get("faculty_id") != current_user.faculty_id:
+            if ch.get("type") != "faculty_unavailable" or ch.get("faculty_id") != current_user.faculty_id:
                 raise HTTPException(status_code=403, detail="Faculty can only declare their own unavailability")
+    elif current_user.role == "department_coordinator":
+        try:
+            with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
+                d = json.load(f)
+            fac_depts = {fac["id"]: fac.get("department") for fac in d.get("faculty", [])}
+            for ch in req.changes:
+                if ch.get("type") == "faculty_unavailable":
+                    fid = ch.get("faculty_id")
+                    if fac_depts.get(fid) != current_user.department:
+                        raise HTTPException(
+                            status_code=403,
+                            detail=f"Coordinators cannot touch faculty outside their department ({current_user.department})."
+                        )
+        except HTTPException:
+            raise
+        except Exception:
+            pass
 
     disruption_id = f"dis_{uuid.uuid4().hex[:8]}"
     dis_model = DisruptionModel(

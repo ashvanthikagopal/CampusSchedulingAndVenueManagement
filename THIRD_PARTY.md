@@ -41,3 +41,9 @@ This document lists all libraries, frameworks, and third-party modules utilized 
 | **Recharts** | Declarative charting library for room utilization and clash analytics |
 | **clsx** & **tailwind-merge** | Class name utility concatenation for Tailwind components |
 
+---
+
+## 3. Authentication & Permission Isolation Notice
+
+No Large Language Model (LLM) or external third-party AI service is involved in authentication, identity verification, authorization, or role-based permission decisions. All 62 demo accounts, JWT tokens, scope constraints, and anti-self-approval checks are executed deterministically by FastAPI dependencies and SQLAlchemy database logic.
+

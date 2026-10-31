@@ -8,8 +8,48 @@ from pydantic import BaseModel, Field
 
 # --- Auth Schemas ---
 class LoginRequest(BaseModel):
-    email: str
+    identifier: Optional[str] = None
+    email: Optional[str] = None
     password: str
+
+
+class DirectoryAdmin(BaseModel):
+    name: str
+    email: str
+
+
+class DirectoryCoordinator(BaseModel):
+    name: str
+    department: Optional[str] = None
+    email: str
+
+
+class DirectoryFaculty(BaseModel):
+    name: str
+    department: Optional[str] = None
+    faculty_id: Optional[str] = None
+    email: str
+
+
+class DirectoryClub(BaseModel):
+    club_name: str
+    email: str
+
+
+class DirectoryResponse(BaseModel):
+    admins: List[DirectoryAdmin]
+    coordinators: List[DirectoryCoordinator]
+    faculty: List[DirectoryFaculty]
+    clubs: List[DirectoryClub]
+    role_passwords_hint: bool = False
+
+
+class PublicStatsResponse(BaseModel):
+    sessions_scheduled: int
+    hard_violations: int
+    booking_score: float
+    bookings_count: int
+    last_reschedule_moved_count: int
 
 
 class TokenResponse(BaseModel):

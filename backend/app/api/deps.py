@@ -12,6 +12,7 @@ from backend.app.core.security import decode_access_token
 from backend.app.models.entities import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
@@ -32,6 +33,21 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 
+def get_current_user_optional(
+    token: Optional[str] = Depends(oauth2_scheme_optional),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    if not token:
+        return None
+    payload = decode_access_token(token)
+    if payload is None:
+        return None
+    user_id = payload.get("sub")
+    if user_id is None:
+        return None
+    return db.query(User).filter(User.id == user_id).first()
+
+
 def require_role(allowed_roles: List[str]) -> Callable:
     def role_checker(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in allowed_roles:
@@ -50,4 +66,3 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
             detail="Admin privileges required"
         )
     return current_user
-

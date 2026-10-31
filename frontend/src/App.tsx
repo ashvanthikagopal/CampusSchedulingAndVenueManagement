@@ -21,19 +21,31 @@ const AuthenticatedApp: React.FC = () => {
     return <LandingPage />;
   }
 
+  const getDefaultElement = () => {
+    if (user.role === 'club') return <BookingsPage />;
+    if (user.role === 'faculty' || user.role === 'department_coordinator') return <TimetableGrid />;
+    return <Dashboard />;
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between selection:bg-white selection:text-zinc-950">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between selection:bg-white selection:text-zinc-950 font-sans">
       <div>
         <Navbar />
         <main>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={getDefaultElement()} />
             <Route path="/timetable" element={<TimetableGrid />} />
             <Route path="/bookings" element={<BookingsPage />} />
-            <Route path="/approvals" element={<RescheduleDiffPage />} />
+            <Route 
+              path="/approvals" 
+              element={user.role === 'admin' ? <RescheduleDiffPage /> : <Navigate to="/" replace />} 
+            />
             <Route path="/exams" element={<ExamsPage />} />
             <Route path="/assistant" element={<AssistantPage />} />
-            <Route path="/admin" element={<AdminPage />} />
+            <Route 
+              path="/admin" 
+              element={user.role === 'admin' ? <AdminPage /> : <Navigate to="/" replace />} 
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

@@ -13,21 +13,47 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  const navLinks = [
-    { name: 'Dashboard', shortName: 'Dashboard', path: '/', icon: BarChart3 },
-    { name: 'Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar },
-    { name: 'Book Venue', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
-    { name: 'Approvals & Diff', shortName: 'Approvals', path: '/approvals', icon: ShieldCheck },
-    { name: 'Exams Calendar', shortName: 'Exams', path: '/exams', icon: Clock },
-    { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare },
-  ];
+  // Build role-aware navigation links
+  const navLinks = [];
 
   if (user?.role === 'admin') {
-    navLinks.push({ name: 'Admin Console', shortName: 'Admin', path: '/admin', icon: Award });
+    navLinks.push(
+      { name: 'Dashboard', shortName: 'Dashboard', path: '/', icon: BarChart3 },
+      { name: 'Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar },
+      { name: 'Book Venue', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
+      { name: 'Approvals & Diff', shortName: 'Approvals', path: '/approvals', icon: ShieldCheck },
+      { name: 'Exams Calendar', shortName: 'Exams', path: '/exams', icon: Clock },
+      { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare },
+      { name: 'Admin Console', shortName: 'Admin', path: '/admin', icon: Award }
+    );
+  } else if (user?.role === 'department_coordinator') {
+    navLinks.push(
+      { name: 'Department Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar },
+      { name: 'Book Venue', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
+      { name: 'Exams Calendar', shortName: 'Exams', path: '/exams', icon: Clock },
+      { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare }
+    );
+  } else if (user?.role === 'faculty') {
+    navLinks.push(
+      { name: 'My Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar },
+      { name: 'Book Venue', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
+      { name: 'Exams Calendar', shortName: 'Exams', path: '/exams', icon: Clock },
+      { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare }
+    );
+  } else if (user?.role === 'club') {
+    navLinks.push(
+      { name: 'Club Bookings', shortName: 'Bookings', path: '/bookings', icon: PlusCircle },
+      { name: 'Assistant', shortName: 'Assistant', path: '/assistant', icon: MessageSquare }
+    );
+  } else {
+    navLinks.push(
+      { name: 'Dashboard', shortName: 'Dashboard', path: '/', icon: BarChart3 },
+      { name: 'Timetable', shortName: 'Timetable', path: '/timetable', icon: Calendar }
+    );
   }
 
   const handleResetDemo = async () => {
-    if (!window.confirm('Reset demo state to clean starter baseline?')) return;
+    if (!window.confirm('Reset demo state to clean starter baseline? (Restores all 62 rule-generated accounts)')) return;
     setIsResetting(true);
     try {
       await api.post('/admin/reset-demo');
@@ -40,7 +66,7 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/90 border-b border-zinc-800/80">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/90 border-b border-zinc-800/80 font-sans">
       <div className="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
           {/* Logo & Brand */}
@@ -93,8 +119,15 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-2 xl:gap-3 shrink-0">
                 <div className="text-right hidden sm:block shrink-0 leading-tight">
                   <div className="text-xs font-semibold text-white whitespace-nowrap">{user.name}</div>
-                  <div className="text-[10px] text-emerald-400 font-mono capitalize">
-                    {user.role.replace('_', ' ')}
+                  <div className="flex items-center gap-1.5 justify-end mt-0.5">
+                    <span className="text-[10px] text-emerald-400 font-mono capitalize">
+                      {user.role.replace('_', ' ')}
+                    </span>
+                    {(user.department || user.club_name || user.faculty_id) && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                        {user.club_name || (user.faculty_id ? `${user.department} (${user.faculty_id})` : user.department)}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -102,6 +135,7 @@ export const Navbar: React.FC = () => {
                   onClick={logout}
                   className="p-1.5 xl:p-2 rounded-lg bg-zinc-800/80 text-zinc-400 hover:text-rose-400 hover:bg-zinc-800 transition-colors shrink-0"
                   title="Logout"
+                  aria-label="Logout"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -136,6 +170,7 @@ export const Navbar: React.FC = () => {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg bg-zinc-800 text-zinc-300 hover:text-white"
+              aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -167,7 +202,14 @@ export const Navbar: React.FC = () => {
             <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-white">{user.name}</div>
-                <div className="text-xs text-emerald-400 capitalize">{user.role}</div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-xs text-emerald-400 capitalize">{user.role.replace('_', ' ')}</span>
+                  {(user.department || user.club_name || user.faculty_id) && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                      {user.club_name || (user.faculty_id ? `${user.department} (${user.faculty_id})` : user.department)}
+                    </span>
+                  )}
+                </div>
               </div>
               <button
                 onClick={() => {
@@ -185,4 +227,3 @@ export const Navbar: React.FC = () => {
     </header>
   );
 };
-
