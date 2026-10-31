@@ -22,7 +22,7 @@ const AuthenticatedApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-sky-500 selection:text-white">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between selection:bg-white selection:text-zinc-950">
       <div>
         <Navbar />
         <main>
@@ -39,13 +39,13 @@ const AuthenticatedApp: React.FC = () => {
         </main>
       </div>
 
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 mt-12">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <footer className="border-t border-zinc-900 bg-zinc-950 py-6 text-center text-xs text-zinc-500 mt-12">
+        <div className="max-w-[1600px] mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
           <div>Chilika Institute of Technology · Campus Scheduling Platform</div>
           <div className="flex items-center gap-4">
-            <span className="font-mono text-emerald-400">0 Hard Violations</span>
+            <span className="font-mono text-emerald-400 font-semibold">0 Hard Violations</span>
             <span>·</span>
-            <span className="font-mono text-sky-400">67.0 / 70 Fest Score</span>
+            <span className="font-mono text-teal-300 font-semibold">67.0 / 70 Fest Score</span>
           </div>
         </div>
       </footer>

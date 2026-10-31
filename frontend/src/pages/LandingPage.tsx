@@ -50,11 +50,11 @@ export const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-sky-500 selection:text-white">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between selection:bg-white selection:text-zinc-950">
       {/* Background radial gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 left-1/4 w-[600px] h-[600px] bg-sky-600/15 rounded-full blur-[140px]" />
-        <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px]" />
+        <div className="absolute -top-40 left-1/4 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[140px]" />
+        <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[140px]" />
       </div>
 
       {/* Main Hero Container */}
@@ -63,42 +63,42 @@ export const LandingPage: React.FC = () => {
           
           {/* Left Column: Hero Headline & Value Props */}
           <div className="lg:col-span-7 space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold uppercase tracking-wider backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
               Chilika Institute of Technology
             </div>
 
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
                 Own The Week.
-                <span className="block bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-white via-emerald-300 to-teal-400 bg-clip-text text-transparent">
                   Zero Clashes, Zero Calls.
                 </span>
               </h1>
-              <p className="text-lg text-slate-400 max-w-xl leading-relaxed">
+              <p className="text-lg text-zinc-400 max-w-xl leading-relaxed">
                 Autonomous mathematical campus scheduling, Spectra Week venue optimization, and minimal-change disruption repair powered by Google OR-Tools CP-SAT and Gemini AI.
               </p>
             </div>
 
             {/* Live Stat Band */}
             <div className="grid grid-cols-3 gap-4 pt-2 max-w-lg">
-              <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-900/60">
-                <div className="text-2xl font-bold text-sky-400">189</div>
-                <div className="text-xs text-slate-400">Sessions Placed</div>
+              <div className="glass-panel p-4 rounded-xl border border-white/10 bg-zinc-900/60">
+                <div className="text-2xl font-bold text-white font-mono">189</div>
+                <div className="text-xs text-zinc-400">Sessions Placed</div>
               </div>
-              <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-900/60">
-                <div className="text-2xl font-bold text-emerald-400">0</div>
-                <div className="text-xs text-slate-400">Hard Violations</div>
+              <div className="glass-panel p-4 rounded-xl border border-white/10 bg-zinc-900/60">
+                <div className="text-2xl font-bold text-emerald-400 font-mono">0</div>
+                <div className="text-xs text-zinc-400">Hard Violations</div>
               </div>
-              <div className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-900/60">
-                <div className="text-2xl font-bold text-cyan-400">67.0</div>
-                <div className="text-xs text-slate-400">Fest Booking Score</div>
+              <div className="glass-panel p-4 rounded-xl border border-white/10 bg-zinc-900/60">
+                <div className="text-2xl font-bold text-teal-300 font-mono">67.0</div>
+                <div className="text-xs text-zinc-400">Fest Booking Score</div>
               </div>
             </div>
 
             {/* Trust Carousel / How It Works */}
-            <div className="glass-panel p-5 rounded-2xl border border-slate-800/80 bg-slate-900/40 space-y-3">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="glass-panel p-5 rounded-2xl border border-white/10 bg-zinc-900/50 space-y-3">
+              <div className="flex items-center justify-between text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                 <span>Core Capabilities</span>
                 <div className="flex gap-1.5">
                   {carouselSlides.map((_, idx) => (
@@ -106,7 +106,7 @@ export const LandingPage: React.FC = () => {
                       key={idx}
                       onClick={() => setActiveSlide(idx)}
                       className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        activeSlide === idx ? 'bg-sky-400 w-6' : 'bg-slate-700'
+                        activeSlide === idx ? 'bg-white w-6' : 'bg-zinc-700'
                       }`}
                     />
                   ))}
@@ -115,16 +115,16 @@ export const LandingPage: React.FC = () => {
 
               <div className="flex items-start gap-4 pt-1">
                 {React.createElement(carouselSlides[activeSlide].icon, {
-                  className: "w-8 h-8 text-sky-400 flex-shrink-0 mt-0.5"
+                  className: "w-8 h-8 text-emerald-400 flex-shrink-0 mt-0.5"
                 })}
                 <div>
                   <h4 className="text-base font-semibold text-white">
                     {carouselSlides[activeSlide].title}
                   </h4>
-                  <p className="text-sm text-slate-400 mt-0.5">
+                  <p className="text-sm text-zinc-400 mt-0.5">
                     {carouselSlides[activeSlide].desc}
                   </p>
-                  <span className="inline-block mt-2 text-xs font-mono font-medium text-sky-400 px-2.5 py-0.5 rounded-md bg-sky-500/10 border border-sky-500/20">
+                  <span className="inline-block mt-2 text-xs font-mono font-medium text-white px-2.5 py-0.5 rounded-md bg-white/10 border border-white/20">
                     {carouselSlides[activeSlide].stat}
                   </span>
                 </div>
@@ -134,10 +134,10 @@ export const LandingPage: React.FC = () => {
 
           {/* Right Column: Demo Accounts & Login Card */}
           <div className="lg:col-span-5">
-            <div className="glass-panel p-8 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-2xl relative">
+            <div className="glass-panel p-8 rounded-2xl border border-white/15 bg-zinc-900/90 shadow-2xl relative">
               <div className="space-y-2 mb-6 text-center">
                 <h3 className="text-xl font-bold text-white">Sign In to CIT Portal</h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-zinc-400">
                   Select a pre-seeded demo role or sign in with your campus credentials
                 </p>
               </div>
@@ -150,116 +150,116 @@ export const LandingPage: React.FC = () => {
 
               {/* 1-Click Demo Login Role Selector */}
               <div className="space-y-2 mb-6">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
                   One-Click Demo Roles
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => handleDemo('admin')}
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-800/80 hover:bg-sky-600/20 hover:border-sky-500/40 border border-slate-700/80 text-left transition-all group"
+                    className="flex items-center gap-2 p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 hover:border-emerald-500/40 border border-zinc-700/80 text-left transition-all group"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs group-hover:scale-105">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center font-bold text-xs group-hover:scale-105">
                       A
                     </div>
                     <div>
                       <div className="text-xs font-bold text-white">Campus Admin</div>
-                      <div className="text-[10px] text-slate-400">Full Access</div>
+                      <div className="text-[10px] text-zinc-400">Full Access</div>
                     </div>
                   </button>
 
                   <button
                     onClick={() => handleDemo('admin2')}
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-800/80 hover:bg-sky-600/20 hover:border-sky-500/40 border border-slate-700/80 text-left transition-all group"
+                    className="flex items-center gap-2 p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 hover:border-violet-500/40 border border-zinc-700/80 text-left transition-all group"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xs group-hover:scale-105">
+                    <div className="w-7 h-7 rounded-lg bg-violet-500/20 text-violet-300 border border-violet-500/30 flex items-center justify-center font-bold text-xs group-hover:scale-105">
                       A2
                     </div>
                     <div>
                       <div className="text-xs font-bold text-white">Admin 2 (Dean)</div>
-                      <div className="text-[10px] text-slate-400">Anti-Self-Appr</div>
+                      <div className="text-[10px] text-zinc-400">Anti-Self-Appr</div>
                     </div>
                   </button>
 
                   <button
                     onClick={() => handleDemo('coordinator')}
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-800/80 hover:bg-sky-600/20 hover:border-sky-500/40 border border-slate-700/80 text-left transition-all group"
+                    className="flex items-center gap-2 p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 hover:border-teal-500/40 border border-zinc-700/80 text-left transition-all group"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs group-hover:scale-105">
+                    <div className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-300 border border-teal-500/30 flex items-center justify-center font-bold text-xs group-hover:scale-105">
                       C
                     </div>
                     <div>
                       <div className="text-xs font-bold text-white">Coordinator</div>
-                      <div className="text-[10px] text-slate-400">CSE Department</div>
+                      <div className="text-[10px] text-zinc-400">CSE Department</div>
                     </div>
                   </button>
 
                   <button
                     onClick={() => handleDemo('faculty')}
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-800/80 hover:bg-sky-600/20 hover:border-sky-500/40 border border-slate-700/80 text-left transition-all group"
+                    className="flex items-center gap-2 p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 hover:border-amber-500/40 border border-zinc-700/80 text-left transition-all group"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs group-hover:scale-105">
+                    <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-bold text-xs group-hover:scale-105">
                       F
                     </div>
                     <div>
                       <div className="text-xs font-bold text-white">Prof. Sharma</div>
-                      <div className="text-[10px] text-slate-400">Faculty (F06)</div>
+                      <div className="text-[10px] text-zinc-400">Faculty (F06)</div>
                     </div>
                   </button>
                 </div>
 
                 <button
                   onClick={() => handleDemo('club')}
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-800/80 hover:bg-purple-600/20 hover:border-purple-500/40 border border-slate-700/80 text-left transition-all group"
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 hover:border-rose-500/40 border border-zinc-700/80 text-left transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs group-hover:scale-105">
+                    <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center font-bold text-xs group-hover:scale-105">
                       CR
                     </div>
                     <div>
                       <div className="text-xs font-bold text-white">Dance Club Rep</div>
-                      <div className="text-[10px] text-slate-400">Venue Bookings & Tracking</div>
+                      <div className="text-[10px] text-zinc-400">Venue Bookings & Tracking</div>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <ArrowRight className="w-4 h-4 text-zinc-500 group-hover:text-rose-400 transition-colors" />
                 </button>
               </div>
 
               {/* Standard Email / Password Form */}
               <div className="relative flex py-2 items-center">
-                <div className="flex-grow border-t border-slate-800"></div>
-                <span className="flex-shrink mx-3 text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Or with credentials</span>
-                <div className="flex-grow border-t border-slate-800"></div>
+                <div className="flex-grow border-t border-zinc-800"></div>
+                <span className="flex-shrink mx-3 text-[11px] text-zinc-500 uppercase tracking-wider font-semibold">Or with credentials</span>
+                <div className="flex-grow border-t border-zinc-800"></div>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-3 mt-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Campus Email</label>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1">Campus Email</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g. admin@cit.edu"
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1">Password</label>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-colors"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-2 py-3 px-4 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/25 transition-all focus:outline-none disabled:opacity-50"
+                  className="w-full mt-2 py-3 px-4 rounded-xl font-bold text-sm text-zinc-950 bg-white hover:bg-zinc-100 shadow-xl shadow-white/10 transition-all hover:scale-[1.01] active:scale-[0.99] focus:outline-none disabled:opacity-50"
                 >
                   {isLoading ? 'Signing In...' : 'Sign In'}
                 </button>
@@ -271,13 +271,13 @@ export const LandingPage: React.FC = () => {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
+      <footer className="border-t border-zinc-900 bg-zinc-950/80 py-6 text-center text-xs text-zinc-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
           <div>Chilika Institute of Technology (CIT) Campus Scheduling System · CrunchWeek 2027</div>
           <div className="flex items-center gap-4">
-            <span className="text-slate-400 font-mono">100% Validator Parity</span>
+            <span className="text-zinc-400 font-mono">100% Validator Parity</span>
             <span>·</span>
-            <span className="text-slate-400 font-mono">Deterministic AI Bounds</span>
+            <span className="text-zinc-400 font-mono">Deterministic AI Bounds</span>
           </div>
         </div>
       </footer>

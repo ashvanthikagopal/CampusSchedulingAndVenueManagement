@@ -78,14 +78,14 @@ export const AssistantPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 flex items-center justify-between">
+      <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-zinc-900/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
             <Bot className="w-5 h-5" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">CIT Faculty Timetable Assistant</h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               Deterministic rule facts wrapped with Google Gemini conversational interface
             </p>
           </div>
@@ -97,7 +97,7 @@ export const AssistantPage: React.FC = () => {
       </div>
 
       {/* Chat Messages Log */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-950/80 min-h-[450px] max-h-[600px] overflow-y-auto space-y-5">
+      <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-zinc-950/80 min-h-[450px] max-h-[600px] overflow-y-auto space-y-5">
         {messages.map((m, idx) => (
           <div
             key={idx}
@@ -106,8 +106,8 @@ export const AssistantPage: React.FC = () => {
             <div
               className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold ${
                 m.role === 'user'
-                  ? 'bg-sky-600 text-white'
-                  : 'bg-slate-800 text-sky-400 border border-slate-700'
+                  ? 'bg-white text-zinc-950'
+                  : 'bg-zinc-800 text-emerald-400 border border-zinc-700'
               }`}
             >
               {m.role === 'user' ? <UserIcon className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -117,8 +117,8 @@ export const AssistantPage: React.FC = () => {
               <div
                 className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-sky-600 text-white rounded-tr-none'
-                    : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
+                    ? 'bg-white text-zinc-950 font-medium rounded-tr-none shadow-md shadow-white/5'
+                    : 'bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-tl-none'
                 }`}
               >
                 {m.text}
@@ -126,16 +126,16 @@ export const AssistantPage: React.FC = () => {
 
               {/* Proposal Card with Validation Badge */}
               {m.proposalCard && (
-                <div className="glass-panel p-5 rounded-2xl border border-slate-800 bg-slate-900/90 text-left space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="glass-panel p-5 rounded-2xl border border-zinc-800 bg-zinc-900/90 text-left space-y-3">
+                  <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
                     <span className="font-bold text-xs text-white">{m.proposalCard.title}</span>
-                    <span className="font-mono text-[10px] text-sky-400">{m.proposalCard.session_id}</span>
+                    <span className="font-mono text-[10px] text-white bg-white/10 px-1.5 py-0.5 rounded">{m.proposalCard.session_id}</span>
                   </div>
 
-                  <div className="text-xs text-slate-300 space-y-1">
-                    <div>From: <span className="text-slate-400 line-through">{m.proposalCard.current_slot}</span></div>
+                  <div className="text-xs text-zinc-300 space-y-1">
+                    <div>From: <span className="text-zinc-500 line-through">{m.proposalCard.current_slot}</span></div>
                     <div>To: <strong className="text-emerald-300">{m.proposalCard.proposed_slot}</strong></div>
-                    <div className="text-[11px] text-slate-400 italic">"{m.proposalCard.reason}"</div>
+                    <div className="text-[11px] text-zinc-400 italic">"{m.proposalCard.reason}"</div>
                   </div>
 
                   {/* Validation Badge */}
@@ -147,7 +147,7 @@ export const AssistantPage: React.FC = () => {
                   {/* Submit button */}
                   <button
                     onClick={() => handleApplyProposal(m.proposalCard)}
-                    className="w-full py-2 px-3 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5"
+                    className="w-full py-2 px-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5"
                   >
                     <span>Submit for Admin Approval</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -159,8 +159,8 @@ export const AssistantPage: React.FC = () => {
         ))}
 
         {isSending && (
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Bot className="w-4 h-4 animate-spin text-sky-400" />
+          <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <Bot className="w-4 h-4 animate-spin text-emerald-400" />
             Analyzing schedule constraints and running deterministic rule checks...
           </div>
         )}
@@ -168,12 +168,12 @@ export const AssistantPage: React.FC = () => {
 
       {/* Suggested Prompt Chips */}
       <div className="flex flex-wrap gap-2 items-center text-xs">
-        <span className="text-slate-500 text-[11px]">Suggestions:</span>
+        <span className="text-zinc-500 text-[11px]">Suggestions:</span>
         {samplePrompts.map((p, idx) => (
           <button
             key={idx}
             onClick={() => handleSend(p)}
-            className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-sky-300 hover:border-slate-700 transition-colors text-[11px]"
+            className="px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors text-[11px]"
           >
             {p}
           </button>
@@ -188,12 +188,12 @@ export const AssistantPage: React.FC = () => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Ask a scheduling question or request a session shift..."
-          className="flex-grow px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-500"
+          className="flex-grow px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white transition-colors"
         />
         <button
           onClick={() => handleSend()}
           disabled={isSending || !input.trim()}
-          className="px-5 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50"
+          className="px-5 py-3 rounded-xl font-bold text-sm text-zinc-950 bg-white hover:bg-zinc-200 shadow-lg shadow-white/10 transition-all disabled:opacity-50"
         >
           <Send className="w-4 h-4" />
         </button>

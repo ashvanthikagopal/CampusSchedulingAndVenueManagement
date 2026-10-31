@@ -40,12 +40,12 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/90 border-b border-slate-800/80">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/90 border-b border-zinc-800/80">
       <div className="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
           {/* Logo & Brand */}
           <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0 py-1">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-transform shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col justify-center">
@@ -53,11 +53,11 @@ export const Navbar: React.FC = () => {
                 <span className="font-extrabold text-base sm:text-lg text-white tracking-tight">
                   CIT Scheduler
                 </span>
-                <span className="hidden xl:inline-flex text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold shrink-0">
+                <span className="hidden xl:inline-flex text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold shrink-0">
                   Zero Clashes
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 hidden 2xl:block leading-none mt-1">
+              <p className="text-[10px] text-zinc-400 hidden 2xl:block leading-none mt-1">
                 Campus Scheduling & Venue Management
               </p>
             </div>
@@ -74,8 +74,8 @@ export const Navbar: React.FC = () => {
                   to={link.path}
                   className={`flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-lg text-xs xl:text-sm font-medium transition-all shrink-0 ${
                     isActive
-                      ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                      ? 'bg-white text-zinc-950 font-bold shadow-md shadow-white/10'
+                      : 'text-zinc-300 hover:text-white hover:bg-zinc-800/60'
                   }`}
                   title={link.name}
                 >
@@ -93,14 +93,14 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-2 xl:gap-3 shrink-0">
                 <div className="text-right hidden sm:block shrink-0 leading-tight">
                   <div className="text-xs font-semibold text-white whitespace-nowrap">{user.name}</div>
-                  <div className="text-[10px] text-sky-400 font-mono capitalize">
+                  <div className="text-[10px] text-emerald-400 font-mono capitalize">
                     {user.role.replace('_', ' ')}
                   </div>
                 </div>
 
                 <button
                   onClick={logout}
-                  className="p-1.5 xl:p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors shrink-0"
+                  className="p-1.5 xl:p-2 rounded-lg bg-zinc-800/80 text-zinc-400 hover:text-rose-400 hover:bg-zinc-800 transition-colors shrink-0"
                   title="Logout"
                 >
                   <LogOut className="w-4 h-4" />
@@ -112,10 +112,10 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={handleResetDemo}
                 disabled={isResetting}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all hover:border-slate-600 disabled:opacity-50 shrink-0 whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-all hover:border-zinc-600 disabled:opacity-50 shrink-0 whitespace-nowrap"
                 title="Reset Database to Clean Baseline State"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-sky-400' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-emerald-400' : ''}`} />
                 <span className="hidden xl:inline">Reset Demo</span>
               </button>
             )}
@@ -127,15 +127,15 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={handleResetDemo}
                 disabled={isResetting}
-                className="p-1.5 text-xs rounded-lg bg-slate-800 text-slate-300 border border-slate-700"
+                className="p-1.5 text-xs rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700"
                 title="Reset Demo"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-sky-400' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-emerald-400' : ''}`} />
               </button>
             )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
+              className="p-2 rounded-lg bg-zinc-800 text-zinc-300 hover:text-white"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -145,7 +145,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-800 bg-slate-950/95 px-4 pt-2 pb-4 space-y-1">
+        <div className="lg:hidden border-b border-zinc-800 bg-zinc-950/95 px-4 pt-2 pb-4 space-y-1">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = location.pathname === link.path;
@@ -155,7 +155,7 @@ export const Navbar: React.FC = () => {
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium ${
-                  isActive ? 'bg-sky-500/20 text-sky-400' : 'text-slate-300 hover:bg-slate-800'
+                  isActive ? 'bg-white text-zinc-950 font-bold' : 'text-zinc-300 hover:bg-zinc-800'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -164,10 +164,10 @@ export const Navbar: React.FC = () => {
             );
           })}
           {user && (
-            <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+            <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-white">{user.name}</div>
-                <div className="text-xs text-sky-400 capitalize">{user.role}</div>
+                <div className="text-xs text-emerald-400 capitalize">{user.role}</div>
               </div>
               <button
                 onClick={() => {
