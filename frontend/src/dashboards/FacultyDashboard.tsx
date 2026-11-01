@@ -67,7 +67,7 @@ export const FacultyDashboard: React.FC = () => {
               <Button
                 variant="secondary"
                 size="md"
-                icon={<Calendar className="w-4 h-4 text-[#B08A3E]" />}
+                icon={<Calendar className="w-4 h-4 text-[#2563EB]" />}
               >
                 Declare Unavailability
               </Button>
@@ -129,13 +129,13 @@ export const FacultyDashboard: React.FC = () => {
         {/* Left Column: Weekly Teaching Schedule Overview */}
         <div className="lg:col-span-8 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#B08A3E]" />
+            <h2 className="text-base font-sans font-bold text-[#172B4D] flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#2563EB]" />
               <span>My Teaching Schedule</span>
             </h2>
             <Link
               to="/my-schedule"
-              className="text-xs text-[#B08A3E] hover:text-[#9A7633] font-semibold flex items-center gap-1 transition-colors"
+              className="text-xs text-[#2563EB] hover:text-[#1D4ED8] font-semibold flex items-center gap-1 transition-colors"
             >
               <span>View Full Synchronized Grid</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -144,25 +144,25 @@ export const FacultyDashboard: React.FC = () => {
 
           <div className="space-y-2.5">
             {teachingSessions.length === 0 ? (
-              <Panel variant="sunken" className="p-6 text-center text-xs text-[#55625A]">
+              <Panel variant="sunken" className="p-6 text-center text-xs text-[#475569]">
                 No teaching sessions currently assigned.
               </Panel>
             ) : (
               teachingSessions.slice(0, 5).map((s: any) => (
                 <div
                   key={s.session_id}
-                  className="bg-[#FFFDF8] p-4 rounded-[10px] border border-[#E4DBC6] shadow-[0_1px_2px_rgba(31,42,36,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="bg-[#FFFFFF] p-4 rounded-[10px] border border-[#E2E8F0] shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center justify-center font-mono text-xs font-bold text-[#12372A] bg-[#FAF6EC] px-2.5 py-1 rounded-[6px] border border-[#B08A3E]/30 leading-none">
+                      <span className="font-mono text-xs font-bold text-[#142D50] bg-[#F5F7FB] px-2 py-0.5 rounded border border-[#2563EB]/30">
                         {s.session_id}
                       </span>
-                      <span className="font-semibold text-sm text-[#1F2A24]">{s.course_id} ({s.kind})</span>
+                      <span className="font-semibold text-sm text-[#172B4D]">{s.course_id} ({s.kind})</span>
                       <StatusBadge status="neutral" size="sm" label={`${s.day} P${s.start_period}`} />
                     </div>
-                    <div className="text-xs text-[#55625A]">
-                      Venue: <span className="font-medium text-[#1F2A24]">{s.room_id}</span> · Groups: {s.groups?.join(', ')} · Size: {s.size} students
+                    <div className="text-xs text-[#475569]">
+                      Venue: <span className="font-medium text-[#172B4D]">{s.room_id}</span> · Groups: {s.groups?.join(', ')} · Size: {s.size} students
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
@@ -181,8 +181,8 @@ export const FacultyDashboard: React.FC = () => {
         {/* Right Column: Workload Distribution & Assistant */}
         <div className="lg:col-span-4 space-y-4">
           <Panel variant="default" className="space-y-3.5">
-            <h3 className="font-serif font-bold text-sm text-[#1F2A24] flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#12372A]" />
+            <h3 className="font-sans font-bold text-sm text-[#172B4D] flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#142D50]" />
               <span>Daily Teaching Workload (H12)</span>
             </h3>
             <div className="space-y-2">
@@ -193,13 +193,13 @@ export const FacultyDashboard: React.FC = () => {
                 return (
                   <div key={day} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-[#1F2A24]">{day}</span>
-                      <span className="font-mono text-[#55625A]">{hrs}h / {maxHours}h</span>
+                      <span className="font-semibold text-[#172B4D]">{day}</span>
+                      <span className="font-mono text-[#475569]">{hrs}h / {maxHours}h</span>
                     </div>
-                    <div className="w-full h-2 rounded-full bg-[#FAF6EC] overflow-hidden border border-[#E4DBC6]">
+                    <div className="w-full h-2 rounded-full bg-[#F5F7FB] overflow-hidden border border-[#E2E8F0]">
                       <div
                         className={`h-full rounded-full transition-all ${
-                          hrs > maxHours ? 'bg-[#A84B2C]' : hrs === maxHours ? 'bg-[#B08A3E]' : 'bg-[#12372A]'
+                          hrs > maxHours ? 'bg-[#A84B2C]' : hrs === maxHours ? 'bg-[#2563EB]' : 'bg-[#142D50]'
                         }`}
                         style={{ width: `${pct}%` }}
                       />
@@ -212,10 +212,10 @@ export const FacultyDashboard: React.FC = () => {
 
           <Panel variant="sunken" className="p-4 space-y-2 text-xs">
             <div className="flex items-center gap-2 text-[#2F7D4F] font-bold">
-              <Sparkles className="w-4 h-4 text-[#B08A3E]" />
+              <Sparkles className="w-4 h-4 text-[#2563EB]" />
               <span>AI Conversational Rescheduling</span>
             </div>
-            <p className="text-[#55625A] leading-relaxed text-[11px]">
+            <p className="text-[#475569] leading-relaxed text-[11px]">
               Faculty can submit requests in English or Hinglish (e.g. <em>"move my DBMS class kal shift kar do"</em>). The solver generates dry-run verified proposal cards with zero hard violations.
             </p>
             <div className="pt-2">

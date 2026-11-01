@@ -138,8 +138,8 @@ export const MySchedulePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="py-24 flex flex-col items-center justify-center space-y-4">
-        <div className="w-8 h-8 border-3 border-[#B08A3E]/30 border-t-[#B08A3E] rounded-full animate-spin" />
-        <p className="text-sm text-[#55625A] font-mono">Loading your teaching timetable...</p>
+        <div className="w-8 h-8 border-3 border-[#2563EB]/30 border-t-[#2563EB] rounded-full animate-spin" />
+        <p className="text-sm text-[#475569] font-mono">Loading your teaching timetable...</p>
       </div>
     );
   }
@@ -192,7 +192,7 @@ export const MySchedulePage: React.FC = () => {
           return (
             <Panel key={w.day} variant="default" className="p-4 space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-[#1F2A24] font-mono">{w.day}</span>
+                <span className="font-bold text-[#172B4D] font-mono">{w.day}</span>
                 <StatusBadge
                   status={isAtLimit ? 'warning' : 'success'}
                   size="sm"
@@ -200,16 +200,16 @@ export const MySchedulePage: React.FC = () => {
                   showIcon={false}
                 />
               </div>
-              <div className="text-2xl font-mono font-bold text-[#1F2A24] tabular-nums">
-                {w.teaching_hours}h <span className="text-xs font-normal text-[#7C877F]">/ {w.max_hours}h</span>
+              <div className="text-2xl font-mono font-bold text-[#172B4D] tabular-nums">
+                {w.teaching_hours}h <span className="text-xs font-normal text-[#64748B]">/ {w.max_hours}h</span>
               </div>
-              <div className="w-full bg-[#F2ECDC] h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-[#F1F5F9] h-1.5 rounded-full overflow-hidden">
                 <div 
-                  className={`h-full rounded-full transition-all ${isAtLimit ? 'bg-[#B7791F]' : 'bg-[#12372A]'}`}
+                  className={`h-full rounded-full transition-all ${isAtLimit ? 'bg-[#B7791F]' : 'bg-[#142D50]'}`}
                   style={{ width: `${Math.min(100, (w.teaching_hours / w.max_hours) * 100)}%` }}
                 />
               </div>
-              <div className="text-[11px] text-[#55625A] font-mono">
+              <div className="text-[11px] text-[#475569] font-mono">
                 Free: {w.free_periods.length > 0 ? `P${w.free_periods.join(', P')}` : 'None'}
               </div>
             </Panel>
@@ -219,9 +219,9 @@ export const MySchedulePage: React.FC = () => {
 
       {/* Weekly Timetable Grid */}
       <Panel variant="default" className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#E4DBC6]">
-          <h2 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#B08A3E]" />
+        <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+          <h2 className="text-base font-sans font-bold text-[#172B4D] flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-[#2563EB]" />
             <span>Weekly Session Grid (Periods 1 - 9)</span>
           </h2>
           <StatusBadge
@@ -232,27 +232,27 @@ export const MySchedulePage: React.FC = () => {
           />
         </div>
 
-        <div className="overflow-x-auto rounded-[8px] border border-[#E4DBC6]">
+        <div className="overflow-x-auto rounded-[8px] border border-[#E2E8F0]">
           <table className="w-full border-collapse text-left text-xs min-w-[700px]">
             <thead>
-              <tr className="bg-[#F2ECDC] border-b border-[#E4DBC6] text-[#55625A] font-mono">
+              <tr className="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[#475569] font-mono">
                 <th className="py-3 px-3 w-20 font-semibold uppercase tracking-wider text-[11px]">Day</th>
                 {PERIODS.map(p => (
                   <th key={p} className={`py-3 px-2 text-center text-[11px] ${p === 5 ? 'bg-[#EBD19E]/30 text-[#B7791F] font-bold' : ''}`}>
                     P{p}
-                    <div className="text-[9px] font-normal text-[#7C877F]">{p === 5 ? 'Lunch' : PERIOD_TIMES[p].split(' - ')[0]}</div>
+                    <div className="text-[9px] font-normal text-[#64748B]">{p === 5 ? 'Lunch' : PERIOD_TIMES[p].split(' - ')[0]}</div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E4DBC6]">
+            <tbody className="divide-y divide-[#E2E8F0]">
               {DAYS.map(day => (
-                <tr key={day} className="hover:bg-[#FAF6EC] transition-colors">
-                  <td className="py-3.5 px-3 font-mono font-bold text-[#1F2A24] bg-[#F2ECDC]/40 border-r border-[#E4DBC6]">{day}</td>
+                <tr key={day} className="hover:bg-[#F5F7FB] transition-colors">
+                  <td className="py-3.5 px-3 font-mono font-bold text-[#172B4D] bg-[#F1F5F9]/40 border-r border-[#E2E8F0]">{day}</td>
                   {PERIODS.map(p => {
                     if (p === 5) {
                       return (
-                        <td key={p} className="p-2 text-center bg-[#FDF5E6]/60 border-x border-[#E4DBC6]">
+                        <td key={p} className="p-2 text-center bg-[#FDF5E6]/60 border-x border-[#E2E8F0]">
                           <span className="text-[10px] text-[#B7791F] font-mono font-medium">Lunch</span>
                         </td>
                       );
@@ -260,7 +260,7 @@ export const MySchedulePage: React.FC = () => {
                     const sess = gridMap[day]?.[p];
                     if (!sess) {
                       return (
-                        <td key={p} className="p-2 text-center text-[#7C877F]/50 font-mono">
+                        <td key={p} className="p-2 text-center text-[#64748B]/50 font-mono">
                           -
                         </td>
                       );
@@ -276,9 +276,9 @@ export const MySchedulePage: React.FC = () => {
                             <span className="truncate">{sess.course_id}</span>
                             <span className="text-[9px] font-mono uppercase bg-[#2C6A8A]/10 px-1 rounded text-[#2C6A8A]">{sess.kind[0]}</span>
                           </div>
-                          <div className="text-[10px] text-[#55625A] font-medium truncate">{sess.room_name || sess.room_id}</div>
-                          <div className="text-[9px] text-[#7C877F] font-mono truncate">{sess.groups?.join(', ')}</div>
-                          <div className="text-[9px] text-[#B08A3E] group-hover:text-[#9A7633] flex items-center gap-0.5 pt-0.5 font-medium">
+                          <div className="text-[10px] text-[#475569] font-medium truncate">{sess.room_name || sess.room_id}</div>
+                          <div className="text-[9px] text-[#64748B] font-mono truncate">{sess.groups?.join(', ')}</div>
+                          <div className="text-[9px] text-[#2563EB] group-hover:text-[#1D4ED8] flex items-center gap-0.5 pt-0.5 font-medium">
                             <HelpCircle className="w-2.5 h-2.5" /> Explain
                           </div>
                         </div>
@@ -295,18 +295,18 @@ export const MySchedulePage: React.FC = () => {
       {/* "Why here?" Explain Modal */}
       {selectedSessionId && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] relative space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-[#E4DBC6] pb-3">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(15,23,42,0.15)] relative space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
               <div>
-                <h3 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4 text-[#B08A3E]" />
+                <h3 className="text-base font-sans font-bold text-[#172B4D] flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-[#2563EB]" />
                   <span>Slot Explainability: {selectedSessionId}</span>
                 </h3>
-                <p className="text-xs text-[#55625A]">Deterministic constraint and placement breakdown</p>
+                <p className="text-xs text-[#475569]">Deterministic constraint and placement breakdown</p>
               </div>
               <button
                 onClick={() => setSelectedSessionId(null)}
-                className="text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+                className="text-[#64748B] hover:text-[#172B4D] p-1 rounded cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
@@ -314,12 +314,12 @@ export const MySchedulePage: React.FC = () => {
             </div>
 
             {explainLoading ? (
-              <div className="py-8 text-center text-xs text-[#7C877F]">Loading placement explanation...</div>
+              <div className="py-8 text-center text-xs text-[#64748B]">Loading placement explanation...</div>
             ) : explainData ? (
               <div className="space-y-3.5 text-xs">
                 <Panel variant="sunken" className="p-3.5 space-y-1">
-                  <div className="text-[#55625A] text-[11px] font-medium">Assigned Slot:</div>
-                  <div className="text-[#1F2A24] font-bold text-sm">
+                  <div className="text-[#475569] text-[11px] font-medium">Assigned Slot:</div>
+                  <div className="text-[#172B4D] font-bold text-sm">
                     {explainData.assigned_day} Period {explainData.assigned_period} in {explainData.assigned_room}
                   </div>
                   <div className="text-[#2F7D4F] font-mono text-[11px] pt-1 flex items-center justify-between">
@@ -327,15 +327,15 @@ export const MySchedulePage: React.FC = () => {
                     <StatusBadge status="success" size="sm" label="0 Hard Violations" />
                   </div>
                   {explainData.checked_rules && explainData.checked_rules.length > 0 && (
-                    <div className="text-[10px] text-[#7C877F] pt-1 border-t border-[#E4DBC6]">
+                    <div className="text-[10px] text-[#64748B] pt-1 border-t border-[#E2E8F0]">
                       ✓ Rules Verified: H1-H12, H14, Fest Bookings
                     </div>
                   )}
                 </Panel>
 
                 <div className="space-y-1.5">
-                  <div className="font-semibold text-[#1F2A24]">Placement Factors:</div>
-                  <ul className="list-disc list-inside space-y-0.5 text-[#55625A]">
+                  <div className="font-semibold text-[#172B4D]">Placement Factors:</div>
+                  <ul className="list-disc list-inside space-y-0.5 text-[#475569]">
                     {explainData.reasons_for_placement?.map((r: string, idx: number) => (
                       <li key={idx}>{r}</li>
                     ))}
@@ -343,7 +343,7 @@ export const MySchedulePage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="font-semibold text-[#1F2A24]">Conflicts Prevented:</div>
+                  <div className="font-semibold text-[#172B4D]">Conflicts Prevented:</div>
                   <ul className="list-disc list-inside space-y-0.5 text-[#2F7D4F]">
                     {explainData.conflicts_avoided?.map((c: string, idx: number) => (
                       <li key={idx}>{c}</li>
@@ -358,10 +358,10 @@ export const MySchedulePage: React.FC = () => {
                       <span>Infeasibility Analysis (Zero Single Moves Possible):</span>
                     </div>
                     {explainData.infeasible_explanation.bottlenecks?.map((b: string, bIdx: number) => (
-                      <div key={bIdx} className="text-[10px] text-[#55625A]">• {b}</div>
+                      <div key={bIdx} className="text-[10px] text-[#475569]">• {b}</div>
                     ))}
                     {explainData.infeasible_explanation.suggestions?.map((s: string, sIdx: number) => (
-                      <div key={sIdx} className="text-[10px] text-[#9A7633] font-medium">💡 Suggestion: {s}</div>
+                      <div key={sIdx} className="text-[10px] text-[#1D4ED8] font-medium">💡 Suggestion: {s}</div>
                     ))}
                   </div>
                 )}
@@ -385,17 +385,17 @@ export const MySchedulePage: React.FC = () => {
       {/* Leave Declaration Modal with Solver Dry-Run */}
       {leaveModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] relative space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-[#E4DBC6] pb-3">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(15,23,42,0.15)] relative space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
               <div>
-                <h3 className="text-base font-serif font-bold text-[#1F2A24]">
+                <h3 className="text-base font-sans font-bold text-[#172B4D]">
                   Mark Unavailability / Leave
                 </h3>
-                <p className="text-xs text-[#55625A]">Submit unavailability with solver impact preview</p>
+                <p className="text-xs text-[#475569]">Submit unavailability with solver impact preview</p>
               </div>
               <button
                 onClick={() => setLeaveModalOpen(false)}
-                className="text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+                className="text-[#64748B] hover:text-[#172B4D] p-1 rounded cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />

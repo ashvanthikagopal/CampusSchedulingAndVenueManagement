@@ -13,9 +13,9 @@ export const Panel: React.FC<PanelProps> = ({
   ...props
 }) => {
   const variantClasses = {
-    default: 'ledger-panel bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)]',
-    raised: 'ledger-panel-raised bg-[#FFFDF8] border border-[#D5C9AE] rounded-[10px] shadow-[0_4px_12px_rgba(31,42,36,0.04),0_1px_3px_rgba(31,42,36,0.06)]',
-    sunken: 'ledger-panel-sunken bg-[#F2ECDC] border border-[#E4DBC6] rounded-[8px]',
+    default: 'ledger-panel bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)]',
+    raised: 'ledger-panel-raised bg-[#FFFFFF] border border-[#CBD5E1] rounded-[10px] shadow-[0_4px_12px_rgba(15,23,42,0.04),0_1px_3px_rgba(15,23,42,0.06)]',
+    sunken: 'ledger-panel-sunken bg-[#F1F5F9] border border-[#E2E8F0] rounded-[8px]',
   };
 
   const paddingClass = padded ? 'p-5 sm:p-6' : '';

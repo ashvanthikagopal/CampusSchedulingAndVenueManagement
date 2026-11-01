@@ -128,8 +128,8 @@ export const AssistantPage: React.FC = () => {
             <div
               className={`w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 text-xs font-bold ${
                 m.role === 'user'
-                  ? 'bg-[#12372A] text-[#E8EFE6]'
-                  : 'bg-[#FAF6EC] text-[#B08A3E] border border-[#E4DBC6]'
+                  ? 'bg-[#142D50] text-[#F1F5F9]'
+                  : 'bg-[#F5F7FB] text-[#2563EB] border border-[#E2E8F0]'
               }`}
             >
               {m.role === 'user' ? <UserIcon className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -139,8 +139,8 @@ export const AssistantPage: React.FC = () => {
               <div
                 className={`p-3.5 rounded-[10px] text-xs sm:text-sm leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-[#12372A] text-[#E8EFE6] rounded-tr-none text-left'
-                    : 'bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] rounded-tl-none shadow-xs text-left'
+                    ? 'bg-[#142D50] text-[#F1F5F9] rounded-tr-none text-left'
+                    : 'bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] rounded-tl-none shadow-xs text-left'
                 }`}
               >
                 {m.text}
@@ -149,27 +149,27 @@ export const AssistantPage: React.FC = () => {
               {/* Proposal Card with Validation Badge */}
               {m.proposalCard && (
                 <Panel variant="raised" className="p-4 text-left space-y-3">
-                  <div className="flex items-center justify-between border-b border-[#E4DBC6] pb-2">
-                    <span className="font-serif font-bold text-xs text-[#1F2A24]">{m.proposalCard.title}</span>
-                    <span className="font-mono text-[10px] text-[#B08A3E]">{m.proposalCard.session_id}</span>
+                  <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                    <span className="font-sans font-bold text-xs text-[#172B4D]">{m.proposalCard.title}</span>
+                    <span className="font-mono text-[10px] text-[#2563EB]">{m.proposalCard.session_id}</span>
                   </div>
 
-                  <div className="text-xs text-[#55625A] space-y-1">
-                    <div>From: <span className="text-[#7C877F] line-through">{m.proposalCard.current_slot}</span></div>
+                  <div className="text-xs text-[#475569] space-y-1">
+                    <div>From: <span className="text-[#64748B] line-through">{m.proposalCard.current_slot}</span></div>
                     <div>To: <strong className="text-[#2F7D4F]">{m.proposalCard.proposed_slot}</strong></div>
-                    <div className="text-[11px] text-[#7C877F] italic">"{m.proposalCard.reason}"</div>
+                    <div className="text-[11px] text-[#64748B] italic">"{m.proposalCard.reason}"</div>
                   </div>
 
                   {/* Minimal-change alternatives */}
                   {m.proposalCard.alternatives && m.proposalCard.alternatives.length > 0 && (
-                    <div className="pt-2 border-t border-[#E4DBC6] text-[11px] space-y-1.5">
-                      <div className="text-[#55625A] font-semibold uppercase tracking-wider text-[10px]">
+                    <div className="pt-2 border-t border-[#E2E8F0] text-[11px] space-y-1.5">
+                      <div className="text-[#475569] font-semibold uppercase tracking-wider text-[10px]">
                         Solver-Verified Alternatives:
                       </div>
                       {m.proposalCard.alternatives.map((alt: any, aIdx: number) => (
-                        <div key={aIdx} className="bg-[#FAF6EC] p-2 rounded-[6px] border border-[#E4DBC6] text-[#1F2A24] flex items-center justify-between">
+                        <div key={aIdx} className="bg-[#F5F7FB] p-2 rounded-[6px] border border-[#E2E8F0] text-[#172B4D] flex items-center justify-between">
                           <span>{alt.label || `${alt.day} P${alt.start_period} in ${alt.room_name}`}</span>
-                          <span className="inline-flex items-center justify-center font-mono text-[10px] font-bold text-[#2F7D4F] bg-[#EBF5EE] px-2.5 py-1 rounded-[6px] border border-[#C3E2CD] leading-none">0 Clashes</span>
+                          <span className="font-mono text-[10px] text-[#2F7D4F] bg-[#EBF5EE] px-1.5 py-0.5 rounded border border-[#C3E2CD]">0 Clashes</span>
                         </div>
                       ))}
                     </div>
@@ -184,7 +184,7 @@ export const AssistantPage: React.FC = () => {
                     {m.proposalCard.validation_badge.soft_breakdown && (
                       <div className="flex flex-wrap gap-1 text-[9px] font-mono pt-1 border-t border-[#C3E2CD] text-[#2F7D4F]">
                         {Object.entries(m.proposalCard.validation_badge.soft_breakdown).map(([k, v]: [string, any]) => (
-                          <span key={k} className="px-1.5 py-0.2 rounded bg-[#FFFDF8] border border-[#C3E2CD]">
+                          <span key={k} className="px-1.5 py-0.2 rounded bg-[#FFFFFF] border border-[#C3E2CD]">
                             {k}: {v >= 0 ? `+${v}` : v}
                           </span>
                         ))}
@@ -210,8 +210,8 @@ export const AssistantPage: React.FC = () => {
         ))}
 
         {isSending && (
-          <div className="flex items-center gap-2 text-xs text-[#55625A] font-mono">
-            <Bot className="w-4 h-4 animate-spin text-[#B08A3E]" />
+          <div className="flex items-center gap-2 text-xs text-[#475569] font-mono">
+            <Bot className="w-4 h-4 animate-spin text-[#2563EB]" />
             Analyzing schedule constraints and running deterministic rule checks...
           </div>
         )}
@@ -219,13 +219,13 @@ export const AssistantPage: React.FC = () => {
 
       {/* Suggested Prompt Chips */}
       <div className="flex flex-wrap gap-1.5 items-center text-xs">
-        <span className="text-[#7C877F] text-[11px] font-mono">Suggestions:</span>
+        <span className="text-[#64748B] text-[11px] font-mono">Suggestions:</span>
         {suggestedActions.map((p, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => handleSend(p)}
-            className="px-3 py-1 rounded-full bg-[#FFFDF8] hover:bg-[#F2ECDC] border border-[#E4DBC6] text-[#55625A] hover:text-[#1F2A24] transition-colors text-[11px] cursor-pointer"
+            className="px-3 py-1 rounded-full bg-[#FFFFFF] hover:bg-[#F1F5F9] border border-[#E2E8F0] text-[#475569] hover:text-[#172B4D] transition-colors text-[11px] cursor-pointer"
           >
             "{p}"
           </button>
@@ -240,7 +240,7 @@ export const AssistantPage: React.FC = () => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Ask a scheduling question or request a class move..."
-          className="flex-grow px-4 py-2.5 rounded-[8px] bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] placeholder-[#7C877F]/60 text-sm focus:outline-none focus:ring-1 focus:ring-[#B08A3E]"
+          className="flex-grow px-4 py-2.5 rounded-[8px] bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] placeholder-[#64748B]/60 text-sm focus:outline-none focus:ring-1 focus:ring-[#2563EB]"
         />
         <Button
           variant="primary"

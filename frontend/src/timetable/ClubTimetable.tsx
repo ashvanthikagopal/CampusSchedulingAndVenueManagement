@@ -227,10 +227,10 @@ export const ClubTimetable: React.FC = () => {
   ): { bg: string; text: string; border: string; badge: string; pattern?: boolean } => {
     if (isSelected) {
       return {
-        bg: 'bg-[#FAF6EC] ring-2 ring-[#B08A3E]',
-        text: 'text-[#B08A3E] font-bold',
-        border: 'border-[#B08A3E]',
-        badge: 'bg-[#B08A3E] text-white font-bold',
+        bg: 'bg-[#F5F7FB] ring-2 ring-[#2563EB]',
+        text: 'text-[#2563EB] font-bold',
+        border: 'border-[#2563EB]',
+        badge: 'bg-[#2563EB] text-white font-bold',
       };
     }
 
@@ -273,10 +273,10 @@ export const ClubTimetable: React.FC = () => {
         };
       case 'mine':
         return {
-          bg: 'bg-[#FAF6EC] border-[#B08A3E] ring-1 ring-[#B08A3E]/40',
-          text: 'text-[#9A7633] font-bold',
-          border: 'border-[#B08A3E]',
-          badge: 'bg-[#B08A3E] text-white font-bold',
+          bg: 'bg-[#F5F7FB] border-[#2563EB] ring-1 ring-[#2563EB]/40',
+          text: 'text-[#1D4ED8] font-bold',
+          border: 'border-[#2563EB]',
+          badge: 'bg-[#2563EB] text-white font-bold',
         };
       case 'reserved_institute':
         return {
@@ -287,17 +287,17 @@ export const ClubTimetable: React.FC = () => {
         };
       case 'lunch':
         return {
-          bg: 'bg-[#F2ECDC]',
-          text: 'text-[#7C877F] text-xs italic',
-          border: 'border-[#E4DBC6]',
-          badge: 'bg-[#F2ECDC] text-[#7C877F]',
+          bg: 'bg-[#F1F5F9]',
+          text: 'text-[#64748B] text-xs italic',
+          border: 'border-[#E2E8F0]',
+          badge: 'bg-[#F1F5F9] text-[#64748B]',
         };
       default:
         return {
-          bg: 'bg-[#FFFDF8]',
-          text: 'text-[#55625A]',
-          border: 'border-[#E4DBC6]',
-          badge: 'bg-[#F2ECDC] text-[#55625A]',
+          bg: 'bg-[#FFFFFF]',
+          text: 'text-[#475569]',
+          border: 'border-[#E2E8F0]',
+          badge: 'bg-[#F1F5F9] text-[#475569]',
         };
     }
   };
@@ -328,46 +328,46 @@ export const ClubTimetable: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Spectra Banner */}
       {spectraBanner && (
-        <div className="p-4 rounded-xl border border-[#E9D9AE] bg-[#FCF7E8] text-[#1F2A24] flex items-start gap-3 shadow-sm">
-          <Sparkles className="w-5 h-5 text-[#B08A3E] shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl border border-[#E9D9AE] bg-[#FCF7E8] text-[#172B4D] flex items-start gap-3 shadow-sm">
+          <Sparkles className="w-5 h-5 text-[#2563EB] shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-[6px] bg-[#FAF4E6] text-[#B08A3E] border border-[#E9D9AE] leading-none">
+              <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#FAF4E6] text-[#2563EB] border border-[#E9D9AE]">
                 Spectra Fest Week 7
               </span>
-              <span className="text-xs text-[#55625A]">Master Allocation Active</span>
+              <span className="text-xs text-[#475569]">Master Allocation Active</span>
             </div>
-            <p className="text-sm text-[#1F2A24] mt-1 font-medium">{spectraBanner}</p>
+            <p className="text-sm text-[#172B4D] mt-1 font-medium">{spectraBanner}</p>
           </div>
           <div className="text-right shrink-0">
-            <span className="text-xs text-[#55625A] block">Cap Rule: B2</span>
-            <span className="text-xs font-mono text-[#B08A3E] font-semibold">Max 2 approved events</span>
+            <span className="text-xs text-[#475569] block">Cap Rule: B2</span>
+            <span className="text-xs font-mono text-[#2563EB] font-semibold">Max 2 approved events</span>
           </div>
         </div>
       )}
 
       {/* Header with Title & Active Club Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-5 rounded-2xl border border-[#E4DBC6]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-5 rounded-2xl border border-[#E2E8F0]">
         <div>
-          <div className="flex items-center gap-2 text-[#B08A3E] text-xs font-bold uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-[#2563EB] text-xs font-bold uppercase tracking-wider mb-1">
             <Building2 className="w-4 h-4" />
             Club Representative Venue Portal
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1F2A24] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#172B4D] tracking-tight">
             Venue Availability & Schedule
           </h1>
-          <p className="text-xs sm:text-sm text-[#55625A] mt-0.5">
+          <p className="text-xs sm:text-sm text-[#475569] mt-0.5">
             Bookable event periods (P10–P13 · 18:00–22:00). Click any <strong className="text-emerald-400">Free</strong> slot to launch Book Venue.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Week Toggle */}
-          <div className="flex items-center bg-[#FFFDF8] border border-[#E4DBC6] rounded-xl p-1 text-xs">
+          <div className="flex flex-wrap items-center gap-1 bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-1 text-xs">
             <button
               onClick={() => setWeek(7)}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                week === 7 ? 'bg-[#B08A3E] text-[#1F2A24] shadow-sm' : 'text-[#55625A] hover:text-[#1F2A24]'
+                week === 7 ? 'bg-[#2563EB] text-white shadow-sm' : 'text-[#475569] hover:text-[#172B4D]'
               }`}
             >
               Week 7 (Fest)
@@ -375,7 +375,7 @@ export const ClubTimetable: React.FC = () => {
             <button
               onClick={() => setWeek(1)}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                week === 1 ? 'bg-[#B08A3E] text-[#1F2A24] shadow-sm' : 'text-[#55625A] hover:text-[#1F2A24]'
+                week === 1 ? 'bg-[#2563EB] text-white shadow-sm' : 'text-[#475569] hover:text-[#172B4D]'
               }`}
             >
               Week 1 (Academic)
@@ -383,7 +383,7 @@ export const ClubTimetable: React.FC = () => {
             <button
               onClick={() => setWeek(8)}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                week === 8 ? 'bg-[#B08A3E] text-[#1F2A24] shadow-sm' : 'text-[#55625A] hover:text-[#1F2A24]'
+                week === 8 ? 'bg-[#2563EB] text-white shadow-sm' : 'text-[#475569] hover:text-[#172B4D]'
               }`}
             >
               Week 8 (Exams)
@@ -392,19 +392,19 @@ export const ClubTimetable: React.FC = () => {
 
           {/* Active Club Selector */}
           {availableClubs.length > 0 && (
-            <div className="flex items-center gap-2 bg-[#FFFDF8] border border-[#E4DBC6] rounded-xl px-3 py-1.5 text-xs">
-              <Users className="w-3.5 h-3.5 text-[#B08A3E]" />
-              <span className="text-[#55625A]">My Club:</span>
+            <div className="flex items-center gap-2 bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl px-3 py-1.5 text-xs">
+              <Users className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span className="text-[#475569]">My Club:</span>
               <select
                 value={selectedClub}
                 onChange={(e) => setSelectedClub(e.target.value)}
-                className="bg-transparent text-[#1F2A24] font-semibold focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#172B4D] font-semibold focus:outline-none cursor-pointer"
               >
-                <option value="" className="bg-[#FFFDF8] text-[#1F2A24]">
+                <option value="" className="bg-[#FFFFFF] text-[#172B4D]">
                   Select Club ({availableClubs.length} active)
                 </option>
                 {availableClubs.map((c) => (
-                  <option key={c} value={c} className="bg-[#FFFDF8] text-[#1F2A24]">
+                  <option key={c} value={c} className="bg-[#FFFFFF] text-[#172B4D]">
                     {c}
                   </option>
                 ))}
@@ -415,7 +415,7 @@ export const ClubTimetable: React.FC = () => {
           {/* Direct Link to Bookings */}
           <button
             onClick={() => navigate('/bookings')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-[#1F2A24] text-xs font-bold shadow-lg shadow-purple-600/25 transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-[#172B4D] text-xs font-bold shadow-lg shadow-purple-600/25 transition-all"
           >
             <Sparkles className="w-3.5 h-3.5" />
             Book Venue
@@ -424,18 +424,18 @@ export const ClubTimetable: React.FC = () => {
       </div>
 
       {/* Main Tabs Navigation */}
-      <div className="flex border-b border-[#E4DBC6] text-sm font-semibold">
+      <div className="flex border-b border-[#E2E8F0] text-sm font-semibold">
         <button
           onClick={() => setActiveTab('room_grid')}
           className={`flex items-center gap-2 pb-3 px-4 border-b-2 transition-all ${
             activeTab === 'room_grid'
-              ? 'border-[#B08A3E]/40 text-[#B08A3E]'
-              : 'border-transparent text-[#55625A] hover:text-[#1F2A24]'
+              ? 'border-[#2563EB]/40 text-[#2563EB]'
+              : 'border-transparent text-[#475569] hover:text-[#172B4D]'
           }`}
         >
           <Calendar className="w-4 h-4" />
           Weekly Room Grid
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F2ECDC] text-[#1F2A24] font-mono">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#172B4D] font-mono">
             One Room
           </span>
         </button>
@@ -444,13 +444,13 @@ export const ClubTimetable: React.FC = () => {
           onClick={() => setActiveTab('all_rooms')}
           className={`flex items-center gap-2 pb-3 px-4 border-b-2 transition-all ${
             activeTab === 'all_rooms'
-              ? 'border-[#B08A3E]/40 text-[#B08A3E]'
-              : 'border-transparent text-[#55625A] hover:text-[#1F2A24]'
+              ? 'border-[#2563EB]/40 text-[#2563EB]'
+              : 'border-transparent text-[#475569] hover:text-[#172B4D]'
           }`}
         >
           <Layers className="w-4 h-4" />
           All Rooms at a Glance
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F2ECDC] text-[#1F2A24] font-mono">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#172B4D] font-mono">
             Campus Day Matrix
           </span>
         </button>
@@ -458,21 +458,21 @@ export const ClubTimetable: React.FC = () => {
 
       {/* Loading & Error States */}
       {loading && (
-        <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-12 text-center rounded-2xl border border-[#E4DBC6]">
-          <div className="w-10 h-10 border-4 border-[#B08A3E]/40 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-sm text-[#1F2A24] font-medium">Scanning campus room availability...</p>
-          <p className="text-xs text-[#7C877F] mt-1">Applying privacy filters & fest displacements</p>
+        <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-12 text-center rounded-2xl border border-[#E2E8F0]">
+          <div className="w-10 h-10 border-4 border-[#2563EB]/40 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-sm text-[#172B4D] font-medium">Scanning campus room availability...</p>
+          <p className="text-xs text-[#64748B] mt-1">Applying privacy filters & fest displacements</p>
         </div>
       )}
 
       {error && !loading && (
-        <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-6 rounded-2xl border border-rose-500/30 bg-rose-950/20 text-center">
+        <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-6 rounded-2xl border border-rose-500/30 bg-rose-950/20 text-center">
           <AlertTriangle className="w-8 h-8 text-rose-400 mx-auto mb-2" />
-          <h3 className="text-base font-bold text-[#1F2A24]">Failed to Load Availability</h3>
+          <h3 className="text-base font-bold text-[#172B4D]">Failed to Load Availability</h3>
           <p className="text-xs text-rose-300 mt-1">{error}</p>
           <button
             onClick={fetchAvailability}
-            className="mt-4 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-[#1F2A24] text-xs font-semibold"
+            className="mt-4 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-[#172B4D] text-xs font-semibold"
           >
             Retry
           </button>
@@ -485,12 +485,12 @@ export const ClubTimetable: React.FC = () => {
       {!loading && !error && activeTab === 'room_grid' && currentRoomData && (
         <div className="space-y-4">
           {/* Room Selector & Navigation Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-4 rounded-xl border border-[#E4DBC6]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-4 rounded-xl border border-[#E2E8F0]">
             {/* Prev / Next Room Buttons */}
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrevRoom}
-                className="p-2 rounded-lg bg-[#FFFDF8] border border-[#E4DBC6] hover:border-[#D5C9AE] hover:bg-[#F2ECDC] text-[#1F2A24] hover:text-[#1F2A24] transition-all"
+                className="p-2 rounded-lg bg-[#FFFFFF] border border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F1F5F9] text-[#172B4D] hover:text-[#172B4D] transition-all"
                 title="Previous Room"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -498,7 +498,7 @@ export const ClubTimetable: React.FC = () => {
 
               <button
                 onClick={handleNextRoom}
-                className="p-2 rounded-lg bg-[#FFFDF8] border border-[#E4DBC6] hover:border-[#D5C9AE] hover:bg-[#F2ECDC] text-[#1F2A24] hover:text-[#1F2A24] transition-all"
+                className="p-2 rounded-lg bg-[#FFFFFF] border border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F1F5F9] text-[#172B4D] hover:text-[#172B4D] transition-all"
                 title="Next Room"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -515,10 +515,10 @@ export const ClubTimetable: React.FC = () => {
                       setSelectedCells([]);
                     }
                   }}
-                  className="bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] text-sm font-bold rounded-lg px-3 py-2 focus:outline-none focus:border-[#B08A3E]/40 cursor-pointer pr-8"
+                  className="bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] text-sm font-bold rounded-lg px-3 py-2 focus:outline-none focus:border-[#2563EB]/40 cursor-pointer pr-8"
                 >
                   {roomsData.map((r, i) => (
-                    <option key={r.room.id} value={r.room.id} className="bg-[#FFFDF8] text-[#1F2A24]">
+                    <option key={r.room.id} value={r.room.id} className="bg-[#FFFFFF] text-[#172B4D]">
                       {r.room.id} · {r.room.name} ({r.room.capacity} seats)
                     </option>
                   ))}
@@ -528,7 +528,7 @@ export const ClubTimetable: React.FC = () => {
               {/* Room Info Click Button */}
               <button
                 onClick={() => setInspectedRoom(currentRoomData.room)}
-                className="p-2 rounded-lg bg-[#B08A3E]/10 border border-[#B08A3E]/40/20 text-[#B08A3E] hover:bg-[#B08A3E]/20 transition-all flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded-lg bg-[#2563EB]/10 border border-[#2563EB]/40/20 text-[#2563EB] hover:bg-[#2563EB]/20 transition-all flex items-center gap-1.5 text-xs font-semibold"
                 title="View Room Specifications"
               >
                 <Info className="w-3.5 h-3.5" />
@@ -538,13 +538,13 @@ export const ClubTimetable: React.FC = () => {
 
             {/* Room Summary Badges */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="px-2.5 py-1 rounded-lg bg-[#FFFDF8] text-[#1F2A24] border border-[#E4DBC6] font-medium">
+              <span className="px-2.5 py-1 rounded-lg bg-[#FFFFFF] text-[#172B4D] border border-[#E2E8F0] font-medium">
                 {currentRoomData.room.building}
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-[#FFFDF8] text-[#1F2A24] border border-[#E4DBC6] capitalize">
+              <span className="px-2.5 py-1 rounded-lg bg-[#FFFFFF] text-[#172B4D] border border-[#E2E8F0] capitalize">
                 {currentRoomData.room.type.replace('_', ' ')}
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-[#FFFDF8] text-sky-400 border border-[#E4DBC6] font-bold font-mono">
+              <span className="px-2.5 py-1 rounded-lg bg-[#FFFFFF] text-sky-400 border border-[#E2E8F0] font-bold font-mono">
                 {currentRoomData.room.capacity} Seats
               </span>
               {currentRoomData.room.accessible && (
@@ -562,7 +562,7 @@ export const ClubTimetable: React.FC = () => {
 
           {/* Multi-Selection Action Bar (If user selected cells) */}
           {selectedCells.length > 0 && (
-            <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-3 rounded-xl border border-emerald-500/30 bg-emerald-950/20 flex items-center justify-between">
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-3 rounded-xl border border-emerald-500/30 bg-emerald-950/20 flex items-center justify-between">
               <div className="text-xs text-emerald-300 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>
@@ -573,7 +573,7 @@ export const ClubTimetable: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setSelectedCells([])}
-                  className="px-2 py-1 rounded text-xs text-[#55625A] hover:text-[#1F2A24]"
+                  className="px-2 py-1 rounded text-xs text-[#475569] hover:text-[#172B4D]"
                 >
                   Clear
                 </button>
@@ -586,7 +586,7 @@ export const ClubTimetable: React.FC = () => {
                       `/bookings?room=${currentRoomData.room.id}&day=${sorted[0].day}&from_period=${startP}&duration=${dur}`
                     );
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[#1F2A24] text-xs font-bold shadow-md shadow-emerald-600/30"
+                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[#172B4D] text-xs font-bold shadow-md shadow-emerald-600/30"
                 >
                   Book Selected Slot
                 </button>
@@ -595,37 +595,37 @@ export const ClubTimetable: React.FC = () => {
           )}
 
           {/* Weekly Timetable Grid */}
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] rounded-2xl border border-[#E4DBC6] overflow-hidden shadow-xl">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse min-w-[700px] text-xs">
                 <thead>
-                  <tr className="bg-[#FFFDF8] border-b border-[#E4DBC6] text-[#55625A] text-left">
-                    <th className="p-3 w-36 font-semibold uppercase tracking-wider text-[11px] border-r border-[#E4DBC6]">
+                  <tr className="bg-[#FFFFFF] border-b border-[#E2E8F0] text-[#475569] text-left">
+                    <th className="p-3 w-36 font-semibold uppercase tracking-wider text-[11px] border-r border-[#E2E8F0]">
                       Period / Time
                     </th>
                     {daysList.map((d) => (
-                      <th key={d} className="p-3 font-semibold uppercase tracking-wider text-[11px] text-center border-r border-[#E4DBC6] last:border-r-0">
-                        <div className="text-[#1F2A24] font-bold">{dayNames[d]}</div>
-                        <div className="text-[10px] text-[#55625A] font-mono">{d}</div>
+                      <th key={d} className="p-3 font-semibold uppercase tracking-wider text-[11px] text-center border-r border-[#E2E8F0] last:border-r-0">
+                        <div className="text-[#172B4D] font-bold">{dayNames[d]}</div>
+                        <div className="text-[10px] text-[#475569] font-mono">{d}</div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4DBC6]">
+                <tbody className="divide-y divide-[#E2E8F0]">
                   {periodsList.map((per) => {
                     return (
-                      <tr key={`p-${per.p}`} className="hover:bg-[#FFFDF8]/30 transition-colors">
+                      <tr key={`p-${per.p}`} className="hover:bg-[#FFFFFF]/30 transition-colors">
                         {/* Period & Time header */}
-                        <td className="p-3 border-r border-[#E4DBC6] font-mono text-[#55625A] bg-[#FFFDF8]">
+                        <td className="p-3 border-r border-[#E2E8F0] font-mono text-[#475569] bg-[#FFFFFF]">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-[#1F2A24] text-xs">{per.label}</span>
+                            <span className="font-bold text-[#172B4D] text-xs">{per.label}</span>
                             {per.eventOnly && (
-                              <span className="text-[9px] px-1 rounded bg-[#B08A3E]/20 text-[#B08A3E] font-semibold">
+                              <span className="text-[9px] px-1 rounded bg-[#2563EB]/20 text-[#2563EB] font-semibold">
                                 Fest
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] text-[#55625A] mt-0.5">{per.time}</div>
+                          <div className="text-[10px] text-[#475569] mt-0.5">{per.time}</div>
                         </td>
 
                         {/* Columns for Monday to Friday */}
@@ -649,7 +649,7 @@ export const ClubTimetable: React.FC = () => {
                             <td
                               key={`${d}-${per.p}`}
                               onClick={() => handleCellClick(currentRoomData.room, d, cell)}
-                              className={`p-2 border-r border-[#E4DBC6] last:border-r-0 text-center relative group ${style.bg}`}
+                              className={`p-2 border-r border-[#E2E8F0] last:border-r-0 text-center relative group ${style.bg}`}
                               title={
                                 cell.is_free
                                   ? `Click to book ${currentRoomData.room.id} on ${dayNames[d]} at ${per.time}`
@@ -662,9 +662,9 @@ export const ClubTimetable: React.FC = () => {
                                 </span>
 
                                 {cell.state === 'mine' && cell.detail && (
-                                  <div className="text-[10px] text-[#B08A3E] font-bold mt-1 max-w-[120px] truncate">
+                                  <div className="text-[10px] text-[#2563EB] font-bold mt-1 max-w-[120px] truncate">
                                     {cell.detail.club_name}
-                                    <span className="block text-[9px] text-[#B08A3E] capitalize">
+                                    <span className="block text-[9px] text-[#2563EB] capitalize">
                                       ({cell.detail.status})
                                     </span>
                                   </div>
@@ -696,17 +696,17 @@ export const ClubTimetable: React.FC = () => {
       {!loading && !error && activeTab === 'all_rooms' && (
         <div className="space-y-4">
           {/* Day Selector & Find Free Rooms Trigger */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-4 rounded-xl border border-[#E4DBC6]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-4 rounded-xl border border-[#E2E8F0]">
             {/* Day Selector Buttons */}
-            <div className="flex items-center gap-1 bg-[#FFFDF8] p-1 rounded-xl border border-[#E4DBC6]">
+            <div className="flex items-center gap-1 bg-[#FFFFFF] p-1 rounded-xl border border-[#E2E8F0]">
               {daysList.map((d) => (
                 <button
                   key={d}
                   onClick={() => setOverviewDay(d)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     overviewDay === d
-                      ? 'bg-[#B08A3E] text-[#1F2A24] shadow-sm'
-                      : 'text-[#55625A] hover:text-[#1F2A24] hover:bg-[#F2ECDC]'
+                      ? 'bg-[#2563EB] text-white shadow-sm'
+                      : 'text-[#475569] hover:text-[#172B4D] hover:bg-[#F1F5F9]'
                   }`}
                 >
                   {dayNames[d]} ({d})
@@ -717,7 +717,7 @@ export const ClubTimetable: React.FC = () => {
             {/* Find Free Rooms Button */}
             <button
               onClick={() => setShowFindModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-[#1F2A24] text-xs font-bold shadow-lg shadow-emerald-600/25 transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-[#172B4D] text-xs font-bold shadow-lg shadow-emerald-600/25 transition-all"
             >
               <Search className="w-4 h-4" />
               Find Free Rooms Filter
@@ -725,42 +725,42 @@ export const ClubTimetable: React.FC = () => {
           </div>
 
           {/* Campus Day Table (Rows: Rooms, Columns: P1 to P13) */}
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] rounded-2xl border border-[#E4DBC6] overflow-hidden shadow-xl">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse min-w-[900px] text-xs">
                 <thead>
-                  <tr className="bg-[#FFFDF8] border-b border-[#E4DBC6] text-[#55625A] text-left">
-                    <th className="p-3 w-40 font-semibold uppercase tracking-wider text-[11px] border-r border-[#E4DBC6] sticky left-0 bg-[#FFFDF8] z-10">
+                  <tr className="bg-[#FFFFFF] border-b border-[#E2E8F0] text-[#475569] text-left">
+                    <th className="p-3 w-40 font-semibold uppercase tracking-wider text-[11px] border-r border-[#E2E8F0] sticky left-0 bg-[#FFFFFF] z-10">
                       Room / Capacity
                     </th>
                     {periodsList.map((per) => (
                       <th
                         key={per.label}
-                        className="p-2.5 font-semibold uppercase tracking-wider text-[10px] text-center border-r border-[#E4DBC6] last:border-r-0"
+                        className="p-2.5 font-semibold uppercase tracking-wider text-[10px] text-center border-r border-[#E2E8F0] last:border-r-0"
                       >
-                        <div className="text-[#1F2A24] font-bold">{per.label}</div>
-                        <div className="text-[9px] text-[#55625A]">{per.time.split(' - ')[0]}</div>
+                        <div className="text-[#172B4D] font-bold">{per.label}</div>
+                        <div className="text-[9px] text-[#475569]">{per.time.split(' - ')[0]}</div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E4DBC6]">
+                <tbody className="divide-y divide-[#E2E8F0]">
                   {roomsData.map((r) => {
                     const dayCells = r.days[overviewDay] || [];
 
                     return (
-                      <tr key={r.room.id} className="hover:bg-[#FFFDF8]/30 transition-colors">
+                      <tr key={r.room.id} className="hover:bg-[#FFFFFF]/30 transition-colors">
                         {/* Sticky Room Info */}
-                        <td className="p-2.5 border-r border-[#E4DBC6] bg-[#FAF6EC]/90 sticky left-0 z-10">
+                        <td className="p-2.5 border-r border-[#E2E8F0] bg-[#F5F7FB]/90 sticky left-0 z-10">
                           <button
                             onClick={() => setInspectedRoom(r.room)}
                             className="text-left group"
                           >
-                            <div className="font-bold text-[#1F2A24] group-hover:text-[#B08A3E] transition-colors flex items-center gap-1">
+                            <div className="font-bold text-[#172B4D] group-hover:text-[#2563EB] transition-colors flex items-center gap-1">
                               {r.room.id}
-                              <Info className="w-3 h-3 text-[#7C877F] group-hover:text-[#B08A3E]" />
+                              <Info className="w-3 h-3 text-[#64748B] group-hover:text-[#2563EB]" />
                             </div>
-                            <div className="text-[10px] text-[#55625A] truncate max-w-[130px]">
+                            <div className="text-[10px] text-[#475569] truncate max-w-[130px]">
                               {r.room.name}
                             </div>
                             <div className="text-[10px] font-mono text-sky-400 font-semibold">
@@ -785,7 +785,7 @@ export const ClubTimetable: React.FC = () => {
                             <td
                               key={`p-${per.p}`}
                               onClick={() => handleCellClick(r.room, overviewDay, cell)}
-                              className={`p-1.5 border-r border-[#E4DBC6] last:border-r-0 text-center ${style.bg}`}
+                              className={`p-1.5 border-r border-[#E2E8F0] last:border-r-0 text-center ${style.bg}`}
                               title={
                                 cell.is_free
                                   ? `Click to book ${r.room.id} on ${dayNames[overviewDay]} at ${per.time}`
@@ -813,65 +813,65 @@ export const ClubTimetable: React.FC = () => {
       {/* ========================================================================= */}
       {/* COLOUR LEGEND (Always visible under the grid as required by UI notes)      */}
       {/* ========================================================================= */}
-      <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-4 rounded-xl border border-[#E4DBC6] text-xs">
-        <div className="text-xs font-bold text-[#1F2A24] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <HelpCircle className="w-3.5 h-3.5 text-[#B08A3E]" />
+      <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-4 rounded-xl border border-[#E2E8F0] text-xs">
+        <div className="text-xs font-bold text-[#172B4D] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <HelpCircle className="w-3.5 h-3.5 text-[#2563EB]" />
           Availability Status Legend
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
           <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-950/30 border border-emerald-900/60">
             <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></span>
             <div>
-              <div className="text-[#1F2A24] font-bold">Free</div>
+              <div className="text-[#172B4D] font-bold">Free</div>
               <div className="text-[10px] text-emerald-400">Clickable to Book</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FFFDF8] border border-[#E4DBC6]">
-            <span className="w-3 h-3 rounded-full bg-[#7C877F] shrink-0"></span>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FFFFFF] border border-[#E2E8F0]">
+            <span className="w-3 h-3 rounded-full bg-[#64748B] shrink-0"></span>
             <div>
-              <div className="text-[#1F2A24] font-bold">Class</div>
-              <div className="text-[10px] text-[#55625A]">Regular Academic</div>
+              <div className="text-[#172B4D] font-bold">Class</div>
+              <div className="text-[10px] text-[#475569]">Regular Academic</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF4E6] border border-[#E4DBC6]">
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FAF4E6] border border-[#E2E8F0]">
             <span className="w-3 h-3 rounded-full bg-[#B7791F] shrink-0"></span>
             <div>
-              <div className="text-[#1F2A24] font-bold">Exam</div>
+              <div className="text-[#172B4D] font-bold">Exam</div>
               <div className="text-[10px] text-[#B7791F]">Midsem Window</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FCF2EC] border border-[#E4DBC6]">
-            <span className="w-3 h-3 rounded-full bg-[#B08A3E] shrink-0"></span>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FCF2EC] border border-[#E2E8F0]">
+            <span className="w-3 h-3 rounded-full bg-[#2563EB] shrink-0"></span>
             <div>
-              <div className="text-[#1F2A24] font-bold">Booked</div>
-              <div className="text-[10px] text-[#B08A3E]">Other Event</div>
+              <div className="text-[#172B4D] font-bold">Booked</div>
+              <div className="text-[10px] text-[#2563EB]">Other Event</div>
             </div>
           </div>
 
           <div className="flex items-center gap-2 p-2 rounded-lg bg-[#FDF2F0] border border-[#F3C5BD]">
             <span className="w-3 h-3 rounded-full bg-[#B3402F] shrink-0"></span>
             <div>
-              <div className="text-[#1F2A24] font-bold">Unavailable</div>
+              <div className="text-[#172B4D] font-bold">Unavailable</div>
               <div className="text-[10px] text-[#B3402F]">Maintenance/Repair</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#EEF5FA] border border-[#B08A3E]">
-            <span className="w-3 h-3 rounded-full bg-[#2C6A8A] shrink-0 ring-2 ring-[#B08A3E]"></span>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#EEF5FA] border border-[#2563EB]">
+            <span className="w-3 h-3 rounded-full bg-[#2C6A8A] shrink-0 ring-2 ring-[#2563EB]"></span>
             <div>
-              <div className="text-[#1F2A24] font-bold">My Booking</div>
+              <div className="text-[#172B4D] font-bold">My Booking</div>
               <div className="text-[10px] text-[#2C6A8A]">Own Club (Detail)</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#F2ECDC] border border-[#E4DBC6]">
-            <span className="w-3 h-3 rounded-full bg-[#7C877F] shrink-0"></span>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-[#F1F5F9] border border-[#E2E8F0]">
+            <span className="w-3 h-3 rounded-full bg-[#64748B] shrink-0"></span>
             <div>
-              <div className="text-[#1F2A24] font-bold">Lunch</div>
-              <div className="text-[10px] text-[#55625A]">13:00 - 14:00 (Break)</div>
+              <div className="text-[#172B4D] font-bold">Lunch</div>
+              <div className="text-[10px] text-[#475569]">13:00 - 14:00 (Break)</div>
             </div>
           </div>
         </div>
@@ -882,51 +882,51 @@ export const ClubTimetable: React.FC = () => {
       {/* ========================================================================= */}
       {inspectedRoom && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-6 rounded-2xl border border-[#E4DBC6] bg-[#FAF6EC] max-w-md w-full space-y-4 shadow-2xl relative">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-6 rounded-2xl border border-[#E2E8F0] bg-[#F5F7FB] max-w-md w-full space-y-4 shadow-2xl relative">
             <button
               onClick={() => setInspectedRoom(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#FFFDF8] text-[#55625A] hover:text-[#1F2A24] hover:bg-[#F2ECDC]"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#FFFFFF] text-[#475569] hover:text-[#172B4D] hover:bg-[#F1F5F9]"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-[6px] bg-[#FAF4E6] text-[#B08A3E] border border-[#E9D9AE] leading-none">
+                <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#2563EB]/20 text-[#2563EB] border border-[#2563EB]/40/30">
                   {inspectedRoom.id}
                 </span>
-                <span className="text-xs text-[#55625A] font-medium">{inspectedRoom.building}</span>
+                <span className="text-xs text-[#475569] font-medium">{inspectedRoom.building}</span>
               </div>
-              <h2 className="text-xl font-extrabold text-[#1F2A24] mt-1">{inspectedRoom.name}</h2>
+              <h2 className="text-xl font-extrabold text-[#172B4D] mt-1">{inspectedRoom.name}</h2>
             </div>
 
             <div className="space-y-2.5 text-xs">
-              <div className="flex justify-between py-1.5 border-b border-[#E4DBC6]">
-                <span className="text-[#55625A]">Seating Capacity</span>
-                <span className="text-[#1F2A24] font-bold font-mono">{inspectedRoom.capacity} Attendees</span>
+              <div className="flex justify-between py-1.5 border-b border-[#E2E8F0]">
+                <span className="text-[#475569]">Seating Capacity</span>
+                <span className="text-[#172B4D] font-bold font-mono">{inspectedRoom.capacity} Attendees</span>
               </div>
 
-              <div className="flex justify-between py-1.5 border-b border-[#E4DBC6]">
-                <span className="text-[#55625A]">Venue Category</span>
-                <span className="text-[#1F2A24] font-semibold capitalize">
+              <div className="flex justify-between py-1.5 border-b border-[#E2E8F0]">
+                <span className="text-[#475569]">Venue Category</span>
+                <span className="text-[#172B4D] font-semibold capitalize">
                   {inspectedRoom.type.replace('_', ' ')}
                 </span>
               </div>
 
-              <div className="flex justify-between py-1.5 border-b border-[#E4DBC6]">
-                <span className="text-[#55625A]">Accessibility</span>
-                <span className={inspectedRoom.accessible ? 'text-emerald-400 font-semibold' : 'text-[#7C877F]'}>
+              <div className="flex justify-between py-1.5 border-b border-[#E2E8F0]">
+                <span className="text-[#475569]">Accessibility</span>
+                <span className={inspectedRoom.accessible ? 'text-emerald-400 font-semibold' : 'text-[#64748B]'}>
                   {inspectedRoom.accessible ? '✓ Wheelchair Accessible' : 'Standard Access'}
                 </span>
               </div>
 
-              <div className="py-1.5 border-b border-[#E4DBC6]">
-                <span className="text-[#55625A] block mb-1">Installed Equipment & Features</span>
+              <div className="py-1.5 border-b border-[#E2E8F0]">
+                <span className="text-[#475569] block mb-1">Installed Equipment & Features</span>
                 <div className="flex flex-wrap gap-1">
                   {inspectedRoom.features.map((f) => (
                     <span
                       key={f}
-                      className="px-2 py-0.5 rounded bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] capitalize text-[10px]"
+                      className="px-2 py-0.5 rounded bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] capitalize text-[10px]"
                     >
                       {f.replace('_', ' ')}
                     </span>
@@ -951,7 +951,7 @@ export const ClubTimetable: React.FC = () => {
             <div className="pt-2 flex gap-3">
               <button
                 onClick={() => setInspectedRoom(null)}
-                className="flex-1 py-2 rounded-xl bg-[#FFFDF8] hover:bg-[#F2ECDC] text-[#1F2A24] text-xs font-semibold"
+                className="flex-1 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[#F1F5F9] text-[#172B4D] text-xs font-semibold"
               >
                 Close
               </button>
@@ -960,7 +960,7 @@ export const ClubTimetable: React.FC = () => {
                   setInspectedRoom(null);
                   navigate(`/bookings?room=${inspectedRoom.id}`);
                 }}
-                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-[#1F2A24] text-xs font-bold"
+                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-[#172B4D] text-xs font-bold"
               >
                 Book This Room
               </button>
@@ -974,10 +974,10 @@ export const ClubTimetable: React.FC = () => {
       {/* ========================================================================= */}
       {showFindModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_1px_2px_rgba(31,42,36,0.06)] p-6 rounded-2xl border border-[#E4DBC6] bg-[#FAF6EC] max-w-2xl w-full space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_1px_2px_rgba(15,23,42,0.06)] p-6 rounded-2xl border border-[#E2E8F0] bg-[#F5F7FB] max-w-2xl w-full space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowFindModal(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#FFFDF8] text-[#55625A] hover:text-[#1F2A24] hover:bg-[#F2ECDC]"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-[#FFFFFF] text-[#475569] hover:text-[#172B4D] hover:bg-[#F1F5F9]"
             >
               <X className="w-4 h-4" />
             </button>
@@ -987,8 +987,8 @@ export const ClubTimetable: React.FC = () => {
                 <Search className="w-4 h-4" />
                 Intelligent Venue Finder
               </div>
-              <h2 className="text-xl font-extrabold text-[#1F2A24]">Find Free Rooms for My Event</h2>
-              <p className="text-xs text-[#55625A] mt-0.5">
+              <h2 className="text-xl font-extrabold text-[#172B4D]">Find Free Rooms for My Event</h2>
+              <p className="text-xs text-[#475569] mt-0.5">
                 Narrow down the campus to rooms that are guaranteed free for your target slot and capacity.
               </p>
             </div>
@@ -997,11 +997,11 @@ export const ClubTimetable: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               {/* Day */}
               <div>
-                <label className="block text-[#1F2A24] font-semibold mb-1">Day of Event</label>
+                <label className="block text-[#172B4D] font-semibold mb-1">Day of Event</label>
                 <select
                   value={filterDay}
                   onChange={(e) => setFilterDay(e.target.value)}
-                  className="w-full bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] rounded-lg p-2 focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] rounded-lg p-2 focus:outline-none focus:border-emerald-500"
                 >
                   {daysList.map((d) => (
                     <option key={d} value={d}>
@@ -1013,7 +1013,7 @@ export const ClubTimetable: React.FC = () => {
 
               {/* Time Slot Range */}
               <div>
-                <label className="block text-[#1F2A24] font-semibold mb-1">
+                <label className="block text-[#172B4D] font-semibold mb-1">
                   Start Period & Duration
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -1026,7 +1026,7 @@ export const ClubTimetable: React.FC = () => {
                         setFilterDuration(14 - newStart);
                       }
                     }}
-                    className="bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-semibold"
+                    className="bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-semibold"
                   >
                     {[10, 11, 12, 13].map((p) => (
                       <option key={p} value={p}>
@@ -1038,7 +1038,7 @@ export const ClubTimetable: React.FC = () => {
                   <select
                     value={filterDuration}
                     onChange={(e) => setFilterDuration(parseInt(e.target.value))}
-                    className="bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-semibold"
+                    className="bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-semibold"
                   >
                     {Array.from({ length: 14 - filterStartPeriod }, (_, i) => i + 1).map((dur) => (
                       <option key={dur} value={dur}>
@@ -1051,7 +1051,7 @@ export const ClubTimetable: React.FC = () => {
 
               {/* Min Capacity */}
               <div>
-                <label className="block text-[#1F2A24] font-semibold mb-1">
+                <label className="block text-[#172B4D] font-semibold mb-1">
                   Minimum Capacity (Expected Attendees)
                 </label>
                 <input
@@ -1061,17 +1061,17 @@ export const ClubTimetable: React.FC = () => {
                   value={filterMinCapacity}
                   onChange={(e) => setFilterMinCapacity(parseInt(e.target.value) || 0)}
                   placeholder="e.g. 80"
-                  className="w-full bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-mono"
+                  className="w-full bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-mono"
                 />
               </div>
 
               {/* Room Type */}
               <div>
-                <label className="block text-[#1F2A24] font-semibold mb-1">Venue Type</label>
+                <label className="block text-[#172B4D] font-semibold mb-1">Venue Type</label>
                 <select
                   value={filterRoomType}
                   onChange={(e) => setFilterRoomType(e.target.value)}
-                  className="w-full bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] rounded-lg p-2 focus:outline-none focus:border-emerald-500 capitalize"
+                  className="w-full bg-[#FFFFFF] border border-[#E2E8F0] text-[#172B4D] rounded-lg p-2 focus:outline-none focus:border-emerald-500 capitalize"
                 >
                   <option value="all">All Room Types</option>
                   <option value="classroom">Classroom</option>
@@ -1084,22 +1084,22 @@ export const ClubTimetable: React.FC = () => {
 
               {/* Features check */}
               <div className="sm:col-span-2 flex flex-wrap gap-4 pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-[#1F2A24]">
+                <label className="flex items-center gap-2 cursor-pointer text-[#172B4D]">
                   <input
                     type="checkbox"
                     checked={filterNeedsProjector}
                     onChange={(e) => setFilterNeedsProjector(e.target.checked)}
-                    className="rounded bg-[#FFFDF8] border-[#D5C9AE] text-emerald-500 focus:ring-0"
+                    className="rounded bg-[#FFFFFF] border-[#CBD5E1] text-emerald-500 focus:ring-0"
                   />
                   <span>Requires Projector</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer text-[#1F2A24]">
+                <label className="flex items-center gap-2 cursor-pointer text-[#172B4D]">
                   <input
                     type="checkbox"
                     checked={filterNeedsAccessible}
                     onChange={(e) => setFilterNeedsAccessible(e.target.checked)}
-                    className="rounded bg-[#FFFDF8] border-[#D5C9AE] text-emerald-500 focus:ring-0"
+                    className="rounded bg-[#FFFFFF] border-[#CBD5E1] text-emerald-500 focus:ring-0"
                   />
                   <span>Wheelchair Accessible</span>
                 </label>
@@ -1109,7 +1109,7 @@ export const ClubTimetable: React.FC = () => {
                     type="checkbox"
                     checked={filterOnlyFullyFree}
                     onChange={(e) => setFilterOnlyFullyFree(e.target.checked)}
-                    className="rounded bg-[#FFFDF8] border-[#D5C9AE] text-emerald-500 focus:ring-0"
+                    className="rounded bg-[#FFFFFF] border-[#CBD5E1] text-emerald-500 focus:ring-0"
                   />
                   <span>Show only rooms free for my whole slot</span>
                 </label>
@@ -1117,13 +1117,13 @@ export const ClubTimetable: React.FC = () => {
             </div>
 
             {/* Results Counter */}
-            <div className="pt-2 border-t border-[#E4DBC6]">
-              <div className="text-xs font-semibold text-[#1F2A24] mb-2">
+            <div className="pt-2 border-t border-[#E2E8F0]">
+              <div className="text-xs font-semibold text-[#172B4D] mb-2">
                 Matching Free Rooms: <span className="text-emerald-400 font-bold">{matchingFreeRooms.length}</span> found
               </div>
 
               {matchingFreeRooms.length === 0 ? (
-                <div className="p-4 rounded-xl bg-[#FFFDF8] text-center text-xs text-[#55625A]">
+                <div className="p-4 rounded-xl bg-[#FFFFFF] text-center text-xs text-[#475569]">
                   No rooms match your filter criteria for this slot. Try lowering capacity or shifting the time window.
                 </div>
               ) : (
@@ -1131,17 +1131,17 @@ export const ClubTimetable: React.FC = () => {
                   {matchingFreeRooms.map((r) => (
                     <div
                       key={r.room.id}
-                      className="p-2.5 rounded-xl bg-[#FFFDF8] border border-[#E4DBC6] hover:border-emerald-500/40 flex items-center justify-between transition-all"
+                      className="p-2.5 rounded-xl bg-[#FFFFFF] border border-[#E2E8F0] hover:border-emerald-500/40 flex items-center justify-between transition-all"
                     >
                       <div>
-                        <div className="font-bold text-[#1F2A24] flex items-center gap-2">
+                        <div className="font-bold text-[#172B4D] flex items-center gap-2">
                           <span>{r.room.id}</span>
-                          <span className="text-[10px] text-[#55625A] font-normal">· {r.room.name}</span>
+                          <span className="text-[10px] text-[#475569] font-normal">· {r.room.name}</span>
                           <span className="text-[10px] font-mono text-emerald-400 font-bold">
                             {r.room.capacity} seats
                           </span>
                         </div>
-                        <div className="text-[10px] text-[#55625A] flex items-center gap-2 mt-0.5">
+                        <div className="text-[10px] text-[#475569] flex items-center gap-2 mt-0.5">
                           <span>{r.room.building}</span>
                           <span>·</span>
                           <span className="capitalize">{r.room.type}</span>
@@ -1156,7 +1156,7 @@ export const ClubTimetable: React.FC = () => {
                             `/bookings?room=${r.room.id}&day=${filterDay}&from_period=${filterStartPeriod}&duration=${filterDuration}`
                           );
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[#1F2A24] text-xs font-bold shadow-md shadow-emerald-600/30 transition-all flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[#172B4D] text-xs font-bold shadow-md shadow-emerald-600/30 transition-all flex items-center gap-1"
                       >
                         Book
                       </button>
@@ -1169,7 +1169,7 @@ export const ClubTimetable: React.FC = () => {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setShowFindModal(false)}
-                className="px-4 py-2 rounded-xl bg-[#FFFDF8] hover:bg-[#F2ECDC] text-[#1F2A24] text-xs font-semibold"
+                className="px-4 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[#F1F5F9] text-[#172B4D] text-xs font-semibold"
               >
                 Done
               </button>

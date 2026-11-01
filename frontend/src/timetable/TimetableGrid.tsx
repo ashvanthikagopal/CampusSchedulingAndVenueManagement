@@ -222,7 +222,7 @@ export const TimetableGrid: React.FC = () => {
       case 'exam':
         return 'bg-[#FAF4E6] border-l-[3px] border-l-[#B7791F] border-y border-r border-[#EBD19E] text-[#7A4F10]';
       default:
-        return 'bg-[#FFFDF8] border-l-[3px] border-l-[#E4DBC6] border-y border-r border-[#E4DBC6] text-[#1F2A24]';
+        return 'bg-[#FFFFFF] border-l-[3px] border-l-[#E2E8F0] border-y border-r border-[#E2E8F0] text-[#172B4D]';
     }
   };
 
@@ -279,11 +279,11 @@ export const TimetableGrid: React.FC = () => {
       />
 
       {/* Filter Toolbar Panel */}
-      <Panel variant="default" className="p-4 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-1.5 text-xs text-[#55625A] font-semibold uppercase tracking-wider">
-              <Filter className="w-3.5 h-3.5 text-[#B08A3E]" />
+      <Panel variant="default" padded={false} className="p-4 sm:p-5 space-y-3">
+        <div className="flex flex-col gap-4">
+          <div className="campus-timetable-filters">
+            <div className="flex items-center gap-1.5 text-xs text-[#475569] font-semibold uppercase tracking-wider">
+              <Filter className="w-3.5 h-3.5 text-[#2563EB]" />
               <span>Filter:</span>
             </div>
 
@@ -309,7 +309,7 @@ export const TimetableGrid: React.FC = () => {
                   setFilterId(groupsData?.rooms?.[0]?.id ?? '');
                 }
               }}
-              className="w-auto min-w-[150px] text-xs py-1.5"
+              className="w-full min-w-0 text-xs py-1.5"
             >
               {user?.role !== 'faculty' && user?.role !== 'student' && (
                 <option value="all">All Classes & Venues</option>
@@ -338,10 +338,10 @@ export const TimetableGrid: React.FC = () => {
                 <Select
                   value={filterId}
                   onChange={(e) => setFilterId(e.target.value)}
-                  className="w-auto min-w-[200px] text-xs py-1.5"
+                  className="w-full min-w-0 text-xs py-1.5"
                 >
                   {user?.role === 'department_coordinator' && user.department && groupsData?.by_dept?.[user.department] && (
-                    <optgroup label={`${user.department} Department Classes`} className="font-bold text-[#12372A]">
+                    <optgroup label={`${user.department} Department Classes`} className="font-bold text-[#142D50]">
                       {groupsData.by_dept[user.department].map((g) => (
                         <option key={g.id} value={g.id}>
                           ★ {g.id} ({g.name})
@@ -370,14 +370,14 @@ export const TimetableGrid: React.FC = () => {
 
             {filterView === 'faculty' && (
               user?.role === 'faculty' ? (
-                <div className="px-3 py-1.5 rounded-[8px] bg-[#F2ECDC] border border-[#E4DBC6] text-xs text-[#B08A3E] font-mono font-semibold">
+                <div className="px-3 py-1.5 rounded-[8px] bg-[#F1F5F9] border border-[#E2E8F0] text-xs text-[#2563EB] font-mono font-semibold">
                   {user.faculty_id || 'Assigned'}
                 </div>
               ) : (
                 <Select
                   value={filterId}
                   onChange={(e) => setFilterId(e.target.value)}
-                  className="w-auto min-w-[220px] text-xs py-1.5"
+                  className="w-full min-w-0 text-xs py-1.5"
                 >
                   {groupsData?.faculty ? (
                     groupsData.faculty.map((f) => (
@@ -396,7 +396,7 @@ export const TimetableGrid: React.FC = () => {
               <Select
                 value={filterId}
                 onChange={(e) => setFilterId(e.target.value)}
-                className="w-auto min-w-[200px] text-xs py-1.5"
+                className="w-full min-w-0 text-xs py-1.5"
               >
                 {groupsData?.rooms ? (
                   groupsData.rooms.map((r) => (
@@ -427,7 +427,7 @@ export const TimetableGrid: React.FC = () => {
           </div>
 
           {/* Session Types Legend */}
-          <div className="flex items-center gap-3 text-xs text-[#55625A] flex-wrap">
+          <div className="flex items-center gap-x-4 gap-y-2 text-xs text-[#475569] flex-wrap border-t border-[#E2E8F0] pt-3">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-[2px] bg-[#EEF5FA] border border-[#2C6A8A]" /> Lecture
             </span>
@@ -450,37 +450,37 @@ export const TimetableGrid: React.FC = () => {
       {classSummary && (
         <Panel variant="raised" className="p-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[8px] bg-[#FAF6EC] border border-[#B08A3E]/40 text-[#B08A3E] font-serif font-bold text-sm flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-[8px] bg-[#F5F7FB] border border-[#2563EB]/40 text-[#2563EB] font-sans font-bold text-sm flex items-center justify-center shrink-0">
               {filterId}
             </div>
             <div>
-              <div className="text-sm font-bold text-[#1F2A24] flex items-center gap-2">
+              <div className="text-sm font-bold text-[#172B4D] flex items-center gap-2">
                 <span>{classSummary.group?.name || filterId}</span>
-                <span className="inline-flex items-center justify-center text-[10px] font-mono px-2.5 py-1 rounded-[6px] bg-[#F2ECDC] text-[#55625A] border border-[#E4DBC6] leading-none">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">
                   {classSummary.group?.department || 'Department Cohort'}
                 </span>
                 {classSummary.hasElectives && (
                   <StatusBadge status="brass" size="sm" label="Open Elective Basket" />
                 )}
               </div>
-              <div className="text-xs text-[#55625A]">
+              <div className="text-xs text-[#475569]">
                 Cohort: {classSummary.group?.size || 60} Students · Academic Year {classSummary.group?.year || 2}
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3 text-xs font-mono">
-            <div className="bg-[#FAF6EC] px-3 py-1.5 rounded-[6px] border border-[#E4DBC6]">
-              <span className="text-[#7C877F]">Sessions: </span>
-              <strong className="text-[#1F2A24]">{classSummary.sessionCount}/wk</strong>
+            <div className="bg-[#F5F7FB] px-3 py-1.5 rounded-[6px] border border-[#E2E8F0]">
+              <span className="text-[#64748B]">Sessions: </span>
+              <strong className="text-[#172B4D]">{classSummary.sessionCount}/wk</strong>
             </div>
-            <div className="bg-[#FAF6EC] px-3 py-1.5 rounded-[6px] border border-[#E4DBC6]">
-              <span className="text-[#7C877F]">Workload: </span>
+            <div className="bg-[#F5F7FB] px-3 py-1.5 rounded-[6px] border border-[#E2E8F0]">
+              <span className="text-[#64748B]">Workload: </span>
               <strong className="text-[#2F7D4F]">{classSummary.totalHours} hrs/wk</strong>
             </div>
-            <div className="bg-[#FAF6EC] px-3 py-1.5 rounded-[6px] border border-[#E4DBC6]">
-              <span className="text-[#7C877F]">Courses: </span>
-              <strong className="text-[#1F2A24]">{classSummary.coursesCount}</strong>
+            <div className="bg-[#F5F7FB] px-3 py-1.5 rounded-[6px] border border-[#E2E8F0]">
+              <span className="text-[#64748B]">Courses: </span>
+              <strong className="text-[#172B4D]">{classSummary.coursesCount}</strong>
             </div>
           </div>
         </Panel>
@@ -489,39 +489,39 @@ export const TimetableGrid: React.FC = () => {
       {/* Main Timetable Table Surface */}
       <Panel variant="default" padded={false} className="overflow-hidden">
         {loading ? (
-          <div className="p-20 text-center text-xs text-[#55625A] font-mono">
+          <div className="p-20 text-center text-xs text-[#475569] font-mono">
             Loading timetable schedule matrix...
           </div>
         ) : (
-          <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
+          <div className="campus-timetable-scroll overflow-x-auto max-h-[700px] overflow-y-auto" role="region" aria-label="Weekly timetable; scroll to view all periods" tabIndex={0}>
             <table className="w-full text-left border-collapse min-w-[1100px]">
               <thead className="sticky top-0 z-20">
-                <tr className="bg-[#F2ECDC] border-b border-[#E4DBC6] text-[#55625A] text-xs font-mono">
-                  <th className="p-3 font-semibold uppercase tracking-wider w-24 sticky left-0 bg-[#F2ECDC] z-30 border-r border-[#E4DBC6]">
+                <tr className="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[#475569] text-xs font-mono">
+                  <th className="p-3 font-semibold uppercase tracking-wider w-24 sticky left-0 bg-[#F1F5F9] z-30 border-r border-[#E2E8F0]">
                     Day
                   </th>
                   {periods.map((item, idx) => (
                     <th
                       key={idx}
-                      className={`p-2.5 text-center font-semibold text-[11px] border-l border-[#E4DBC6] ${
+                      className={`p-2.5 text-center font-semibold text-[11px] border-l border-[#E2E8F0] ${
                         item.p === 'LUNCH'
                           ? 'bg-[#FDF5E6] text-[#B7791F] w-20'
                           : typeof item.p === 'number' && item.p >= 10
                           ? 'bg-[#FCF2EC]/60 text-[#7D4323] w-28'
-                          : 'text-[#1F2A24] w-32'
+                          : 'text-[#172B4D] w-32'
                       }`}
                     >
                       <div>{item.label}</div>
-                      <div className="text-[10px] font-normal text-[#7C877F]">{item.time}</div>
+                      <div className="text-[10px] font-normal text-[#64748B]">{item.time}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E4DBC6]">
+              <tbody className="divide-y divide-[#E2E8F0]">
                 {days.map((day) => (
-                  <tr key={day} className="hover:bg-[#FAF6EC]/60 transition-colors">
+                  <tr key={day} className="hover:bg-[#F5F7FB]/60 transition-colors">
                     {/* Sticky Day Label */}
-                    <td className="p-3 text-xs font-mono font-bold text-[#1F2A24] sticky left-0 bg-[#FFFDF8] z-10 border-r border-[#E4DBC6]">
+                    <td className="p-3 text-xs font-mono font-bold text-[#172B4D] sticky left-0 bg-[#FFFFFF] z-10 border-r border-[#E2E8F0]">
                       {day}
                     </td>
 
@@ -531,7 +531,7 @@ export const TimetableGrid: React.FC = () => {
                         return (
                           <td
                             key={pIdx}
-                            className="bg-[#FDF5E6]/60 border-x border-[#E4DBC6] text-center text-[10px] text-[#B7791F] font-mono tracking-widest uppercase p-1 select-none"
+                            className="bg-[#FDF5E6]/60 border-x border-[#E2E8F0] text-center text-[10px] text-[#B7791F] font-mono tracking-widest uppercase p-1 select-none"
                           >
                             LUNCH
                           </td>
@@ -544,7 +544,7 @@ export const TimetableGrid: React.FC = () => {
                       return (
                         <td
                           key={pIdx}
-                          className={`p-1.5 align-top border-l border-[#E4DBC6] min-h-[90px] ${
+                          className={`p-1.5 align-top border-l border-[#E2E8F0] min-h-[90px] ${
                             curP >= 10 ? 'bg-[#FCF2EC]/20' : ''
                           }`}
                         >
@@ -600,7 +600,7 @@ export const TimetableGrid: React.FC = () => {
                                         e.stopPropagation();
                                         openMoveModal(sess);
                                       }}
-                                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 rounded bg-[#FFFDF8] text-[#1F2A24] hover:text-[#B08A3E] border border-[#E4DBC6] transition-all shadow-xs cursor-pointer"
+                                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 rounded bg-[#FFFFFF] text-[#172B4D] hover:text-[#2563EB] border border-[#E2E8F0] transition-all shadow-xs cursor-pointer"
                                       title="Move this session"
                                       aria-label="Move this session"
                                     >
@@ -625,19 +625,19 @@ export const TimetableGrid: React.FC = () => {
       {/* Drawer: Explain This Slot */}
       {selectedSession && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in">
-          <div className="w-full max-w-md bg-[#FFFDF8] border-l border-[#E4DBC6] h-full p-6 overflow-y-auto space-y-5 shadow-[0_8px_30px_rgba(31,42,36,0.15)] animate-in slide-in-from-right">
-            <div className="flex items-center justify-between pb-3.5 border-b border-[#E4DBC6]">
+          <div className="w-full max-w-md bg-[#FFFFFF] border-l border-[#E2E8F0] h-full p-6 overflow-y-auto space-y-5 shadow-[0_8px_30px_rgba(15,23,42,0.15)] animate-in slide-in-from-right">
+            <div className="flex items-center justify-between pb-3.5 border-b border-[#E2E8F0]">
               <div>
-                <h3 className="font-serif font-bold text-base text-[#1F2A24]">
+                <h3 className="font-sans font-bold text-base text-[#172B4D]">
                   Slot Explanation & Why Here
                 </h3>
-                <span className="font-mono text-xs text-[#B08A3E]">
+                <span className="font-mono text-xs text-[#2563EB]">
                   {selectedSession.session_id} ({selectedSession.course_id})
                 </span>
               </div>
               <button
                 onClick={() => setSelectedSession(null)}
-                className="p-1 rounded text-[#7C877F] hover:text-[#1F2A24] cursor-pointer"
+                className="p-1 rounded text-[#64748B] hover:text-[#172B4D] cursor-pointer"
                 aria-label="Close drawer"
               >
                 <X className="w-4 h-4" />
@@ -645,20 +645,20 @@ export const TimetableGrid: React.FC = () => {
             </div>
 
             {loadingExplain ? (
-              <div className="text-center py-12 text-[#55625A] text-xs font-mono">
+              <div className="text-center py-12 text-[#475569] text-xs font-mono">
                 Evaluating deterministic constraint facts...
               </div>
             ) : explanation ? (
               <div className="space-y-4 text-xs">
-                <Panel variant="sunken" className="p-3.5 leading-relaxed text-[#1F2A24]">
+                <Panel variant="sunken" className="p-3.5 leading-relaxed text-[#172B4D]">
                   {explanation.explanation_text}
                 </Panel>
 
                 <div className="space-y-1.5">
-                  <h4 className="font-semibold text-xs text-[#1F2A24] uppercase tracking-wider">
+                  <h4 className="font-semibold text-xs text-[#172B4D] uppercase tracking-wider">
                     Placement Factors
                   </h4>
-                  <ul className="space-y-1 list-disc list-inside text-[#55625A]">
+                  <ul className="space-y-1 list-disc list-inside text-[#475569]">
                     {explanation.reasons_for_placement.map((r: string, idx: number) => (
                       <li key={idx}>{r}</li>
                     ))}
@@ -677,13 +677,13 @@ export const TimetableGrid: React.FC = () => {
                 </div>
 
                 {canMove && (
-                  <div className="pt-3 border-t border-[#E4DBC6]">
+                  <div className="pt-3 border-t border-[#E2E8F0]">
                     <Button
                       variant="secondary"
                       size="md"
                       className="w-full"
                       onClick={() => openMoveModal(selectedSession)}
-                      icon={<Move className="w-4 h-4 text-[#B08A3E]" />}
+                      icon={<Move className="w-4 h-4 text-[#2563EB]" />}
                     >
                       Move or Reassign Session
                     </Button>
@@ -698,12 +698,12 @@ export const TimetableGrid: React.FC = () => {
       {/* Modal: Manual Move Session */}
       {moveModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E4DBC6]">
-              <h3 className="font-serif font-bold text-base text-[#1F2A24]">Manual Placement Dialog</h3>
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(15,23,42,0.15)] space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+              <h3 className="font-sans font-bold text-base text-[#172B4D]">Manual Placement Dialog</h3>
               <button
                 onClick={() => setMoveModalOpen(false)}
-                className="text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+                className="text-[#64748B] hover:text-[#172B4D] p-1 rounded cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
@@ -716,7 +716,7 @@ export const TimetableGrid: React.FC = () => {
                 <Input type="text" disabled value={targetSessionId} className="font-mono text-xs" />
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div>
                   <Label>Target Day</Label>
                   <Select value={targetDay} onChange={(e) => setTargetDay(e.target.value)}>
@@ -777,7 +777,7 @@ export const TimetableGrid: React.FC = () => {
               )}
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-2 border-t border-[#E4DBC6]">
+            <div className="flex justify-end gap-2.5 pt-2 border-t border-[#E2E8F0]">
               <Button variant="secondary" size="md" onClick={() => setMoveModalOpen(false)}>
                 Cancel
               </Button>

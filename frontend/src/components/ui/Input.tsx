@@ -10,17 +10,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative w-full">
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7C877F] pointer-events-none">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none">
             {icon}
           </div>
         )}
         <input
           ref={ref}
-          className={`w-full bg-[#FFFDF8] border ${
-            error ? 'border-[#B3402F] focus:border-[#B3402F] focus:ring-[#B3402F]' : 'border-[#E4DBC6] focus:border-[#B08A3E] focus:ring-[#B08A3E]'
-          } rounded-[8px] px-3.5 py-2 text-sm text-[#1F2A24] placeholder-[#7C877F]/60 transition-all focus:outline-none focus:ring-1 ${
+          className={`w-full bg-[#FFFFFF] border ${
+            error ? 'border-[#B3402F] focus:border-[#B3402F] focus:ring-[#B3402F]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'
+          } rounded-[8px] px-3.5 py-2 text-sm text-[#172B4D] placeholder-[#64748B]/60 transition-all focus:outline-none focus:ring-1 ${
             icon ? 'pl-9' : ''
-          } disabled:bg-[#F2ECDC] disabled:text-[#7C877F] disabled:cursor-not-allowed ${className}`}
+          } disabled:bg-[#F1F5F9] disabled:text-[#64748B] disabled:cursor-not-allowed ${className}`}
           {...props}
         />
         {error && (
@@ -44,9 +44,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       <div className="relative w-full">
         <select
           ref={ref}
-          className={`w-full bg-[#FFFDF8] border ${
-            error ? 'border-[#B3402F] focus:border-[#B3402F] focus:ring-[#B3402F]' : 'border-[#E4DBC6] focus:border-[#B08A3E] focus:ring-[#B08A3E]'
-          } rounded-[8px] px-3.5 py-2 text-sm text-[#1F2A24] transition-all focus:outline-none focus:ring-1 disabled:bg-[#F2ECDC] disabled:text-[#7C877F] disabled:cursor-not-allowed cursor-pointer ${className}`}
+          className={`w-full bg-[#FFFFFF] border ${
+            error ? 'border-[#B3402F] focus:border-[#B3402F] focus:ring-[#B3402F]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'
+          } rounded-[8px] px-3.5 py-2 text-sm text-[#172B4D] transition-all focus:outline-none focus:ring-1 disabled:bg-[#F1F5F9] disabled:text-[#64748B] disabled:cursor-not-allowed cursor-pointer ${className}`}
           {...props}
         >
           {children}
@@ -72,9 +72,9 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       <div className="relative w-full">
         <textarea
           ref={ref}
-          className={`w-full bg-[#FFFDF8] border ${
-            error ? 'border-[#B3402F] focus:border-[#B3402F] focus:ring-[#B3402F]' : 'border-[#E4DBC6] focus:border-[#B08A3E] focus:ring-[#B08A3E]'
-          } rounded-[8px] p-3 text-sm text-[#1F2A24] placeholder-[#7C877F]/60 transition-all focus:outline-none focus:ring-1 disabled:bg-[#F2ECDC] disabled:text-[#7C877F] ${className}`}
+          className={`w-full bg-[#FFFFFF] border ${
+            error ? 'border-[#B3402F] focus:border-[#B3402F] focus:ring-[#B3402F]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'
+          } rounded-[8px] p-3 text-sm text-[#172B4D] placeholder-[#64748B]/60 transition-all focus:outline-none focus:ring-1 disabled:bg-[#F1F5F9] disabled:text-[#64748B] ${className}`}
           {...props}
         />
         {error && (
@@ -96,7 +96,7 @@ export const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement> & { req
 }) => {
   return (
     <label
-      className={`block text-xs font-semibold text-[#55625A] uppercase tracking-wider mb-1.5 select-none ${className}`}
+      className={`block text-sm font-medium text-[#475569] mb-1.5 select-none ${className}`}
       {...props}
     >
       {children}

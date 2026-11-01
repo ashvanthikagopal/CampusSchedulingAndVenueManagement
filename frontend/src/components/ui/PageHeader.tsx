@@ -18,37 +18,37 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`mb-6 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#E4DBC6] ${className}`}>
-      <div className="space-y-1">
+    <div className={`campus-page-heading mb-6 flex flex-col xl:flex-row xl:items-start justify-between gap-4 pb-5 border-b border-[#E2E8F0] ${className}`}>
+      <div className="space-y-2 min-w-0 flex-1">
         {breadcrumbs && breadcrumbs.length > 0 && (
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-[#7C877F] mb-1 font-mono">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1 font-mono">
             {breadcrumbs.map((crumb, idx) => (
               <React.Fragment key={crumb.label}>
                 {idx > 0 && <span>/</span>}
                 {crumb.href ? (
-                  <a href={crumb.href} className="hover:text-[#1F2A24] transition-colors">{crumb.label}</a>
+                  <a href={crumb.href} className="hover:text-[#172B4D] transition-colors">{crumb.label}</a>
                 ) : (
-                  <span className="text-[#1F2A24] font-medium">{crumb.label}</span>
+                  <span className="text-[#172B4D] font-medium">{crumb.label}</span>
                 )}
               </React.Fragment>
             ))}
           </nav>
         )}
-        <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-2xl sm:text-3xl font-serif text-[#1F2A24] font-semibold tracking-tight">
+        <div className="flex items-center gap-x-3 gap-y-2 flex-wrap">
+          <h1 className="text-xl sm:text-2xl font-sans text-[#172B4D] font-semibold tracking-tight">
             {title}
           </h1>
           {badge && <div className="shrink-0">{badge}</div>}
         </div>
         {subtitle && (
-          <p className="text-sm text-[#55625A] leading-relaxed max-w-3xl">
+          <p className="text-sm text-[#475569] leading-relaxed max-w-3xl">
             {subtitle}
           </p>
         )}
       </div>
 
       {actions && (
-        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+        <div className="campus-page-actions flex items-center gap-2.5 min-w-0 max-w-full flex-wrap xl:justify-end">
           {actions}
         </div>
       )}

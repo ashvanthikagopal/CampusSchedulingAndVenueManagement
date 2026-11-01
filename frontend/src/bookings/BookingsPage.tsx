@@ -215,9 +215,9 @@ export const BookingsPage: React.FC = () => {
 
       {/* Bookings Queue Panel */}
       <Panel variant="default" padded={false} className="overflow-hidden">
-        <div className="p-4 border-b border-[#E4DBC6] flex items-center justify-between bg-[#F2ECDC]/40">
-          <h2 className="text-sm font-serif font-bold text-[#1F2A24] flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#B08A3E]" />
+        <div className="p-4 sm:px-5 border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 bg-[#F1F5F9]/40">
+          <h2 className="text-sm font-sans font-bold text-[#172B4D] flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#2563EB]" />
             <span>Spectra Week Booking Requests ({bookings.length})</span>
           </h2>
           <StatusBadge
@@ -228,23 +228,23 @@ export const BookingsPage: React.FC = () => {
           />
         </div>
 
-        <div className="divide-y divide-[#E4DBC6]/70">
+        <div className="divide-y divide-[#E2E8F0]/70">
           {errorMsg ? (
             <div className="p-12 text-center text-xs text-[#B3402F] space-y-2">
               <div>{errorMsg}</div>
               <button
                 onClick={() => fetchBookings()}
-                className="px-3 py-1 rounded bg-[#B08A3E] text-white font-semibold cursor-pointer"
+                className="px-3 py-1 rounded bg-[#2563EB] text-white font-semibold cursor-pointer"
               >
                 Retry
               </button>
             </div>
           ) : loading ? (
-            <div className="p-12 text-center text-xs text-[#55625A] font-mono">
+            <div className="p-12 text-center text-xs text-[#475569] font-mono">
               Loading booking allocations from official dataset...
             </div>
           ) : bookings.length === 0 ? (
-            <div className="p-12 text-center text-xs text-[#7C877F]">
+            <div className="p-12 text-center text-xs text-[#64748B]">
               No booking requests registered yet.
             </div>
           ) : (
@@ -257,38 +257,38 @@ export const BookingsPage: React.FC = () => {
               return (
                 <div
                   key={b.id}
-                  className="p-5 hover:bg-[#FAF6EC]/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  className="p-5 hover:bg-[#F5F7FB]/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
                 >
-                  <div className="space-y-1.5 max-w-3xl">
+                  <div className="space-y-3 min-w-0 flex-1 break-words">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="inline-flex items-center justify-center font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-2.5 py-1 rounded-[6px] border border-[#B08A3E]/30 leading-none">
+                      <span className="font-mono text-xs font-bold text-[#2563EB] bg-[#F5F7FB] px-2 py-0.5 rounded border border-[#2563EB]/30">
                         {b.id}
                       </span>
-                      <span className="font-bold text-sm text-[#1F2A24]">{b.title}</span>
+                      <span className="font-bold text-sm text-[#172B4D]">{b.title}</span>
                       <StatusBadge status={statusVariant} size="sm" label={statusLabel} />
                       {b.reason_code && (
-                        <span className="inline-flex items-center justify-center text-[10px] font-mono font-medium text-[#55625A] bg-[#F2ECDC] px-2.5 py-1 rounded-[6px] border border-[#E4DBC6] leading-none">
+                        <span className="text-[10px] font-mono text-[#475569] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0]">
                           {b.reason_code}
                         </span>
                       )}
                     </div>
 
-                    <div className="text-xs text-[#55625A] flex items-center gap-3 flex-wrap">
-                      <span>Requester: <strong className="text-[#1F2A24]">{b.requester}</strong> ({b.role})</span>
-                      <span>Attendance: <strong className="text-[#1F2A24]">{b.attendance}</strong></span>
+                    <div className="text-xs text-[#475569] grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-2">
+                      <span>Requester: <strong className="text-[#172B4D]">{b.requester}</strong> ({b.role})</span>
+                      <span>Attendance: <strong className="text-[#172B4D]">{b.attendance}</strong></span>
                       {b.assigned_room && (
                         <span>Assigned: <strong className="text-[#2F7D4F] font-mono">{b.assigned_room}</strong> ({b.assigned_day} P{b.start_period}-P{b.end_period})</span>
                       )}
                     </div>
 
                     {b.reason && (
-                      <div className="text-xs text-[#55625A] bg-[#FAF6EC] p-2.5 rounded-[6px] border border-[#E4DBC6] italic">
+                      <div className="text-xs text-[#475569] bg-[#F5F7FB] p-2.5 rounded-[6px] border border-[#E2E8F0] italic">
                         Reason: "{b.reason}"
                       </div>
                     )}
                   </div>
 
-                  <div className="shrink-0 text-right">
+                  <div className="shrink-0 self-start md:self-center text-right">
                     <span className="text-[11px] font-mono text-[#2F7D4F] flex items-center justify-end gap-1 font-semibold">
                       <CheckCircle2 className="w-3.5 h-3.5" /> 0 Inversions
                     </span>
@@ -303,20 +303,20 @@ export const BookingsPage: React.FC = () => {
       {/* Modal: Book a Venue (Natural Language + Grouped Form) */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-2xl w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] space-y-5 my-8 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E4DBC6]">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-4 sm:p-6 shadow-[0_8px_30px_rgba(15,23,42,0.15)] space-y-5 my-8 animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
               <div>
-                <h3 className="font-serif font-bold text-base text-[#1F2A24] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#B08A3E]" />
+                <h3 className="font-sans font-bold text-base text-[#172B4D] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#2563EB]" />
                   <span>Book a Campus Venue</span>
                 </h3>
-                <p className="text-xs text-[#55625A]">
+                <p className="text-xs text-[#475569]">
                   Type naturally in English or Hinglish; our deterministic parser fills and verifies the request.
                 </p>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+                className="text-[#64748B] hover:text-[#172B4D] p-1 rounded cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
@@ -326,7 +326,7 @@ export const BookingsPage: React.FC = () => {
             {/* Plain-Language Input Bar */}
             <div className="space-y-2">
               <Label>Natural Language Request (English / Hinglish)</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-2">
                 <Input
                   value={naturalText}
                   onChange={(e) => setNaturalText(e.target.value)}
@@ -353,7 +353,7 @@ export const BookingsPage: React.FC = () => {
                       setNaturalText(chip);
                       handleParse(chip);
                     }}
-                    className="text-[11px] px-2.5 py-1 rounded-full bg-[#FAF6EC] hover:bg-[#F2ECDC] text-[#55625A] hover:text-[#1F2A24] border border-[#E4DBC6] transition-colors cursor-pointer text-left truncate max-w-xs"
+                    className="text-[11px] px-2.5 py-1 rounded-full bg-[#F5F7FB] hover:bg-[#F1F5F9] text-[#475569] hover:text-[#172B4D] border border-[#E2E8F0] transition-colors cursor-pointer text-left truncate max-w-xs"
                   >
                     "{chip}"
                   </button>
@@ -362,8 +362,8 @@ export const BookingsPage: React.FC = () => {
             </div>
 
             {/* Grouped Form Fields */}
-            <div className="space-y-4 pt-2 border-t border-[#E4DBC6]">
-              <div className="text-xs font-serif font-bold text-[#1F2A24] uppercase tracking-wider">
+            <div className="space-y-4 pt-2 border-t border-[#E2E8F0]">
+              <div className="text-xs font-sans font-bold text-[#172B4D] uppercase tracking-wider">
                 Booking Parameters
               </div>
 
@@ -384,7 +384,7 @@ export const BookingsPage: React.FC = () => {
               </div>
 
               {/* Group 2: Time Window */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label required>Day of Week</Label>
                   <Select value={day} onChange={(e) => setDay(e.target.value)}>
@@ -438,7 +438,7 @@ export const BookingsPage: React.FC = () => {
                   <Label>Required Amenities</Label>
                   <div className="flex gap-2 pt-1 text-xs">
                     {['projector', 'stage', 'mic', 'computers'].map((need) => (
-                      <label key={need} className="flex items-center gap-1.5 cursor-pointer text-[#55625A]">
+                      <label key={need} className="flex items-center gap-1.5 cursor-pointer text-[#475569]">
                         <input
                           type="checkbox"
                           checked={needs.includes(need)}
@@ -446,7 +446,7 @@ export const BookingsPage: React.FC = () => {
                             if (e.target.checked) setNeeds([...needs, need]);
                             else setNeeds(needs.filter((n) => n !== need));
                           }}
-                          className="rounded border-[#E4DBC6] text-[#B08A3E] focus:ring-[#B08A3E]"
+                          className="rounded border-[#E2E8F0] text-[#2563EB] focus:ring-[#2563EB]"
                         />
                         <span className="capitalize">{need}</span>
                       </label>
@@ -491,7 +491,7 @@ export const BookingsPage: React.FC = () => {
                   )}
 
                   {checkResult.alternative_suggestions?.length > 0 && (
-                    <div className="space-y-1 pt-1 border-t border-[#EFC5BF] text-[#1F2A24]">
+                    <div className="space-y-1 pt-1 border-t border-[#EFC5BF] text-[#172B4D]">
                       <div className="font-semibold text-xs text-[#2C6A8A]">
                         Alternative Venue Suggestions:
                       </div>
@@ -501,7 +501,7 @@ export const BookingsPage: React.FC = () => {
                             key={i}
                             type="button"
                             onClick={() => setRequestedRoom(alt.room_id)}
-                            className="px-2 py-0.5 rounded bg-[#FFFDF8] border border-[#E4DBC6] hover:border-[#B08A3E] text-xs font-mono transition-colors cursor-pointer"
+                            className="px-2 py-0.5 rounded bg-[#FFFFFF] border border-[#E2E8F0] hover:border-[#2563EB] text-xs font-mono transition-colors cursor-pointer"
                           >
                             {alt.room_id} ({alt.day} P{alt.start_period})
                           </button>
@@ -514,7 +514,7 @@ export const BookingsPage: React.FC = () => {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E4DBC6]">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E2E8F0]">
               <Button
                 variant="secondary"
                 size="md"

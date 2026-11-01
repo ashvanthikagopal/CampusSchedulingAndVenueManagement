@@ -151,7 +151,7 @@ export const CoordinatorDashboard: React.FC = () => {
               variant="secondary"
               size="md"
               onClick={() => setIsModalOpen(true)}
-              icon={<PlusCircle className="w-4 h-4 text-[#B08A3E]" />}
+              icon={<PlusCircle className="w-4 h-4 text-[#2563EB]" />}
             >
               Request Session Change
             </Button>
@@ -169,7 +169,7 @@ export const CoordinatorDashboard: React.FC = () => {
       />
 
       {decisionSuccess && (
-        <div className="p-3.5 rounded-[8px] bg-[#FAF6EC] border border-[#B08A3E]/40 text-[#9A7633] text-xs flex items-center gap-2 font-mono">
+        <div className="p-3.5 rounded-[8px] bg-[#F5F7FB] border border-[#2563EB]/40 text-[#1D4ED8] text-xs flex items-center gap-2 font-mono">
           <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2F7D4F]" />
           <span>{decisionSuccess}</span>
         </div>
@@ -219,42 +219,42 @@ export const CoordinatorDashboard: React.FC = () => {
         {/* Left Column: Department Lab Bookings Approval Queue */}
         <div className="lg:col-span-8 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-[#B08A3E]" />
+            <h2 className="text-base font-sans font-bold text-[#172B4D] flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-[#2563EB]" />
               <span>Department Lab Approval Queue</span>
             </h2>
-            <span className="text-xs text-[#55625A] font-mono">
+            <span className="text-xs text-[#475569] font-mono">
               Role Authority: {dept} Labs Only
             </span>
           </div>
 
           <div className="space-y-2.5">
             {labBookings.length === 0 ? (
-              <Panel variant="sunken" className="p-6 text-center text-xs text-[#55625A]">
+              <Panel variant="sunken" className="p-6 text-center text-xs text-[#475569]">
                 No pending booking requests currently targeting {dept} departmental labs.
               </Panel>
             ) : (
               labBookings.map((b) => (
                 <div
                   key={b.id}
-                  className="bg-[#FFFDF8] p-4 rounded-[10px] border border-[#E4DBC6] shadow-[0_1px_2px_rgba(31,42,36,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="bg-[#FFFFFF] p-4 rounded-[10px] border border-[#E2E8F0] shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center justify-center font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-2.5 py-1 rounded-[6px] border border-[#B08A3E]/30 leading-none">
+                      <span className="font-mono text-xs font-bold text-[#2563EB] bg-[#F5F7FB] px-1.5 py-0.5 rounded border border-[#2563EB]/20">
                         {b.id}
                       </span>
-                      <span className="font-semibold text-sm text-[#1F2A24]">{b.title}</span>
+                      <span className="font-semibold text-sm text-[#172B4D]">{b.title}</span>
                       <StatusBadge
                         status={b.status === 'approved' ? 'success' : b.status === 'rejected' ? 'danger' : 'neutral'}
                         size="sm"
                         label={b.status || 'Pending'}
                       />
                     </div>
-                    <div className="text-xs text-[#55625A]">
-                      Requester: <span className="font-medium text-[#1F2A24]">{b.requester}</span> ({b.role}) · Attendance: {b.attendance}
+                    <div className="text-xs text-[#475569]">
+                      Requester: <span className="font-medium text-[#172B4D]">{b.requester}</span> ({b.role}) · Attendance: {b.attendance}
                     </div>
-                    <div className="text-xs text-[#7C877F] italic">
+                    <div className="text-xs text-[#64748B] italic">
                       Venue: {b.requested_room || b.assigned_room || 'Department Lab'}
                     </div>
                   </div>
@@ -288,39 +288,39 @@ export const CoordinatorDashboard: React.FC = () => {
         {/* Right Column: Scoping & Quick Navigation */}
         <div className="lg:col-span-4 space-y-4">
           <Panel variant="default" className="space-y-3.5">
-            <h3 className="font-serif font-bold text-sm text-[#1F2A24]">
+            <h3 className="font-sans font-bold text-sm text-[#172B4D]">
               Department Navigation
             </h3>
             <div className="space-y-2">
               <Link
                 to="/timetable"
-                className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                className="flex items-center justify-between p-3 rounded-[8px] bg-[#F5F7FB] hover:bg-[#F1F5F9] border border-[#E2E8F0] transition-all text-xs font-medium text-[#172B4D] group"
               >
                 <div className="flex items-center gap-2.5">
-                  <Calendar className="w-4 h-4 text-[#12372A]" />
+                  <Calendar className="w-4 h-4 text-[#142D50]" />
                   <span>{dept} Department Timetable</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#172B4D] transition-colors" />
               </Link>
               <Link
                 to="/bookings"
-                className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                className="flex items-center justify-between p-3 rounded-[8px] bg-[#F5F7FB] hover:bg-[#F1F5F9] border border-[#E2E8F0] transition-all text-xs font-medium text-[#172B4D] group"
               >
                 <div className="flex items-center gap-2.5">
-                  <PlusCircle className="w-4 h-4 text-[#B08A3E]" />
+                  <PlusCircle className="w-4 h-4 text-[#2563EB]" />
                   <span>Book Department Venue</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#172B4D] transition-colors" />
               </Link>
               <Link
                 to="/my-requests"
-                className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                className="flex items-center justify-between p-3 rounded-[8px] bg-[#F5F7FB] hover:bg-[#F1F5F9] border border-[#E2E8F0] transition-all text-xs font-medium text-[#172B4D] group"
               >
                 <div className="flex items-center gap-2.5">
                   <Clock className="w-4 h-4 text-[#2C6A8A]" />
                   <span>Department Requests Tracking</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#172B4D] transition-colors" />
               </Link>
             </div>
           </Panel>
@@ -330,7 +330,7 @@ export const CoordinatorDashboard: React.FC = () => {
               <ShieldCheck className="w-4 h-4 shrink-0" />
               <span>Strict Role Scope & Escalation</span>
             </div>
-            <p className="text-[#55625A] leading-relaxed text-[11px]">
+            <p className="text-[#475569] leading-relaxed text-[11px]">
               Coordinators can approve department lab bookings. However, bookings requiring an existing class to be moved are automatically escalated to Admin approval.
             </p>
           </Panel>
@@ -340,24 +340,24 @@ export const CoordinatorDashboard: React.FC = () => {
       {/* Session Request Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-[#FFFDF8] rounded-[12px] border border-[#E4DBC6] shadow-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E4DBC6] pb-3">
-              <h3 className="font-serif font-bold text-base text-[#1F2A24]">
+          <div className="bg-[#FFFFFF] rounded-[12px] border border-[#E2E8F0] shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+              <h3 className="font-sans font-bold text-base text-[#172B4D]">
                 Request Department Session Change
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#7C877F] hover:text-[#1F2A24] cursor-pointer">
+              <button onClick={() => setIsModalOpen(false)} className="text-[#64748B] hover:text-[#172B4D] cursor-pointer">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmitRequest} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-[#1F2A24] mb-1">Course</label>
+                <label className="block font-semibold text-[#172B4D] mb-1">Course</label>
                 <select
                   required
                   value={courseId}
                   onChange={(e) => setCourseId(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-white border border-[#E4DBC6] focus:border-[#12372A] focus:outline-hidden"
+                  className="w-full px-3 py-2 rounded bg-white border border-[#E2E8F0] focus:border-[#142D50] focus:outline-hidden"
                 >
                   <option value="">Select Course...</option>
                   {deptCourses.map((c: any) => (
@@ -369,11 +369,11 @@ export const CoordinatorDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#1F2A24] mb-1">Request Type</label>
+                <label className="block font-semibold text-[#172B4D] mb-1">Request Type</label>
                 <select
                   value={requestType}
                   onChange={(e) => setRequestType(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-white border border-[#E4DBC6] focus:border-[#12372A] focus:outline-hidden"
+                  className="w-full px-3 py-2 rounded bg-white border border-[#E2E8F0] focus:border-[#142D50] focus:outline-hidden"
                 >
                   <option value="move">Move Existing Session</option>
                   <option value="extra">Request Extra Class</option>
@@ -382,12 +382,12 @@ export const CoordinatorDashboard: React.FC = () => {
 
               {requestType === 'move' && (
                 <div>
-                  <label className="block font-semibold text-[#1F2A24] mb-1">Target Session</label>
+                  <label className="block font-semibold text-[#172B4D] mb-1">Target Session</label>
                   <select
                     required
                     value={targetSessionId}
                     onChange={(e) => setTargetSessionId(e.target.value)}
-                    className="w-full px-3 py-2 rounded bg-white border border-[#E4DBC6] focus:border-[#12372A] focus:outline-hidden"
+                    className="w-full px-3 py-2 rounded bg-white border border-[#E2E8F0] focus:border-[#142D50] focus:outline-hidden"
                   >
                     <option value="">Select Session to Move...</option>
                     {deptSessions.map((s: any) => (
@@ -400,18 +400,18 @@ export const CoordinatorDashboard: React.FC = () => {
               )}
 
               <div>
-                <label className="block font-semibold text-[#1F2A24] mb-1">Reason for Request</label>
+                <label className="block font-semibold text-[#172B4D] mb-1">Reason for Request</label>
                 <textarea
                   required
                   rows={3}
                   placeholder="Explain academic rationale..."
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-3 py-2 rounded bg-white border border-[#E4DBC6] focus:border-[#12372A] focus:outline-hidden"
+                  className="w-full px-3 py-2 rounded bg-white border border-[#E2E8F0] focus:border-[#142D50] focus:outline-hidden"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E4DBC6]">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2E8F0]">
                 <Button variant="secondary" size="sm" type="button" onClick={() => setIsModalOpen(false)}>
                   Cancel
                 </Button>

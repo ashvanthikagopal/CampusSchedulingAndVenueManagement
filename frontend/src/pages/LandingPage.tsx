@@ -1814,34 +1814,34 @@ export const LandingPage: React.FC = () => {
       {modalOpen && (
         <div
           data-lenis-prevent
-          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[#030712]/90 backdrop-blur-md animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[#142D50]/90 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => !isLoggingIn && setModalOpen(false)}
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
         >
           <div
             data-lenis-prevent
-            className="bg-[#090f1d] border border-slate-700/70 rounded-xl shadow-2xl w-full max-w-6xl h-[92vh] max-h-[860px] flex flex-col overflow-hidden relative text-[#f1ece1]"
+            className="bg-[#FFFFFF] border border-slate-300/70 rounded-xl shadow-2xl w-full max-w-6xl h-[92vh] max-h-[860px] flex flex-col overflow-hidden relative text-[#172B4D]"
             onClick={e => e.stopPropagation()}
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
           >
             {/* Top Header Bar */}
-            <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-slate-800/80 bg-[#0c1424] flex-shrink-0">
+            <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-slate-200/80 bg-[#F1F5F9] flex-shrink-0">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-md bg-[#c9a96b]/20 border border-[#c9a96b]/40 flex items-center justify-center text-[#c9a96b] font-serif font-bold text-sm flex-shrink-0">
+                <div className="w-8 h-8 rounded-md bg-[#2563EB]/20 border border-[#2563EB]/40 flex items-center justify-center text-[#2563EB] font-serif font-bold text-sm flex-shrink-0">
                   CIT
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base sm:text-lg font-serif text-[#f1ece1] font-medium truncate">
+                    <h2 className="text-base sm:text-lg font-serif text-[#172B4D] font-medium truncate">
                       Institutional Role Access & Sign In
                     </h2>
-                    <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#c9a96b]/15 text-[#c9a96b] border border-[#c9a96b]/30 flex-shrink-0">
+                    <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#2563EB]/15 text-[#2563EB] border border-[#2563EB]/30 flex-shrink-0">
                       Official CIT Dataset · 62 Accounts
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#acb5c3] truncate hidden sm:block">
+                  <p className="text-[11px] text-[#475569] truncate hidden sm:block">
                     Enter email or ID and password, or browse all 62 campus members with 1-click access.
                   </p>
                 </div>
@@ -1849,7 +1849,7 @@ export const LandingPage: React.FC = () => {
 
               <button
                 type="button"
-                className="text-[#acb5c3] hover:text-[#f1ece1] text-lg font-mono p-1.5 rounded hover:bg-slate-800 transition-colors ml-3 cursor-pointer"
+                className="text-[#475569] hover:text-[#172B4D] text-lg font-mono p-1.5 rounded hover:bg-slate-100 transition-colors ml-3 cursor-pointer"
                 onClick={() => !isLoggingIn && setModalOpen(false)}
                 disabled={isLoggingIn}
                 aria-label="Close modal"
@@ -1859,14 +1859,14 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Mobile Tab Switcher (< lg only) */}
-            <div className="flex lg:hidden border-b border-slate-800 bg-[#070c17] flex-shrink-0">
+            <div className="flex lg:hidden border-b border-slate-200 bg-[#F8FAFC] flex-shrink-0">
               <button
                 type="button"
                 onClick={() => setMobileView('form')}
                 className={`flex-1 py-2.5 text-xs font-medium border-b-2 transition-all flex items-center justify-center gap-2 ${
                   mobileView === 'form'
-                    ? 'border-[#c9a96b] text-[#c9a96b] font-semibold bg-[#0d1627]'
-                    : 'border-transparent text-[#acb5c3] hover:text-white'
+                    ? 'border-[#2563EB] text-[#2563EB] font-semibold bg-[#EFF6FF]'
+                    : 'border-transparent text-[#475569] hover:text-[#172B4D]'
                 }`}
               >
                 <span>🔑</span>
@@ -1877,8 +1877,8 @@ export const LandingPage: React.FC = () => {
                 onClick={() => setMobileView('directory')}
                 className={`flex-1 py-2.5 text-xs font-medium border-b-2 transition-all flex items-center justify-center gap-2 ${
                   mobileView === 'directory'
-                    ? 'border-[#c9a96b] text-[#c9a96b] font-semibold bg-[#0d1627]'
-                    : 'border-transparent text-[#acb5c3] hover:text-white'
+                    ? 'border-[#2563EB] text-[#2563EB] font-semibold bg-[#EFF6FF]'
+                    : 'border-transparent text-[#475569] hover:text-[#172B4D]'
                 }`}
               >
                 <span>👥</span>
@@ -1887,13 +1887,13 @@ export const LandingPage: React.FC = () => {
             </div>
 
             {/* Main Dual-Panel Content */}
-            <div className="flex-1 min-h-0 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800/80 overflow-hidden">
+            <div className="flex-1 min-h-0 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-200/80 overflow-hidden">
               
               {/* Left Panel: Dedicated Credential Form */}
               <div
                 data-lenis-prevent
                 tabIndex={0}
-                className={`w-full lg:w-[420px] xl:w-[450px] flex-shrink-0 flex flex-col overflow-y-auto cit-modal-scrollbar p-5 sm:p-6 bg-[#0a1120] focus:outline-none ${
+                className={`w-full lg:w-[420px] xl:w-[450px] flex-shrink-0 flex flex-col overflow-y-auto cit-modal-scrollbar p-5 sm:p-6 bg-[#FFFFFF] focus:outline-none ${
                   mobileView === 'form' ? 'flex' : 'hidden lg:flex'
                 }`}
                 onWheel={(e) => e.stopPropagation()}
@@ -1902,28 +1902,28 @@ export const LandingPage: React.FC = () => {
               >
                 {/* Form Header */}
                 <div className="mb-4">
-                  <span className="text-[10px] uppercase font-mono tracking-wider text-[#c9a96b] font-semibold block mb-1">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-[#2563EB] font-semibold block mb-1">
                     Direct Authentication
                   </span>
-                  <h3 className="text-xl font-serif text-[#f1ece1] font-normal">
+                  <h3 className="text-xl font-serif text-[#172B4D] font-normal">
                     Enter Credentials
                   </h3>
-                  <p className="text-xs text-[#acb5c3] mt-1 leading-relaxed">
+                  <p className="text-xs text-[#475569] mt-1 leading-relaxed">
                     Log in with your official CIT email or institutional ID (Faculty ID, Dept code, Club name, Admin) and password.
                   </p>
                 </div>
 
                 {/* Error Banner */}
                 {loginError && (
-                  <div className="mb-4 p-3 bg-red-950/70 border border-red-500/50 rounded-sm text-red-200 text-xs flex items-start justify-between gap-2 animate-in fade-in">
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-sm text-red-700 text-xs flex items-start justify-between gap-2 animate-in fade-in">
                     <div className="flex items-start gap-1.5">
-                      <span className="text-red-400 font-bold">⚠️</span>
+                      <span className="text-red-600 font-bold">⚠️</span>
                       <span>{loginError}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setLoginError(null)}
-                      className="text-red-400 hover:text-white text-xs underline flex-shrink-0 cursor-pointer"
+                      className="text-red-600 hover:text-[#172B4D] text-xs underline flex-shrink-0 cursor-pointer"
                     >
                       Dismiss
                     </button>
@@ -1934,20 +1934,20 @@ export const LandingPage: React.FC = () => {
                 <form
                   onSubmit={handleManualLogin}
                   className={`space-y-4 transition-all duration-300 ${
-                    isFormHighlighted ? 'ring-2 ring-[#c9a96b] p-2 rounded-md bg-[#0e172a]' : ''
+                    isFormHighlighted ? 'ring-2 ring-[#2563EB] p-2 rounded-md bg-[#EFF6FF]' : ''
                   }`}
                 >
                   {/* Campus Identifier */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-[11px] uppercase tracking-wider text-[#acb5c3] font-semibold">
+                      <label className="block text-[11px] uppercase tracking-wider text-[#475569] font-semibold">
                         Campus ID or Official Email
                       </label>
                       {manualIdentifier && (
                         <button
                           type="button"
                           onClick={() => setManualIdentifier('')}
-                          className="text-[10px] text-[#acb5c3] hover:text-[#f1ece1] underline cursor-pointer"
+                          className="text-[10px] text-[#475569] hover:text-[#172B4D] underline cursor-pointer"
                         >
                           Clear
                         </button>
@@ -1959,28 +1959,28 @@ export const LandingPage: React.FC = () => {
                       onChange={e => setManualIdentifier(e.target.value)}
                       placeholder="e.g. F06, CSE, dance, admin, or full email"
                       disabled={isLoggingIn}
-                      className="w-full px-3.5 py-2.5 bg-[#050912] border border-slate-700 focus:border-[#c9a96b] rounded-sm text-sm text-[#f1ece1] placeholder-[#acb5c3]/40 focus:outline-none transition-all"
+                      className="w-full px-3.5 py-2.5 bg-[#FFFFFF] border border-slate-300 focus:border-[#2563EB] rounded-sm text-sm text-[#172B4D] placeholder-[#64748B] focus:outline-none transition-all"
                     />
                     {/* Live Detection Badge */}
                     {detectedAccount ? (
-                      <div className="mt-1.5 p-2 rounded-sm bg-[#c9a96b]/15 border border-[#c9a96b]/35 flex items-center justify-between text-xs animate-in fade-in">
+                      <div className="mt-1.5 p-2 rounded-sm bg-[#2563EB]/15 border border-[#2563EB]/35 flex items-center justify-between text-xs animate-in fade-in">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="text-[#c9a96b] font-bold text-[11px]">✓</span>
-                          <span className="text-white font-medium truncate">{detectedAccount.name}</span>
-                          <span className="text-[10px] font-mono px-1 rounded bg-[#0a1120] text-[#c9a96b]">
+                          <span className="text-[#2563EB] font-bold text-[11px]">✓</span>
+                          <span className="text-[#172B4D] font-medium truncate">{detectedAccount.name}</span>
+                          <span className="text-[10px] font-mono px-1 rounded bg-[#FFFFFF] text-[#2563EB]">
                             {detectedAccount.faculty_id || detectedAccount.department || detectedAccount.role}
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => setManualPassword(detectedAccount.rule_password)}
-                          className="text-[10px] font-mono text-[#c9a96b] hover:text-white underline ml-2 whitespace-nowrap cursor-pointer"
+                          className="text-[10px] font-mono text-[#2563EB] hover:text-[#172B4D] underline ml-2 whitespace-nowrap cursor-pointer"
                         >
                           Use Pwd
                         </button>
                       </div>
                     ) : (
-                      <span className="text-[10px] text-[#acb5c3]/65 block mt-1">
+                      <span className="text-[10px] text-[#64748B] block mt-1">
                         Accepts Faculty ID (F01–F40), Dept Code (CSE, ECE, ME, CE...), Club (dance, coding...), Admin, or full email.
                       </span>
                     )}
@@ -1988,7 +1988,7 @@ export const LandingPage: React.FC = () => {
 
                   {/* Password */}
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-[#acb5c3] mb-1.5 font-semibold">
+                    <label className="block text-[11px] uppercase tracking-wider text-[#475569] mb-1.5 font-semibold">
                       Password
                     </label>
                     <div className="relative">
@@ -1998,19 +1998,19 @@ export const LandingPage: React.FC = () => {
                         onChange={e => setManualPassword(e.target.value)}
                         placeholder="Enter rule password (e.g. F06@123, Faculty@123)"
                         disabled={isLoggingIn}
-                        className="w-full px-3.5 py-2.5 bg-[#050912] border border-slate-700 focus:border-[#c9a96b] rounded-sm text-sm text-[#f1ece1] placeholder-[#acb5c3]/40 focus:outline-none transition-all pr-16 font-mono"
+                        className="w-full px-3.5 py-2.5 bg-[#FFFFFF] border border-slate-300 focus:border-[#2563EB] rounded-sm text-sm text-[#172B4D] placeholder-[#64748B] focus:outline-none transition-all pr-16 font-mono"
                       />
                       <button
                         type="button"
                         tabIndex={-1}
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#acb5c3] hover:text-[#f1ece1] font-mono px-2 py-1 rounded bg-slate-800/80 cursor-pointer"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#475569] hover:text-[#172B4D] font-mono px-2 py-1 rounded bg-slate-100/80 cursor-pointer"
                       >
                         {showPassword ? 'Hide' : 'Show'}
                       </button>
                     </div>
-                    <span className="text-[10px] text-[#acb5c3]/65 block mt-1">
-                      Accepts member rule password (<span className="text-slate-300">F06@123</span>, <span className="text-slate-300">Coord@CSE123</span>) or role universal password (<span className="text-slate-300">Faculty@123</span>).
+                    <span className="text-[10px] text-[#64748B] block mt-1">
+                      Accepts member rule password (<span className="text-slate-600">F06@123</span>, <span className="text-slate-600">Coord@CSE123</span>) or role universal password (<span className="text-slate-600">Faculty@123</span>).
                     </span>
                   </div>
 
@@ -2018,11 +2018,11 @@ export const LandingPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoggingIn}
-                    className="w-full py-3 bg-[#c9a96b] hover:bg-[#d8be85] text-[#0a1220] font-semibold text-sm rounded-sm transition-all cursor-pointer shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 mt-1"
+                    className="w-full py-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-semibold text-sm rounded-sm transition-all cursor-pointer shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 mt-1"
                   >
                     {isLoggingIn ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-[#0a1220] border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-[#FFFFFF] border-t-transparent rounded-full animate-spin"></div>
                         <span>Signing in to platform...</span>
                       </>
                     ) : (
@@ -2032,66 +2032,66 @@ export const LandingPage: React.FC = () => {
                 </form>
 
                 {/* Quick-Fill Sample Accounts */}
-                <div className="mt-5 pt-4 border-t border-slate-800/80">
-                  <span className="text-[10px] uppercase font-mono tracking-wider text-[#acb5c3] block mb-2 font-semibold">
+                <div className="mt-5 pt-4 border-t border-slate-200/80">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-[#475569] block mb-2 font-semibold">
                     1-Tap Test Accounts (Fills Form):
                   </span>
                   <div className="grid grid-cols-2 gap-1.5">
                     <button
                       type="button"
                       onClick={() => fillFormCredentials('F06', 'F06@123')}
-                      className="text-left p-2 rounded-sm bg-[#050912] hover:bg-slate-800/80 border border-slate-800 hover:border-[#c9a96b]/40 text-xs transition-colors cursor-pointer group"
+                      className="text-left p-2 rounded-sm bg-[#FFFFFF] hover:bg-slate-100/80 border border-slate-200 hover:border-[#2563EB]/40 text-xs transition-colors cursor-pointer group"
                     >
-                      <span className="text-[#c9a96b] font-medium block truncate group-hover:text-white">Dr. Arjun Mehta</span>
-                      <span className="text-[10px] text-[#acb5c3] font-mono block">F06 · F06@123</span>
+                      <span className="text-[#2563EB] font-medium block truncate group-hover:text-[#172B4D]">Dr. Arjun Mehta</span>
+                      <span className="text-[10px] text-[#475569] font-mono block">F06 · F06@123</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => fillFormCredentials('CSE', 'Coord@CSE123')}
-                      className="text-left p-2 rounded-sm bg-[#050912] hover:bg-slate-800/80 border border-slate-800 hover:border-[#5fa8a0]/40 text-xs transition-colors cursor-pointer group"
+                      className="text-left p-2 rounded-sm bg-[#FFFFFF] hover:bg-slate-100/80 border border-slate-200 hover:border-[#0369A1]/40 text-xs transition-colors cursor-pointer group"
                     >
-                      <span className="text-[#5fa8a0] font-medium block truncate group-hover:text-white">CSE Coordinator</span>
-                      <span className="text-[10px] text-[#acb5c3] font-mono block">CSE · Coord@CSE123</span>
+                      <span className="text-[#0369A1] font-medium block truncate group-hover:text-[#172B4D]">CSE Coordinator</span>
+                      <span className="text-[10px] text-[#475569] font-mono block">CSE · Coord@CSE123</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => fillFormCredentials('dance', 'Club@Dance123')}
-                      className="text-left p-2 rounded-sm bg-[#050912] hover:bg-slate-800/80 border border-slate-800 hover:border-[#c27d5e]/40 text-xs transition-colors cursor-pointer group"
+                      className="text-left p-2 rounded-sm bg-[#FFFFFF] hover:bg-slate-100/80 border border-slate-200 hover:border-[#475569]/40 text-xs transition-colors cursor-pointer group"
                     >
-                      <span className="text-[#c27d5e] font-medium block truncate group-hover:text-white">Dance Club</span>
-                      <span className="text-[10px] text-[#acb5c3] font-mono block">dance · Club@Dance123</span>
+                      <span className="text-[#475569] font-medium block truncate group-hover:text-[#172B4D]">Dance Club</span>
+                      <span className="text-[10px] text-[#475569] font-mono block">dance · Club@Dance123</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => fillFormCredentials('admin', 'Admin@123')}
-                      className="text-left p-2 rounded-sm bg-[#050912] hover:bg-slate-800/80 border border-slate-800 hover:border-[#6f8fb8]/40 text-xs transition-colors cursor-pointer group"
+                      className="text-left p-2 rounded-sm bg-[#FFFFFF] hover:bg-slate-100/80 border border-slate-200 hover:border-[#142D50]/40 text-xs transition-colors cursor-pointer group"
                     >
-                      <span className="text-[#6f8fb8] font-medium block truncate group-hover:text-white">Dean's Office</span>
-                      <span className="text-[10px] text-[#acb5c3] font-mono block">admin · Admin@123</span>
+                      <span className="text-[#142D50] font-medium block truncate group-hover:text-[#172B4D]">Dean's Office</span>
+                      <span className="text-[10px] text-[#475569] font-mono block">admin · Admin@123</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Compact Rule Reference */}
-                <div className="mt-auto pt-4 border-t border-slate-800/80 text-[11px] text-[#acb5c3] space-y-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#acb5c3]/70 block font-semibold">
+                <div className="mt-auto pt-4 border-t border-slate-200/80 text-[11px] text-[#475569] space-y-1.5">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] block font-semibold">
                     Rule Credential Formulas:
                   </span>
-                  <div className="flex justify-between items-center py-0.5 border-b border-slate-800/40">
-                    <span className="text-[#c9a96b]">Faculty (40)</span>
-                    <span className="font-mono text-white/90">ID (F01–F40) · &lt;ID&gt;@123</span>
+                  <div className="flex justify-between items-center py-0.5 border-b border-slate-200/40">
+                    <span className="text-[#2563EB]">Faculty (40)</span>
+                    <span className="font-mono text-[#172B4D]/90">ID (F01–F40) · &lt;ID&gt;@123</span>
                   </div>
-                  <div className="flex justify-between items-center py-0.5 border-b border-slate-800/40">
-                    <span className="text-[#5fa8a0]">Coordinators (9)</span>
-                    <span className="font-mono text-white/90">Dept (CSE, ECE...) · Coord@&lt;DEPT&gt;123</span>
+                  <div className="flex justify-between items-center py-0.5 border-b border-slate-200/40">
+                    <span className="text-[#0369A1]">Coordinators (9)</span>
+                    <span className="font-mono text-[#172B4D]/90">Dept (CSE, ECE...) · Coord@&lt;DEPT&gt;123</span>
                   </div>
-                  <div className="flex justify-between items-center py-0.5 border-b border-slate-800/40">
-                    <span className="text-[#c27d5e]">Clubs (11)</span>
-                    <span className="font-mono text-white/90">Slug (dance, coding...) · Club@&lt;Slug&gt;123</span>
+                  <div className="flex justify-between items-center py-0.5 border-b border-slate-200/40">
+                    <span className="text-[#475569]">Clubs (11)</span>
+                    <span className="font-mono text-[#172B4D]/90">Slug (dance, coding...) · Club@&lt;Slug&gt;123</span>
                   </div>
                   <div className="flex justify-between items-center py-0.5">
-                    <span className="text-[#6f8fb8]">Admin (2)</span>
-                    <span className="font-mono text-white/90">admin, admin2 · Admin@123</span>
+                    <span className="text-[#142D50]">Admin (2)</span>
+                    <span className="font-mono text-[#172B4D]/90">admin, admin2 · Admin@123</span>
                   </div>
                 </div>
               </div>
@@ -2099,24 +2099,24 @@ export const LandingPage: React.FC = () => {
               {/* Right Panel: Full Campus Directory (62 Accounts) */}
               <div
                 data-lenis-prevent
-                className={`flex-1 flex flex-col min-h-0 p-5 sm:p-6 bg-[#080d19] overflow-hidden ${
+                className={`flex-1 flex flex-col min-h-0 p-5 sm:p-6 bg-[#F5F7FB] overflow-hidden ${
                   mobileView === 'directory' ? 'flex' : 'hidden lg:flex'
                 }`}
                 onWheel={(e) => e.stopPropagation()}
                 onTouchMove={(e) => e.stopPropagation()}
               >
                 {/* Directory Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800/80 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200/80 flex-shrink-0">
                   <div>
-                    <h3 className="text-xl font-serif text-[#f1ece1] font-normal">
+                    <h3 className="text-xl font-serif text-[#172B4D] font-normal">
                       Campus Members Directory
                     </h3>
-                    <p className="text-xs text-[#acb5c3]">
+                    <p className="text-xs text-[#475569]">
                       Browse all 62 dataset members. Use "Fill Form" to populate credentials or "Sign In ⚡" for instant access.
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono px-2.5 py-1 rounded bg-[#c9a96b]/15 text-[#c9a96b] border border-[#c9a96b]/30 whitespace-nowrap">
+                    <span className="text-[11px] font-mono px-2.5 py-1 rounded bg-[#2563EB]/15 text-[#2563EB] border border-[#2563EB]/30 whitespace-nowrap">
                       62 Verified Accounts
                     </span>
                   </div>
@@ -2143,8 +2143,8 @@ export const LandingPage: React.FC = () => {
                           }}
                           className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                             isActive
-                              ? 'bg-[#c9a96b] text-[#0a1220] font-semibold shadow-sm'
-                              : 'bg-[#0f172a] text-[#acb5c3] hover:text-[#f1ece1] border border-slate-800 hover:border-slate-700'
+                              ? 'bg-[#2563EB] text-[#FFFFFF] font-semibold shadow-sm'
+                              : 'bg-[#FFFFFF] text-[#475569] hover:text-[#172B4D] border border-slate-200 hover:border-slate-300'
                           }`}
                         >
                           <span>{label}</span>
@@ -2160,16 +2160,16 @@ export const LandingPage: React.FC = () => {
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       placeholder="Search 62 accounts by name, faculty ID (e.g. F06), department (CSE), club, or email..."
-                      className="w-full pl-9 pr-8 py-2 bg-[#050912] border border-slate-700 focus:border-[#c9a96b] rounded-sm text-xs text-[#f1ece1] placeholder-[#acb5c3]/45 focus:outline-none transition-colors"
+                      className="w-full pl-9 pr-8 py-2 bg-[#FFFFFF] border border-slate-300 focus:border-[#2563EB] rounded-sm text-xs text-[#172B4D] placeholder-[#64748B] focus:outline-none transition-colors"
                     />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#acb5c3]">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#475569]">
                       🔍
                     </span>
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#acb5c3] hover:text-white cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#475569] hover:text-[#172B4D] cursor-pointer"
                       >
                         ✕
                       </button>
@@ -2177,7 +2177,7 @@ export const LandingPage: React.FC = () => {
                   </div>
 
                   {/* Readout */}
-                  <div className="flex items-center justify-between text-[11px] text-[#acb5c3] px-0.5">
+                  <div className="flex items-center justify-between text-[11px] text-[#475569] px-0.5">
                     {(() => {
                       const baseList = activeDirectoryTab === 'all'
                         ? ALL_ACCOUNTS
@@ -2197,9 +2197,9 @@ export const LandingPage: React.FC = () => {
                       return (
                         <>
                           <span>
-                            Showing <strong className="text-white">{filtered.length}</strong> of {baseList.length} members
+                            Showing <strong className="text-[#172B4D]">{filtered.length}</strong> of {baseList.length} members
                           </span>
-                          <span className="text-[#acb5c3]/60 hidden sm:inline">
+                          <span className="text-[#64748B] hidden sm:inline">
                             Click "Fill Form" to populate left panel
                           </span>
                         </>
@@ -2213,7 +2213,7 @@ export const LandingPage: React.FC = () => {
                   ref={memberListRef}
                   data-lenis-prevent
                   tabIndex={0}
-                  className="flex-1 overflow-y-auto space-y-2 pr-2 divide-y divide-slate-800/40 cit-modal-scrollbar focus:outline-none"
+                  className="flex-1 overflow-y-auto space-y-2 pr-2 divide-y divide-slate-200/40 cit-modal-scrollbar focus:outline-none"
                   onWheel={(e) => e.stopPropagation()}
                   onTouchMove={(e) => e.stopPropagation()}
                   style={{ overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
@@ -2236,12 +2236,12 @@ export const LandingPage: React.FC = () => {
 
                     if (filtered.length === 0) {
                       return (
-                        <div className="text-center py-12 text-xs text-[#acb5c3] space-y-2">
+                        <div className="text-center py-12 text-xs text-[#475569] space-y-2">
                           <p>No members matched "{searchQuery}".</p>
                           <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="text-[#c9a96b] underline cursor-pointer"
+                            className="text-[#2563EB] underline cursor-pointer"
                           >
                             Clear search filter
                           </button>
@@ -2252,37 +2252,37 @@ export const LandingPage: React.FC = () => {
                     return filtered.map((acc: AccountItem) => (
                       <div
                         key={acc.id}
-                        className="p-3 bg-[#0d1627]/70 hover:bg-[#111c33] border border-slate-800/90 hover:border-[#c9a96b]/40 rounded-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                        className="p-3 bg-[#EFF6FF]/70 hover:bg-[#EAF1FF] border border-slate-200/90 hover:border-[#2563EB]/40 rounded-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                       >
                         <div className="space-y-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-sm text-[#f1ece1] group-hover:text-white">
+                            <span className="font-semibold text-sm text-[#172B4D] group-hover:text-[#172B4D]">
                               {acc.name}
                             </span>
                             {acc.faculty_id && (
-                              <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#c9a96b]/20 text-[#c9a96b] border border-[#c9a96b]/30">
+                              <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#2563EB]/20 text-[#2563EB] border border-[#2563EB]/30">
                                 {acc.faculty_id}
                               </span>
                             )}
                             {acc.department && (
-                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/25">
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-700 border border-sky-500/25">
                                 {acc.department}
                               </span>
                             )}
                             <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase font-mono ${
-                              acc.role === 'admin' ? 'bg-[#6f8fb8]/20 text-[#6f8fb8] border border-[#6f8fb8]/30' :
-                              acc.role === 'department_coordinator' ? 'bg-[#5fa8a0]/20 text-[#5fa8a0] border border-[#5fa8a0]/30' :
-                              acc.role === 'faculty' ? 'bg-[#c9a96b]/20 text-[#c9a96b] border border-[#c9a96b]/30' :
-                              'bg-[#c27d5e]/20 text-[#c27d5e] border border-[#c27d5e]/30'
+                              acc.role === 'admin' ? 'bg-[#142D50]/20 text-[#142D50] border border-[#142D50]/30' :
+                              acc.role === 'department_coordinator' ? 'bg-[#0369A1]/20 text-[#0369A1] border border-[#0369A1]/30' :
+                              acc.role === 'faculty' ? 'bg-[#2563EB]/20 text-[#2563EB] border border-[#2563EB]/30' :
+                              'bg-[#475569]/20 text-[#475569] border border-[#475569]/30'
                             }`}>
                               {acc.role === 'department_coordinator' ? 'Coordinator' : acc.role}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2 text-[11px] text-[#acb5c3] font-mono flex-wrap">
+                          <div className="flex items-center gap-2 text-[11px] text-[#475569] font-mono flex-wrap">
                             <span>{acc.email}</span>
                             <span>·</span>
-                            <span className="text-[#c9a96b]/90 bg-[#c9a96b]/10 px-1 py-0.2 rounded border border-[#c9a96b]/20">
+                            <span className="text-[#2563EB]/90 bg-[#2563EB]/10 px-1 py-0.2 rounded border border-[#2563EB]/20">
                               Rule Pwd: {acc.rule_password}
                             </span>
                           </div>
@@ -2292,7 +2292,7 @@ export const LandingPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => fillFormCredentials(acc.faculty_id || acc.identifier || acc.email, acc.rule_password)}
-                            className="px-2.5 py-1.5 rounded-sm bg-slate-800 hover:bg-slate-700 text-[#f1ece1] text-xs font-medium border border-slate-700 hover:border-[#c9a96b]/40 transition-all cursor-pointer flex items-center gap-1"
+                            className="px-2.5 py-1.5 rounded-sm bg-slate-100 hover:bg-slate-200 text-[#172B4D] text-xs font-medium border border-slate-300 hover:border-[#2563EB]/40 transition-all cursor-pointer flex items-center gap-1"
                             title="Populate this member's ID & rule password in the form"
                           >
                             <span>Fill Form ↗</span>
@@ -2301,7 +2301,7 @@ export const LandingPage: React.FC = () => {
                             type="button"
                             disabled={isLoggingIn}
                             onClick={() => handleAccountLogin(acc)}
-                            className="px-2.5 py-1.5 rounded-sm bg-[#c9a96b]/20 hover:bg-[#c9a96b] hover:text-[#0a1220] text-[#c9a96b] font-semibold text-xs border border-[#c9a96b]/35 transition-all cursor-pointer flex items-center gap-1 disabled:opacity-50"
+                            className="px-2.5 py-1.5 rounded-sm bg-[#2563EB]/20 hover:bg-[#2563EB] hover:text-[#FFFFFF] text-[#2563EB] font-semibold text-xs border border-[#2563EB]/35 transition-all cursor-pointer flex items-center gap-1 disabled:opacity-50"
                             title="Direct 1-Click Sign In"
                           >
                             {isLoggingIn && activeRoleLoggingIn === acc.name ? (
@@ -2323,9 +2323,9 @@ export const LandingPage: React.FC = () => {
 
       {/* Global Logging-in overlay indicator */}
       {isLoggingIn && !modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a1220]/80 backdrop-blur-sm">
-          <div className="bg-[#101b2b] border border-[#c9a96b88] rounded-sm p-6 shadow-2xl flex items-center gap-4 text-[#f1ece1]">
-            <div className="w-5 h-5 border-2 border-[#c9a96b] border-t-transparent rounded-full animate-spin"></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#142D50]/80 backdrop-blur-sm">
+          <div className="bg-[#FFFFFF] border border-[#CBD5E1] rounded-sm p-6 shadow-2xl flex items-center gap-4 text-[#172B4D]">
+            <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin"></div>
             <div className="text-sm font-medium">
               Signing in as {activeRoleLoggingIn}...
             </div>

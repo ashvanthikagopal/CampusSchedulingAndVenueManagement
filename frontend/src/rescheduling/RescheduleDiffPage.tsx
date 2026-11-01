@@ -135,7 +135,7 @@ export const RescheduleDiffPage: React.FC = () => {
         {/* Left Column: Diff View */}
         <div className="lg:col-span-8 space-y-6">
           {loading ? (
-            <div className="p-16 text-center text-xs text-[#55625A] font-mono">
+            <div className="p-16 text-center text-xs text-[#475569] font-mono">
               Loading minimal-change repair diff proposals...
             </div>
           ) : activeProposal ? (
@@ -172,12 +172,12 @@ export const RescheduleDiffPage: React.FC = () => {
 
               {/* Before vs After Session Comparison Table */}
               <Panel variant="default" padded={false} className="overflow-hidden">
-                <div className="p-4 border-b border-[#E4DBC6] flex items-center justify-between bg-[#F2ECDC]/40">
-                  <h3 className="font-serif font-bold text-sm text-[#1F2A24] flex items-center gap-2">
-                    <Move className="w-4 h-4 text-[#B08A3E]" />
+                <div className="p-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F1F5F9]/40">
+                  <h3 className="font-sans font-bold text-sm text-[#172B4D] flex items-center gap-2">
+                    <Move className="w-4 h-4 text-[#2563EB]" />
                     <span>Session Diff (Before → After)</span>
                   </h3>
-                  <span className="text-xs font-mono text-[#55625A]">
+                  <span className="text-xs font-mono text-[#475569]">
                     {activeProposal.moved_sessions?.length || 0} Changes
                   </span>
                 </div>
@@ -185,14 +185,14 @@ export const RescheduleDiffPage: React.FC = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-[#F2ECDC] text-[#55625A] text-[11px] font-mono uppercase tracking-wider border-b border-[#E4DBC6]">
+                      <tr className="bg-[#F1F5F9] text-[#475569] text-[11px] font-mono uppercase tracking-wider border-b border-[#E2E8F0]">
                         <th className="p-3 font-semibold">Session ID</th>
                         <th className="p-3 font-semibold">Baseline Slot (Before)</th>
                         <th className="p-3 font-semibold">Repaired Slot (After)</th>
                         <th className="p-3 font-semibold">Change Type</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E4DBC6]/70">
+                    <tbody className="divide-y divide-[#E2E8F0]/70">
                       {activeProposal.moved_sessions?.map((m: any, idx: number) => {
                         const isAdded = m.before === null;
                         const isRemoved = m.after === null;
@@ -201,17 +201,17 @@ export const RescheduleDiffPage: React.FC = () => {
                           ? 'bg-[#FBEFEF]/50 hover:bg-[#FBEFEF]'
                           : isAdded
                           ? 'bg-[#EBF5EE]/50 hover:bg-[#EBF5EE]'
-                          : 'hover:bg-[#FAF6EC]';
+                          : 'hover:bg-[#F5F7FB]';
 
                         return (
                           <tr key={idx} className={`${rowBg} transition-colors`}>
-                            <td className="p-3 font-mono font-bold text-[#1F2A24]">
+                            <td className="p-3 font-mono font-bold text-[#172B4D]">
                               {m.session_id}
                             </td>
-                            <td className="p-3 text-[#55625A]">
+                            <td className="p-3 text-[#475569]">
                               {m.before ? (
                                 <span>
-                                  {m.before.day} Period {m.before.start_period} in <strong className="text-[#1F2A24] font-mono">{m.before.room_id}</strong>
+                                  {m.before.day} Period {m.before.start_period} in <strong className="text-[#172B4D] font-mono">{m.before.room_id}</strong>
                                 </span>
                               ) : (
                                 <span className="text-[#2F7D4F] font-semibold font-mono">[New Session]</span>
@@ -219,7 +219,7 @@ export const RescheduleDiffPage: React.FC = () => {
                             </td>
                             <td className="p-3">
                               {m.after ? (
-                                <span className="font-semibold text-[#1F2A24]">
+                                <span className="font-semibold text-[#172B4D]">
                                   {m.after.day} Period {m.after.start_period} in <span className="font-mono text-[#2F7D4F] font-bold">{m.after.room_id}</span>
                                 </span>
                               ) : (
@@ -228,19 +228,19 @@ export const RescheduleDiffPage: React.FC = () => {
                             </td>
                             <td className="p-3">
                               {isRemoved ? (
-                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#FBEFEF] text-[#B3402F] border border-[#EFC5BF] leading-none">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FBEFEF] text-[#B3402F] border border-[#EFC5BF]">
                                   Removed
                                 </span>
                               ) : isAdded ? (
-                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#EBF5EE] text-[#2F7D4F] border border-[#C3E2CD] leading-none">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EBF5EE] text-[#2F7D4F] border border-[#C3E2CD]">
                                   Added
                                 </span>
                               ) : m.time_changed ? (
-                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#FDF5E6] text-[#B7791F] border border-[#EBD19E] leading-none">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FDF5E6] text-[#B7791F] border border-[#EBD19E]">
                                   Time + Room
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#EDF4F8] text-[#2C6A8A] border border-[#C6DFEB] leading-none">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF4F8] text-[#2C6A8A] border border-[#C6DFEB]">
                                   Room Only
                                 </span>
                               )}
@@ -254,8 +254,8 @@ export const RescheduleDiffPage: React.FC = () => {
 
                 {/* Sticky Action Bar */}
                 {activeProposal && activeProposal.status === 'pending_approval' && user?.role === 'admin' && (
-                  <div className="p-4 bg-[#F2ECDC] border-t border-[#E4DBC6] flex items-center justify-between gap-3">
-                    <div className="text-xs text-[#55625A]">
+                  <div className="p-4 bg-[#F1F5F9] border-t border-[#E2E8F0] flex items-center justify-between gap-3">
+                    <div className="text-xs text-[#475569]">
                       Approve to update live timetable for all 1,000 students and 40 faculty.
                     </div>
                     <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export const RescheduleDiffPage: React.FC = () => {
               </Panel>
             </div>
           ) : (
-            <Panel variant="default" className="p-12 text-center text-[#7C877F] text-xs">
+            <Panel variant="default" className="p-12 text-center text-[#64748B] text-xs">
               No change proposals pending at this time.
             </Panel>
           )}
@@ -285,27 +285,27 @@ export const RescheduleDiffPage: React.FC = () => {
         <div className="lg:col-span-4 space-y-4">
           {user?.role === 'faculty' ? (
             <Panel variant="default" className="space-y-3">
-              <div className="p-2.5 bg-[#FAF6EC] rounded-[8px] text-[#B08A3E] w-fit border border-[#E4DBC6]">
+              <div className="p-2.5 bg-[#F5F7FB] rounded-[8px] text-[#2563EB] w-fit border border-[#E2E8F0]">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <h3 className="font-serif font-bold text-sm text-[#1F2A24]">
+              <h3 className="font-sans font-bold text-sm text-[#172B4D]">
                 Faculty Review-Only View
               </h3>
-              <p className="text-xs text-[#55625A] leading-relaxed">
+              <p className="text-xs text-[#475569] leading-relaxed">
                 As a faculty member, you have view-only access to schedule proposals. In accordance with institutional anti-self-approval rules, timetable changes and disruption proposals can only be activated by an Administrator.
               </p>
-              <div className="p-3 rounded-[8px] bg-[#FAF6EC] border border-[#E4DBC6] text-xs space-y-2">
-                <div className="font-semibold text-[#1F2A24]">Need to adjust your classes?</div>
+              <div className="p-3 rounded-[8px] bg-[#F5F7FB] border border-[#E2E8F0] text-xs space-y-2">
+                <div className="font-semibold text-[#172B4D]">Need to adjust your classes?</div>
                 <div className="flex flex-col gap-1.5 pt-0.5 text-xs">
                   <a
                     href="/my-schedule"
-                    className="text-[#B08A3E] hover:text-[#9A7633] font-medium"
+                    className="text-[#2563EB] hover:text-[#1D4ED8] font-medium"
                   >
                     → Declare Leave in My Schedule
                   </a>
                   <a
                     href="/my-requests"
-                    className="text-[#B08A3E] hover:text-[#9A7633] font-medium"
+                    className="text-[#2563EB] hover:text-[#1D4ED8] font-medium"
                   >
                     → Request Class Adjustment in My Requests
                   </a>
@@ -314,11 +314,11 @@ export const RescheduleDiffPage: React.FC = () => {
             </Panel>
           ) : (
             <Panel variant="default" className="space-y-3">
-              <h3 className="font-serif font-bold text-sm text-[#1F2A24] flex items-center gap-2">
-                <Upload className="w-4 h-4 text-[#B08A3E]" />
+              <h3 className="font-sans font-bold text-sm text-[#172B4D] flex items-center gap-2">
+                <Upload className="w-4 h-4 text-[#2563EB]" />
                 <span>Apply Disruption Payload</span>
               </h3>
-              <p className="text-xs text-[#55625A]">
+              <p className="text-xs text-[#475569]">
                 Submit disruption changes (faculty absence, venue closure, added session) to simulate real-world emergencies.
               </p>
 
@@ -336,7 +336,7 @@ export const RescheduleDiffPage: React.FC = () => {
                 value={disruptionText}
                 onChange={(e) => setDisruptionText(e.target.value)}
                 placeholder="Paste disruption JSON here..."
-                className="w-full p-3 rounded-[8px] bg-[#FFFDF8] border border-[#E4DBC6] text-xs text-[#1F2A24] font-mono focus:outline-none focus:ring-1 focus:ring-[#B08A3E]"
+                className="w-full p-3 rounded-[8px] bg-[#FFFFFF] border border-[#E2E8F0] text-xs text-[#172B4D] font-mono focus:outline-none focus:ring-1 focus:ring-[#2563EB]"
               />
 
               <Button

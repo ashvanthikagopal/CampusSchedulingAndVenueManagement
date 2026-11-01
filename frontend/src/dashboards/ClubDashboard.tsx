@@ -76,7 +76,7 @@ export const ClubDashboard: React.FC = () => {
               <Button
                 variant="secondary"
                 size="md"
-                icon={<Calendar className="w-4 h-4 text-[#B08A3E]" />}
+                icon={<Calendar className="w-4 h-4 text-[#2563EB]" />}
               >
                 View Venue Availability
               </Button>
@@ -95,7 +95,7 @@ export const ClubDashboard: React.FC = () => {
       />
 
       {successMsg && (
-        <div className="p-3.5 rounded-[8px] bg-[#FAF6EC] border border-[#B08A3E]/40 text-[#9A7633] text-xs flex items-center gap-2 font-mono">
+        <div className="p-3.5 rounded-[8px] bg-[#F5F7FB] border border-[#2563EB]/40 text-[#1D4ED8] text-xs flex items-center gap-2 font-mono">
           <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2F7D4F]" />
           <span>{successMsg}</span>
         </div>
@@ -145,13 +145,13 @@ export const ClubDashboard: React.FC = () => {
         {/* Left Column: My Club Bookings History */}
         <div className="lg:col-span-8 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#B08A3E]" />
+            <h2 className="text-base font-sans font-bold text-[#172B4D] flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#2563EB]" />
               <span>{clubName} Venue Bookings History</span>
             </h2>
             <Link
               to="/bookings"
-              className="text-xs text-[#B08A3E] hover:text-[#9A7633] font-semibold flex items-center gap-1 transition-colors"
+              className="text-xs text-[#2563EB] hover:text-[#1D4ED8] font-semibold flex items-center gap-1 transition-colors"
             >
               <span>New Request</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -161,7 +161,7 @@ export const ClubDashboard: React.FC = () => {
           <div className="space-y-2.5">
             {myBookings.length === 0 ? (
               <Panel variant="sunken" className="p-8 text-center space-y-3">
-                <p className="text-xs text-[#55625A]">
+                <p className="text-xs text-[#475569]">
                   No venue booking requests submitted yet for {clubName}.
                 </p>
                 <Link to="/bookings">
@@ -174,14 +174,14 @@ export const ClubDashboard: React.FC = () => {
               myBookings.map((b) => (
                 <div
                   key={b.id}
-                  className="bg-[#FFFDF8] p-4 rounded-[10px] border border-[#E4DBC6] shadow-[0_1px_2px_rgba(31,42,36,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="bg-[#FFFFFF] p-4 rounded-[10px] border border-[#E2E8F0] shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center justify-center font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-2.5 py-1 rounded-[6px] border border-[#B08A3E]/30 leading-none">
+                      <span className="font-mono text-xs font-bold text-[#2563EB] bg-[#F5F7FB] px-1.5 py-0.5 rounded border border-[#2563EB]/20">
                         {b.id}
                       </span>
-                      <span className="font-semibold text-sm text-[#1F2A24]">{b.title}</span>
+                      <span className="font-semibold text-sm text-[#172B4D]">{b.title}</span>
                       <StatusBadge
                         status={
                           b.status === 'approved'
@@ -196,20 +196,20 @@ export const ClubDashboard: React.FC = () => {
                         label={b.status ? b.status.replace('_', ' ') : 'Pending'}
                       />
                     </div>
-                    <div className="text-xs text-[#55625A]">
+                    <div className="text-xs text-[#475569]">
                       Attendance: {b.attendance} · Duration: {b.duration_periods}h · Category: {b.requested_category || 'club_event'}
                     </div>
-                    <div className="text-xs text-[#55625A]">
+                    <div className="text-xs text-[#475569]">
                       {b.assigned_room ? (
-                        <span className="text-[#12372A] font-semibold">
+                        <span className="text-[#142D50] font-semibold">
                           Assigned: {b.assigned_room} ({b.assigned_day} P{b.start_period}-P{b.end_period})
                         </span>
                       ) : (
-                        <span className="text-[#7C877F]">Requested: {b.requested_room || 'Any suitable venue'}</span>
+                        <span className="text-[#64748B]">Requested: {b.requested_room || 'Any suitable venue'}</span>
                       )}
                     </div>
                     {b.reason && (
-                      <div className="text-xs text-[#55625A] italic">
+                      <div className="text-xs text-[#475569] italic">
                         Decision Rationale: "{b.reason}"
                       </div>
                     )}
@@ -227,7 +227,7 @@ export const ClubDashboard: React.FC = () => {
                       </Button>
                     )}
                     {b.status === 'alternative_offered' && (
-                      <span className="text-[11px] font-mono text-[#B08A3E] bg-[#FAF6EC] px-2 py-1 rounded border border-[#B08A3E]/30">
+                      <span className="text-[11px] font-mono text-[#2563EB] bg-[#F5F7FB] px-2 py-1 rounded border border-[#2563EB]/30">
                         Alternative Proposed
                       </span>
                     )}
@@ -241,11 +241,11 @@ export const ClubDashboard: React.FC = () => {
         {/* Right Column: Submission Guide & Policy */}
         <div className="lg:col-span-4 space-y-4">
           <Panel variant="default" className="space-y-3.5">
-            <h3 className="font-serif font-bold text-sm text-[#1F2A24] flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#B08A3E]" />
+            <h3 className="font-sans font-bold text-sm text-[#172B4D] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#2563EB]" />
               <span>How Booking Works</span>
             </h3>
-            <ul className="space-y-2 text-xs text-[#55625A]">
+            <ul className="space-y-2 text-xs text-[#475569]">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#2F7D4F] shrink-0 mt-0.5" />
                 <span>Submit standard form or plain English/Hinglish text.</span>
@@ -277,7 +277,7 @@ export const ClubDashboard: React.FC = () => {
               <ShieldCheck className="w-4 h-4 shrink-0" />
               <span>Priority & Role Ceiling Policy</span>
             </div>
-            <p className="text-[#55625A] leading-relaxed text-[11px]">
+            <p className="text-[#475569] leading-relaxed text-[11px]">
               Club bookings are classified as <code>club_event</code> (Rank 6 in priority). The solver mathematically guarantees 0 priority inversions across all 25 campus requests.
             </p>
           </Panel>

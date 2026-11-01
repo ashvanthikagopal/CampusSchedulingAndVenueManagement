@@ -70,23 +70,23 @@ export const NotificationsPopover: React.FC = () => {
         aria-expanded={open}
         aria-haspopup="true"
         aria-label={`Notifications, ${unreadCount} unread`}
-        className="relative min-w-[38px] min-h-[38px] flex items-center justify-center rounded-[8px] bg-[#FFFDF8] hover:bg-[#F2ECDC] text-[#55625A] hover:text-[#1F2A24] border border-[#E4DBC6] transition-colors cursor-pointer"
+        className="relative min-w-[38px] min-h-[38px] flex items-center justify-center rounded-[8px] bg-[#FFFFFF] hover:bg-[#F1F5F9] text-[#475569] hover:text-[#172B4D] border border-[#E2E8F0] transition-colors cursor-pointer"
         title="Notifications"
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#B3402F] text-[#FFFDF8] text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs">
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#B3402F] text-[#FFFFFF] text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] shadow-[0_4px_16px_rgba(31,42,36,0.12)] z-50 overflow-hidden animate-in fade-in">
+        <div className="fixed top-[68px] left-4 right-4 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-2 sm:w-96 bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] shadow-[0_4px_16px_rgba(15,23,42,0.12)] z-50 overflow-hidden animate-in fade-in">
           {/* Popover Header */}
-          <div className="p-3.5 border-b border-[#E4DBC6] flex items-center justify-between bg-[#F2ECDC]/60">
+          <div className="p-3.5 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F1F5F9]/60">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-serif font-bold text-[#1F2A24] uppercase tracking-wider">
+              <span className="text-xs font-sans font-bold text-[#172B4D] uppercase tracking-wider">
                 Notifications
               </span>
               {unreadCount > 0 && (
@@ -99,7 +99,7 @@ export const NotificationsPopover: React.FC = () => {
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="text-[11px] text-[#B08A3E] hover:text-[#9A7633] flex items-center gap-1 font-semibold cursor-pointer"
+                className="text-[11px] text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 font-semibold cursor-pointer"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 Mark all read
@@ -108,30 +108,30 @@ export const NotificationsPopover: React.FC = () => {
           </div>
 
           {/* Popover List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-[#E4DBC6]/70">
+          <div className="max-h-80 overflow-y-auto divide-y divide-[#E2E8F0]/70">
             {notifications.length === 0 ? (
-              <div className="p-8 text-center text-xs text-[#7C877F]">
+              <div className="p-8 text-center text-xs text-[#64748B]">
                 No notifications at this time.
               </div>
             ) : (
               notifications.map((n: any) => (
                 <div
                   key={n.id}
-                  className={`p-3.5 text-xs transition-colors hover:bg-[#FAF6EC] flex items-start gap-2.5 ${
-                    !n.read ? 'bg-[#FAF6EC]/80 border-l-[3px] border-l-[#B08A3E]' : ''
+                  className={`p-3.5 text-xs transition-colors hover:bg-[#F5F7FB] flex items-start gap-2.5 ${
+                    !n.read ? 'bg-[#F5F7FB]/80 border-l-[3px] border-l-[#2563EB]' : ''
                   }`}
                 >
                   <div className="mt-0.5 shrink-0">
                     {!n.read ? (
-                      <div className="w-2 h-2 rounded-full bg-[#B08A3E] mt-1" />
+                      <div className="w-2 h-2 rounded-full bg-[#2563EB] mt-1" />
                     ) : (
-                      <Check className="w-3.5 h-3.5 text-[#7C877F]" />
+                      <Check className="w-3.5 h-3.5 text-[#64748B]" />
                     )}
                   </div>
                   <div className="flex-1 space-y-0.5 min-w-0">
-                    <div className="font-semibold text-[#1F2A24] truncate">{n.title}</div>
-                    <p className="text-[#55625A] leading-relaxed text-[11px]">{n.message}</p>
-                    <div className="text-[10px] text-[#7C877F] font-mono pt-0.5">
+                    <div className="font-semibold text-[#172B4D] truncate">{n.title}</div>
+                    <p className="text-[#475569] leading-relaxed text-[11px]">{n.message}</p>
+                    <div className="text-[10px] text-[#64748B] font-mono pt-0.5">
                       {n.created_at
                         ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         : ''}
@@ -141,7 +141,7 @@ export const NotificationsPopover: React.FC = () => {
                     <button
                       type="button"
                       onClick={(e) => handleMarkAsRead(n.id, e)}
-                      className="text-[11px] text-[#7C877F] hover:text-[#1F2A24] p-1 cursor-pointer shrink-0"
+                      className="text-[11px] text-[#64748B] hover:text-[#172B4D] p-1 cursor-pointer shrink-0"
                       title="Mark read"
                       aria-label="Mark notification as read"
                     >

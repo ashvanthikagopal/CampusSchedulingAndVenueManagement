@@ -22,7 +22,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-[8px] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B08A3E] focus-visible:ring-offset-1 focus-visible:ring-offset-[#FAF6EC]';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-[8px] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-1 focus-visible:ring-offset-[#F5F7FB]';
 
   const sizeStyles = {
     sm: 'text-xs px-2.5 py-1.5 gap-1.5 min-h-[32px]',
@@ -31,11 +31,11 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-[#B08A3E] hover:bg-[#9A7633] active:bg-[#856326] text-[#FFFDF8] shadow-sm font-semibold border border-[#9A7633]/30',
-    secondary: 'bg-[#FFFDF8] hover:bg-[#F2ECDC] active:bg-[#EBE3CF] text-[#1F2A24] border border-[#E4DBC6] hover:border-[#D5C9AE] shadow-xs',
-    ghost: 'bg-transparent hover:bg-[#F2ECDC] active:bg-[#EBE3CF] text-[#55625A] hover:text-[#1F2A24]',
+    primary: 'bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-[#FFFFFF] shadow-sm font-semibold border border-[#1D4ED8]/30',
+    secondary: 'bg-[#FFFFFF] hover:bg-[#F1F5F9] active:bg-[#DBEAFE] text-[#172B4D] border border-[#E2E8F0] hover:border-[#CBD5E1] shadow-xs',
+    ghost: 'bg-transparent hover:bg-[#F1F5F9] active:bg-[#DBEAFE] text-[#475569] hover:text-[#172B4D]',
     danger: 'bg-[#FBEFEF] hover:bg-[#F7DDDD] active:bg-[#F2CCCC] text-[#B3402F] border border-[#EFC5BF] hover:border-[#E5A8A0] font-medium',
-    evergreen: 'bg-[#12372A] hover:bg-[#1B4A39] active:bg-[#225A46] text-[#E8EFE6] border border-[#0C261C] shadow-sm',
+    evergreen: 'bg-[#142D50] hover:bg-[#1E3A5F] active:bg-[#244B78] text-[#F1F5F9] border border-[#10223F] shadow-sm',
   };
 
   return (

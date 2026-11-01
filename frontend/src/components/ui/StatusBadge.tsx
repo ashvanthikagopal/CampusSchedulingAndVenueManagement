@@ -26,7 +26,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     danger: <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />,
     info: <Info className="w-3.5 h-3.5" aria-hidden="true" />,
     neutral: <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />,
-    brass: <span className="w-2 h-2 rounded-full bg-[#B08A3E]" aria-hidden="true" />,
+    brass: <span className="w-2 h-2 rounded-full bg-[#2563EB]" aria-hidden="true" />,
   };
 
   const statusStyles = {
@@ -34,8 +34,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     warning: 'bg-[#FDF5E6] text-[#B7791F] border-[#EBD19E]',
     danger: 'bg-[#FBEFEF] text-[#B3402F] border-[#EFC5BF]',
     info: 'bg-[#EDF4F8] text-[#2C6A8A] border-[#C6DFEB]',
-    neutral: 'bg-[#F2ECDC] text-[#55625A] border-[#E4DBC6]',
-    brass: 'bg-[#FAF6EC] text-[#9A7633] border-[#E4DBC6]',
+    neutral: 'bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]',
+    brass: 'bg-[#F5F7FB] text-[#1D4ED8] border-[#E2E8F0]',
   };
 
   const sizeStyles = {

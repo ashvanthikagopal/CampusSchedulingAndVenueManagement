@@ -283,7 +283,7 @@ export const MyRequestsPage: React.FC = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-[#E4DBC6] pb-1 overflow-x-auto">
+      <div className="flex items-center gap-1.5 border-b border-[#E2E8F0] pb-1 overflow-x-auto">
         {(['all', 'disruptions', 'session_requests', 'bookings'] as const).map(tab => {
           const labels = {
             all: `All Requests (${totalCount})`,
@@ -300,8 +300,8 @@ export const MyRequestsPage: React.FC = () => {
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-2 text-xs font-medium rounded-t-[6px] border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? 'border-[#B08A3E] text-[#B08A3E] font-semibold bg-[#FFFDF8]'
-                  : 'border-transparent text-[#55625A] hover:text-[#1F2A24] hover:bg-[#F2ECDC]/50'
+                  ? 'border-[#2563EB] text-[#2563EB] font-semibold bg-[#FFFFFF]'
+                  : 'border-transparent text-[#475569] hover:text-[#172B4D] hover:bg-[#F1F5F9]/50'
               }`}
             >
               {labels[tab]}
@@ -312,7 +312,7 @@ export const MyRequestsPage: React.FC = () => {
 
       {/* Requests List */}
       {isLoading ? (
-        <div className="py-16 text-center text-xs text-[#55625A] font-mono">
+        <div className="py-16 text-center text-xs text-[#475569] font-mono">
           Loading requests and solver records...
         </div>
       ) : combined.length === 0 ? (
@@ -336,36 +336,36 @@ export const MyRequestsPage: React.FC = () => {
             return (
               <div
                 key={`${item.type}-${item.id}`}
-                className="bg-[#FFFDF8] p-4 sm:p-5 rounded-[10px] border border-[#E4DBC6] hover:border-[#D5C9AE] shadow-[0_1px_2px_rgba(31,42,36,0.04)] transition-all flex flex-col md:flex-row md:items-center justify-between gap-3"
+                className="bg-[#FFFFFF] p-4 sm:p-5 rounded-[10px] border border-[#E2E8F0] hover:border-[#CBD5E1] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all flex flex-col md:flex-row md:items-center justify-between gap-3"
               >
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center justify-center text-[10px] font-mono font-semibold uppercase tracking-wider px-2.5 py-1 rounded-[6px] bg-[#F2ECDC] text-[#55625A] border border-[#E4DBC6] leading-none">
+                    <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">
                       {item.type === 'disruption' ? 'Leave' : item.type === 'session_request' ? 'Adjustment' : 'Venue'}
                     </span>
-                    <span className="inline-flex items-center justify-center text-xs text-[#7C877F] font-mono font-bold leading-none">
+                    <span className="text-xs text-[#64748B] font-mono font-bold">
                       {item.id}
                     </span>
                     {item.raw.proposal?.validator_report?.hard_violation_count === 0 && (
                       <StatusBadge status="success" size="sm" label="0 Hard Violations" />
                     )}
                   </div>
-                  <h3 className="text-sm font-semibold text-[#1F2A24]">
+                  <h3 className="text-sm font-semibold text-[#172B4D]">
                     {item.title}
                   </h3>
 
                   {/* Sub-details */}
                   {item.type === 'disruption' && item.raw.changes && (
-                    <div className="text-xs text-[#55625A] flex items-center gap-3 flex-wrap">
-                      <span>Day: <strong className="text-[#1F2A24]">{item.raw.changes[0]?.days?.join(', ')}</strong></span>
-                      <span>Periods: <strong className="text-[#1F2A24]">P{item.raw.changes[0]?.periods?.join(', P')}</strong></span>
+                    <div className="text-xs text-[#475569] flex items-center gap-3 flex-wrap">
+                      <span>Day: <strong className="text-[#172B4D]">{item.raw.changes[0]?.days?.join(', ')}</strong></span>
+                      <span>Periods: <strong className="text-[#172B4D]">P{item.raw.changes[0]?.periods?.join(', P')}</strong></span>
                       <span>Reason: {item.raw.changes[0]?.reason}</span>
                     </div>
                   )}
 
                   {item.type === 'session_request' && (
-                    <div className="text-xs text-[#55625A] flex items-center gap-3 flex-wrap">
-                      <span>Target: <strong className="text-[#1F2A24]">{item.raw.target_session_id || 'New session'}</strong></span>
+                    <div className="text-xs text-[#475569] flex items-center gap-3 flex-wrap">
+                      <span>Target: <strong className="text-[#172B4D]">{item.raw.target_session_id || 'New session'}</strong></span>
                       <span>Duration: {item.raw.duration}h</span>
                       <span>Preferred: {item.raw.preferred_windows?.[0]?.day} P{item.raw.preferred_windows?.[0]?.start_period}</span>
                       <span>Reason: {item.raw.reason}</span>
@@ -373,8 +373,8 @@ export const MyRequestsPage: React.FC = () => {
                   )}
 
                   {item.type === 'booking' && (
-                    <div className="text-xs text-[#55625A] flex items-center gap-3 flex-wrap">
-                      <span>Category: <strong className="text-[#1F2A24]">{item.raw.effective_category || 'guest_lecture'}</strong></span>
+                    <div className="text-xs text-[#475569] flex items-center gap-3 flex-wrap">
+                      <span>Category: <strong className="text-[#172B4D]">{item.raw.effective_category || 'guest_lecture'}</strong></span>
                       <span>Requested: {item.raw.requested_room || 'Any'}</span>
                       {item.raw.assigned_room && (
                         <span className="text-[#2F7D4F] font-medium font-mono">Assigned: {item.raw.assigned_room} ({item.raw.assigned_day} P{item.raw.start_period}-P{item.raw.end_period})</span>
@@ -398,21 +398,21 @@ export const MyRequestsPage: React.FC = () => {
       {/* Modal: Declare Leave / Unavailability */}
       {leaveModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] relative space-y-4 animate-in zoom-in-95">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(15,23,42,0.15)] relative space-y-4 animate-in zoom-in-95">
             <button
               type="button"
               onClick={() => setLeaveModalOpen(false)}
-              className="absolute top-4 right-4 text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+              className="absolute top-4 right-4 text-[#64748B] hover:text-[#172B4D] p-1 rounded cursor-pointer"
               aria-label="Close modal"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="border-b border-[#E4DBC6] pb-3">
-              <h3 className="text-base font-serif font-bold text-[#1F2A24]">
+            <div className="border-b border-[#E2E8F0] pb-3">
+              <h3 className="text-base font-sans font-bold text-[#172B4D]">
                 Declare Faculty Leave / Unavailability
               </h3>
-              <p className="text-xs text-[#55625A] mt-0.5">
+              <p className="text-xs text-[#475569] mt-0.5">
                 Scoped to your Faculty ID ({user?.faculty_id}). Verifies zero hard violations before submission.
               </p>
             </div>
@@ -495,21 +495,21 @@ export const MyRequestsPage: React.FC = () => {
       {/* Modal: Request Class Adjustment */}
       {sessionModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] relative space-y-4 animate-in zoom-in-95">
+          <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(15,23,42,0.15)] relative space-y-4 animate-in zoom-in-95">
             <button
               type="button"
               onClick={() => setSessionModalOpen(false)}
-              className="absolute top-4 right-4 text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+              className="absolute top-4 right-4 text-[#64748B] hover:text-[#172B4D] p-1 rounded cursor-pointer"
               aria-label="Close modal"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="border-b border-[#E4DBC6] pb-3">
-              <h3 className="text-base font-serif font-bold text-[#1F2A24]">
+            <div className="border-b border-[#E2E8F0] pb-3">
+              <h3 className="text-base font-sans font-bold text-[#172B4D]">
                 Request Class Adjustment
               </h3>
-              <p className="text-xs text-[#55625A] mt-0.5">
+              <p className="text-xs text-[#475569] mt-0.5">
                 Submit reschedule proposal for academic coordinator approval.
               </p>
             </div>

@@ -156,14 +156,14 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {generateMsg && (
-        <div className="p-3.5 rounded-[8px] bg-[#FAF6EC] border border-[#B08A3E]/40 text-[#9A7633] text-xs flex items-center gap-2 font-mono">
-          <Sparkles className="w-4 h-4 animate-pulse shrink-0 text-[#B08A3E]" />
+        <div className="p-3.5 rounded-[8px] bg-[#F5F7FB] border border-[#2563EB]/40 text-[#1D4ED8] text-xs flex items-center gap-2 font-mono">
+          <Sparkles className="w-4 h-4 animate-pulse shrink-0 text-[#2563EB]" />
           <span>{generateMsg}</span>
         </div>
       )}
 
       {isLoading && !metrics ? (
-        <div className="p-16 text-center text-xs text-[#55625A] font-mono">
+        <div className="p-16 text-center text-xs text-[#475569] font-mono">
           Loading campus metrics from official dataset...
         </div>
       ) : metrics ? (
@@ -203,44 +203,44 @@ export const AdminDashboard: React.FC = () => {
 
           {/* Recharts Department Load Distribution */}
           <Panel variant="default" className="space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E4DBC6]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
               <div>
-                <h2 className="text-base font-serif font-bold text-[#1F2A24]">
+                <h2 className="text-base font-sans font-bold text-[#172B4D]">
                   Campus Academic Load Distribution
                 </h2>
-                <p className="text-xs text-[#55625A]">
+                <p className="text-xs text-[#475569]">
                   {metrics.sessions_scheduled} sessions scheduled across {departmentLoadData.length} academic departments and groups.
                 </p>
               </div>
-              <div className="flex items-center gap-3 text-xs font-mono text-[#55625A]">
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#12372A]" /> Lectures</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#B08A3E]" /> Labs</span>
+              <div className="flex items-center gap-3 text-xs font-mono text-[#475569]">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#142D50]" /> Lectures</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#2563EB]" /> Labs</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#2C6A8A]" /> Tutorials</span>
               </div>
             </div>
             <div className="h-64 w-full">
               {departmentLoadData.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-xs text-[#7C877F]">
+                <div className="h-full flex items-center justify-center text-xs text-[#64748B]">
                   No department session records found in active schedule.
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={departmentLoadData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E4DBC6" vertical={false} />
-                    <XAxis dataKey="name" stroke="#55625A" fontSize={12} tickLine={false} axisLine={{ stroke: '#E4DBC6' }} />
-                    <YAxis stroke="#55625A" fontSize={12} tickLine={false} axisLine={{ stroke: '#E4DBC6' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                    <XAxis dataKey="name" stroke="#475569" fontSize={12} tickLine={false} axisLine={{ stroke: '#E2E8F0' }} />
+                    <YAxis stroke="#475569" fontSize={12} tickLine={false} axisLine={{ stroke: '#E2E8F0' }} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: '#FFFDF8',
-                        borderColor: '#E4DBC6',
+                        backgroundColor: '#FFFFFF',
+                        borderColor: '#E2E8F0',
                         borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(31,42,36,0.08)',
+                        boxShadow: '0 4px 12px rgba(15,23,42,0.08)',
                         fontSize: '12px',
-                        color: '#1F2A24',
+                        color: '#172B4D',
                       }}
                     />
-                    <Bar dataKey="lectures" name="Lectures" fill="#12372A" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="labs" name="Labs" fill="#B08A3E" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="lectures" name="Lectures" fill="#142D50" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="labs" name="Labs" fill="#2563EB" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="tutorials" name="Tutorials" fill="#2C6A8A" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -252,13 +252,13 @@ export const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#B08A3E]" />
+                <h2 className="text-base font-sans font-bold text-[#172B4D] flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#2563EB]" />
                   <span>Spectra Week Allocation Decisions</span>
                 </h2>
                 <Link
                   to="/bookings"
-                  className="text-xs text-[#B08A3E] hover:text-[#9A7633] font-semibold flex items-center gap-1 transition-colors"
+                  className="text-xs text-[#2563EB] hover:text-[#1D4ED8] font-semibold flex items-center gap-1 transition-colors"
                 >
                   <span>Manage All {metrics.total_bookings || ''} Requests</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -267,32 +267,32 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="space-y-2.5">
                 {recentDecisions.length === 0 ? (
-                  <Panel variant="sunken" className="p-8 text-center text-xs text-[#55625A]">
+                  <Panel variant="sunken" className="p-8 text-center text-xs text-[#475569]">
                     No booking decisions recorded yet.
                   </Panel>
                 ) : (
                   recentDecisions.map((item) => (
                     <div
                       key={item.id}
-                      className="bg-[#FFFDF8] p-4 rounded-[10px] border border-[#E4DBC6] hover:border-[#D5C9AE] shadow-[0_1px_2px_rgba(31,42,36,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
+                      className="bg-[#FFFFFF] p-4 rounded-[10px] border border-[#E2E8F0] hover:border-[#CBD5E1] shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2.5 flex-wrap">
-                          <span className="inline-flex items-center justify-center font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-2.5 py-1 rounded-[6px] border border-[#B08A3E]/30 leading-none">
+                          <span className="font-mono text-xs font-bold text-[#2563EB] bg-[#F5F7FB] px-1.5 py-0.5 rounded border border-[#2563EB]/20">
                             {item.id}
                           </span>
-                          <span className="font-semibold text-sm text-[#1F2A24]">{item.title}</span>
+                          <span className="font-semibold text-sm text-[#172B4D]">{item.title}</span>
                           <StatusBadge status={item.statusType} size="sm" label={item.statusLabel} />
                         </div>
-                        <div className="text-xs text-[#55625A]">
-                          {item.venue} · <span className="text-[#7C877F]">{item.requester}</span>
+                        <div className="text-xs text-[#475569]">
+                          {item.venue} · <span className="text-[#64748B]">{item.requester}</span>
                         </div>
-                        <div className="text-xs text-[#55625A] italic">
+                        <div className="text-xs text-[#475569] italic">
                           "{item.reason}"
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
-                        <span className="inline-flex items-center justify-center text-[10px] font-mono text-[#55625A] px-2.5 py-1 rounded-[6px] bg-[#F2ECDC] border border-[#E4DBC6] leading-none">
+                        <span className="text-[10px] font-mono text-[#64748B] px-2 py-1 rounded bg-[#F1F5F9]">
                           Solver Verified
                         </span>
                       </div>
@@ -304,49 +304,49 @@ export const AdminDashboard: React.FC = () => {
 
             <div className="lg:col-span-4 space-y-4">
               <Panel variant="default" className="space-y-3.5">
-                <h3 className="font-serif font-bold text-sm text-[#1F2A24]">
+                <h3 className="font-sans font-bold text-sm text-[#172B4D]">
                   Administrative Portals
                 </h3>
                 <div className="space-y-2">
                   <Link
                     to="/admin"
-                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#F5F7FB] hover:bg-[#F1F5F9] border border-[#E2E8F0] transition-all text-xs font-medium text-[#172B4D] group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Award className="w-4 h-4 text-[#12372A]" />
+                      <Award className="w-4 h-4 text-[#142D50]" />
                       <span>Admin Console & Audit Logs</span>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#172B4D] transition-colors" />
                   </Link>
                   <Link
                     to="/approvals"
-                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#F5F7FB] hover:bg-[#F1F5F9] border border-[#E2E8F0] transition-all text-xs font-medium text-[#172B4D] group"
                   >
                     <div className="flex items-center gap-2.5">
                       <ShieldCheck className="w-4 h-4 text-[#2F7D4F]" />
                       <span>Disruption Proposals & Approval</span>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#172B4D] transition-colors" />
                   </Link>
                   <Link
                     to="/exams"
-                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#F5F7FB] hover:bg-[#F1F5F9] border border-[#E2E8F0] transition-all text-xs font-medium text-[#172B4D] group"
                   >
                     <div className="flex items-center gap-2.5">
                       <Clock className="w-4 h-4 text-[#B7791F]" />
                       <span>Midsem Examination Matrix</span>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#172B4D] transition-colors" />
                   </Link>
                   <Link
                     to="/timetable"
-                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#F5F7FB] hover:bg-[#F1F5F9] border border-[#E2E8F0] transition-all text-xs font-medium text-[#172B4D] group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Calendar className="w-4 h-4 text-[#12372A]" />
+                      <Calendar className="w-4 h-4 text-[#142D50]" />
                       <span>Master Campus Timetable Grid</span>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#172B4D] transition-colors" />
                   </Link>
                 </div>
               </Panel>
@@ -356,7 +356,7 @@ export const AdminDashboard: React.FC = () => {
                   <ShieldCheck className="w-4 h-4 shrink-0" />
                   <span>Dean's Office Authority</span>
                 </div>
-                <p className="text-[#55625A] leading-relaxed text-[11px]">
+                <p className="text-[#475569] leading-relaxed text-[11px]">
                   Admin actions are permanently logged in the audit ledger. Hard constraints (H1–H14) cannot be bypassed even by Dean's Office administrators.
                 </p>
               </Panel>
