@@ -2,7 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/authContext';
 import { api } from '../services/api';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import '../styles/cit-landing.css';
+import { 
+  ACCOUNTS_DATA, 
+  ROLE_RULES, 
+  ALL_ACCOUNTS, 
+  findMatchingAccount, 
+  type AccountItem, 
+  type RoleCategoryKey 
+} from '../lib/accountsData';
 
 type RoleKey = 'admin' | 'coordinator' | 'faculty' | 'club';
 
@@ -15,22 +24,47 @@ interface PublicStats {
 }
 
 export const LandingPage: React.FC = () => {
+  usePageMetadata(
+    'CIT Campus Timetable & Venue Management | Zero Clashes',
+    'Chilika Institute of Technology timetable solver and venue management platform. 189 sessions, 27 rooms, midsem exams, and zero timetable collisions.'
+  );
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   // Modal and submission state
   const [modalOpen, setModalOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [manualIdentifier, setManualIdentifier] = useState('');
   const [manualPassword, setManualPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [activeRoleLoggingIn, setActiveRoleLoggingIn] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [activeDirectoryTab, setActiveDirectoryTab] = useState<'all' | RoleCategoryKey>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mobileView, setMobileView] = useState<'form' | 'directory'>('form');
+  const [isFormHighlighted, setIsFormHighlighted] = useState(false);
+
+  // Close menus on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileNavOpen(false);
+        setModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Live stats from backend
   const [stats, setStats] = useState<PublicStats | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Computed detected account based on typed identifier
+  const detectedAccount = findMatchingAccount(manualIdentifier);
 
   // Fetch live stats from backend
   useEffect(() => {
@@ -49,42 +83,56 @@ export const LandingPage: React.FC = () => {
     };
   }, []);
 
-  // Handle direct role login
+  // Open modal directly with optional role filter preset
+  const openRoleModal = (role?: RoleCategoryKey) => {
+    if (role) {
+      setActiveDirectoryTab(role);
+      if (role === 'faculty') {
+        setManualIdentifier('F06');
+        setManualPassword('F06@123');
+      } else if (role === 'coordinator') {
+        setManualIdentifier('CSE');
+        setManualPassword('Coord@CSE123');
+      } else if (role === 'club') {
+        setManualIdentifier('dance');
+        setManualPassword('Club@Dance123');
+      } else if (role === 'admin') {
+        setManualIdentifier('admin');
+        setManualPassword('Admin@123');
+      }
+    } else {
+      setActiveDirectoryTab('all');
+    }
+    setSearchQuery('');
+    setLoginError(null);
+    setMobileView('form');
+    setModalOpen(true);
+  };
+
+  // Quick fill form credentials from a preset chip or directory member
+  const fillFormCredentials = (ident: string, pass: string) => {
+    setManualIdentifier(ident);
+    setManualPassword(pass);
+    setLoginError(null);
+    setMobileView('form');
+    setIsFormHighlighted(true);
+    setTimeout(() => setIsFormHighlighted(false), 1200);
+  };
+
+  // Handle direct role login (opens modal to that role for full member selection)
   const handleRoleLogin = async (role: RoleKey) => {
+    openRoleModal(role as RoleCategoryKey);
+  };
+
+  // Handle 1-click login for any of the 62 accounts
+  const handleAccountLogin = async (acc: AccountItem) => {
     setIsLoggingIn(true);
     setLoginError(null);
-    let identifier = '';
-    let password = '';
-    let target = '/';
-    let label = '';
-
-    if (role === 'admin') {
-      identifier = 'admin@cit.edu';
-      password = 'Admin@123';
-      target = '/';
-      label = 'Admin (Dean\'s Office)';
-    } else if (role === 'coordinator') {
-      identifier = 'coord_cse@cit.edu';
-      password = 'Coord@123';
-      target = '/timetable';
-      label = 'CSE Coordinator';
-    } else if (role === 'faculty') {
-      identifier = 'faculty_f06@cit.edu';
-      password = 'Faculty@123';
-      target = '/timetable';
-      label = 'Faculty (Dr. Arjun Mehta)';
-    } else if (role === 'club') {
-      identifier = 'club_dance@cit.edu';
-      password = 'Club@123';
-      target = '/bookings';
-      label = 'Club Rep (Dance Club)';
-    }
-
-    setActiveRoleLoggingIn(label);
+    setActiveRoleLoggingIn(acc.name);
 
     try {
-      const userData = await login(identifier, password);
-      // Route appropriately based on user role
+      const userData = await login(acc.email, acc.password);
+      setModalOpen(false);
       if (userData.role === 'admin') {
         navigate('/');
       } else if (userData.role === 'department_coordinator') {
@@ -94,29 +142,31 @@ export const LandingPage: React.FC = () => {
       } else if (userData.role === 'club') {
         navigate('/bookings');
       } else {
-        navigate(target);
+        navigate('/');
       }
     } catch (err: any) {
-      console.error('Role login failed:', err);
+      console.error('Account login failed:', err);
       setLoginError(err.response?.data?.detail || 'Authentication failed. Please verify the backend is running.');
       setIsLoggingIn(false);
       setActiveRoleLoggingIn(null);
     }
   };
 
-  // Handle manual login from modal
+  // Handle manual login from modal form
   const handleManualLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualIdentifier.trim() || !manualPassword) {
-      setLoginError('Please enter both identifier and password.');
+    const ident = manualIdentifier.trim();
+    if (!ident || !manualPassword) {
+      setLoginError('Please enter both identifier (email or ID) and password.');
       return;
     }
     setIsLoggingIn(true);
     setLoginError(null);
-    setActiveRoleLoggingIn('your account');
+    setActiveRoleLoggingIn(ident);
 
     try {
-      const userData = await login(manualIdentifier.trim(), manualPassword);
+      const userData = await login(ident, manualPassword);
+      setModalOpen(false);
       if (userData.role === 'admin') {
         navigate('/');
       } else if (userData.role === 'department_coordinator') {
@@ -130,7 +180,7 @@ export const LandingPage: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Manual login failed:', err);
-      setLoginError(err.response?.data?.detail || 'Invalid email/Faculty ID or password.');
+      setLoginError(err.response?.data?.detail || 'Invalid email/ID or password.');
       setIsLoggingIn(false);
       setActiveRoleLoggingIn(null);
     }
@@ -1285,13 +1335,15 @@ export const LandingPage: React.FC = () => {
 
       {/* Main Navigation */}
       <nav id="nav" aria-label="Main navigation">
-        <a className="brand" href="#hero">
+        <a className="brand" href="#hero" aria-label="CIT Schedule Home">
           <span id="mark" aria-hidden="true">
             <i></i><i></i><i></i>
           </span>
           CIT Schedule
         </a>
-        <div className="nl">
+
+        {/* Desktop Navigation Links */}
+        <div className="nl hidden md:flex items-center gap-6">
           <a href="#timetable" data-nav>Timetable</a>
           <a href="#roles" data-nav>Roles</a>
           <a href="#how" data-nav>How it works</a>
@@ -1299,6 +1351,76 @@ export const LandingPage: React.FC = () => {
             Sign in
           </button>
         </div>
+
+        {/* Mobile Hamburger Button */}
+        <div className="flex md:hidden items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="btn text-xs px-3 py-1.5"
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            aria-expanded={mobileNavOpen}
+            aria-controls="landing-mobile-menu"
+            aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+            className="w-11 h-11 flex items-center justify-center rounded-sm bg-[#0a1220] border border-[#f1ece125] text-[#f1ece1] hover:text-[#c9a96b] cursor-pointer"
+          >
+            {mobileNavOpen ? '✕' : '☰'}
+          </button>
+        </div>
+
+        {/* Mobile Dropdown Drawer */}
+        {mobileNavOpen && (
+          <div
+            id="landing-mobile-menu"
+            role="menu"
+            aria-label="Mobile Navigation Menu"
+            className="md:hidden absolute top-full left-0 right-0 bg-[#0a1220]/95 backdrop-blur-xl border-b border-[#f1ece120] p-4 flex flex-col gap-2 z-50 shadow-2xl animate-in fade-in"
+          >
+            <a
+              href="#timetable"
+              onClick={() => setMobileNavOpen(false)}
+              className="min-h-[44px] flex items-center px-3 text-sm text-[#f1ece1] hover:text-[#c9a96b] border-b border-[#f1ece110]"
+            >
+              01 — Timetable
+            </a>
+            <a
+              href="#booking"
+              onClick={() => setMobileNavOpen(false)}
+              className="min-h-[44px] flex items-center px-3 text-sm text-[#f1ece1] hover:text-[#c9a96b] border-b border-[#f1ece110]"
+            >
+              02 — Venue Booking
+            </a>
+            <a
+              href="#roles"
+              onClick={() => setMobileNavOpen(false)}
+              className="min-h-[44px] flex items-center px-3 text-sm text-[#f1ece1] hover:text-[#c9a96b] border-b border-[#f1ece110]"
+            >
+              03 — Roles & Permissions
+            </a>
+            <a
+              href="#how"
+              onClick={() => setMobileNavOpen(false)}
+              className="min-h-[44px] flex items-center px-3 text-sm text-[#f1ece1] hover:text-[#c9a96b] border-b border-[#f1ece110]"
+            >
+              04 — How It Works
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileNavOpen(false);
+                setModalOpen(true);
+              }}
+              className="min-h-[44px] w-full mt-2 py-2.5 bg-[#c9a96b] hover:bg-[#d8be85] text-[#0a1220] font-semibold text-sm rounded-sm flex items-center justify-center cursor-pointer transition-colors"
+            >
+              Sign In to Platform →
+            </button>
+          </div>
+        )}
         <div id="progress" aria-hidden="true"></div>
       </nav>
 
@@ -1487,54 +1609,66 @@ export const LandingPage: React.FC = () => {
 
           {/* Roles Grid */}
           <section className="blk" id="roles">
-            <h2>Four roles. One set of rules.</h2>
-            <p className="lead">Each person signs in to the tools they need. Nobody can approve their own request.</p>
+            <h2>Four roles. 62 accounts. One set of rules.</h2>
+            <p className="lead">Rule-based authentication derived directly from the official CIT dataset. Every faculty member, department head and student club has an active institutional profile.</p>
             <div className="grid">
               <div style={{ boxShadow: 'inset 0 2px #6f8fb8' }}>
-                <h3>Admin</h3>
-                <p>The Dean’s office. Generates the timetable, approves changes and any booking that moves a class, and sets the priority order.</p>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="m-0">Admin</h3>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#6f8fb8]/20 text-[#6f8fb8]">2 Accounts</span>
+                </div>
+                <p>Dean’s Office and Spectra Core. Generates timetable, approves disruptions and manages global priorities.</p>
                 <button
                   type="button"
                   className="role-link"
-                  onClick={() => handleRoleLogin('admin')}
+                  onClick={() => openRoleModal('admin')}
                 >
-                  Sign in as Admin
+                  Browse & Sign in as Admin →
                 </button>
               </div>
 
               <div style={{ boxShadow: 'inset 0 2px #5fa8a0' }}>
-                <h3>Department coordinator</h3>
-                <p>Requests changes to department sessions, books rooms for department events, and approves bookings of department labs.</p>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="m-0">Department coordinator</h3>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#5fa8a0]/20 text-[#5fa8a0]">9 Departments</span>
+                </div>
+                <p>CSE, ECE, EE, ME, CE, HSS, MA, PH, and T&P Cell. Requests department session moves and manages lab bookings.</p>
                 <button
                   type="button"
                   className="role-link"
-                  onClick={() => handleRoleLogin('coordinator')}
+                  onClick={() => openRoleModal('coordinator')}
                 >
-                  Sign in as Coordinator
+                  Browse 9 Coordinators →
                 </button>
               </div>
 
               <div style={{ boxShadow: 'inset 0 2px #c9a96b' }}>
-                <h3>Faculty</h3>
-                <p>Views their own timetable, marks when they are unavailable, and requests extra or moved sessions.</p>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="m-0">Faculty</h3>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#c9a96b]/20 text-[#c9a96b]">40 Faculty</span>
+                </div>
+                <p>40 professors and lecturers (F01–F40). Views teaching schedules, marks leave/unavailability, and requests class reschedules.</p>
                 <button
                   type="button"
                   className="role-link"
-                  onClick={() => handleRoleLogin('faculty')}
+                  onClick={() => openRoleModal('faculty')}
                 >
-                  Sign in as Faculty
+                  Browse 40 Faculty Members →
                 </button>
               </div>
 
               <div style={{ boxShadow: 'inset 0 2px #c27d5e' }}>
-                <h3>Club representative</h3>
-                <p>Submits and cancels venue requests, and sees the status and the reason for every decision.</p>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="m-0">Club representative</h3>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#c27d5e]/20 text-[#c27d5e]">11 Societies</span>
+                </div>
+                <p>11 student cultural and technical societies. Submits and manages Spectra week venue requests with transparent reasons.</p>
                 <button
                   type="button"
                   className="role-link"
-                  onClick={() => handleRoleLogin('club')}
+                  onClick={() => openRoleModal('club')}
                 >
-                  Sign in as Club rep
+                  Browse 11 Club Accounts →
                 </button>
               </div>
             </div>
@@ -1613,19 +1747,40 @@ export const LandingPage: React.FC = () => {
           </section>
 
           {/* Footer */}
+          {/* Accessible Institutional Footer */}
           <footer>
             <div>
               <b>CIT Schedule</b>
               Timetable and venue management for Chilika Institute of Technology.
+              <div className="mt-3 flex flex-wrap gap-4 text-xs font-mono">
+                <a href="tel:+916756200100" className="text-[#c9a96b] hover:underline flex items-center gap-1" aria-label="Call CIT Scheduling Helpdesk">
+                  📞 +91 (6756) 200-100
+                </a>
+                <a href="mailto:scheduling@cit.edu" className="text-[#c9a96b] hover:underline flex items-center gap-1" aria-label="Email CIT Scheduling Helpdesk">
+                  ✉️ scheduling@cit.edu
+                </a>
+              </div>
             </div>
-            <button
-              type="button"
-              className="footer-signin"
-              onClick={() => setModalOpen(true)}
-            >
-              Sign in
-            </button>
-            <p>Built for the CIT campus scheduling hackathon. AI use is declared in AI_USAGE.md.</p>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex flex-wrap gap-3 text-xs text-[#acb5c3]">
+                <a href="#timetable" className="hover:text-white">Timetable</a>
+                <a href="#booking" className="hover:text-white">Venue Booking</a>
+                <a href="#roles" className="hover:text-white">Roles</a>
+                <a href="#how" className="hover:text-white">How It Works</a>
+              </div>
+              <button
+                type="button"
+                className="footer-signin min-h-[44px] px-4 py-2 cursor-pointer"
+                onClick={() => setModalOpen(true)}
+              >
+                Sign in
+              </button>
+            </div>
+
+            <p>
+              &copy; {new Date().getFullYear()} Chilika Institute of Technology. Built for the CIT campus scheduling platform. AI use declared in AI_USAGE.md. All institutional rights reserved.
+            </p>
           </footer>
         </div>
       </main>
@@ -1633,151 +1788,480 @@ export const LandingPage: React.FC = () => {
       {/* Role Sign-in / Custom Credentials Modal */}
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a1220]/80 backdrop-blur-md animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[#030712]/90 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => !isLoggingIn && setModalOpen(false)}
         >
           <div
-            className="bg-[#0f172a] border border-[#f1ece125] border-t-[#c9a96b] rounded-sm p-6 sm:p-8 max-w-lg w-full shadow-2xl relative text-[#f1ece1]"
+            className="bg-[#090f1d] border border-slate-700/70 rounded-xl shadow-2xl w-full max-w-6xl h-[92vh] max-h-[860px] flex flex-col overflow-hidden relative text-[#f1ece1]"
             onClick={e => e.stopPropagation()}
           >
-            <button
-              type="button"
-              className="absolute top-4 right-4 text-[#acb5c3] hover:text-[#f1ece1] text-lg font-mono p-1"
-              onClick={() => !isLoggingIn && setModalOpen(false)}
-              disabled={isLoggingIn}
-            >
-              ✕
-            </button>
-
-            <h2 className="text-3xl font-serif text-[#f1ece1] mb-1 font-normal">
-              Sign in to CIT Schedule
-            </h2>
-            <p className="text-xs text-[#acb5c3] mb-6 tracking-wide">
-              Select your role for 1-click access, or enter your institutional credentials.
-            </p>
-
-            {loginError && (
-              <div className="mb-5 p-3 bg-red-950/60 border border-red-500/40 rounded text-red-200 text-xs">
-                {loginError}
-              </div>
-            )}
-
-            {/* Quick 1-Click Role Access */}
-            <div className="space-y-2 mb-6">
-              <span className="text-[10px] uppercase tracking-widest text-[#acb5c3] block mb-2 font-medium">
-                Instant Role Access
-              </span>
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  disabled={isLoggingIn}
-                  onClick={() => handleRoleLogin('admin')}
-                  className="flex flex-col text-left p-3 rounded-sm border border-[#6f8fb8]/30 bg-[#6f8fb8]/10 hover:bg-[#6f8fb8]/20 transition-colors"
-                >
-                  <span className="font-semibold text-xs text-[#6f8fb8]">Admin</span>
-                  <span className="text-[11px] text-[#acb5c3] mt-0.5">Dean’s Office</span>
-                  <span className="text-[9px] font-mono text-[#acb5c3]/70 mt-1">admin@cit.edu</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isLoggingIn}
-                  onClick={() => handleRoleLogin('coordinator')}
-                  className="flex flex-col text-left p-3 rounded-sm border border-[#5fa8a0]/30 bg-[#5fa8a0]/10 hover:bg-[#5fa8a0]/20 transition-colors"
-                >
-                  <span className="font-semibold text-xs text-[#5fa8a0]">Coordinator</span>
-                  <span className="text-[11px] text-[#acb5c3] mt-0.5">CSE Dept</span>
-                  <span className="text-[9px] font-mono text-[#acb5c3]/70 mt-1">coord_cse@cit.edu</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isLoggingIn}
-                  onClick={() => handleRoleLogin('faculty')}
-                  className="flex flex-col text-left p-3 rounded-sm border border-[#c9a96b]/30 bg-[#c9a96b]/10 hover:bg-[#c9a96b]/20 transition-colors"
-                >
-                  <span className="font-semibold text-xs text-[#c9a96b]">Faculty</span>
-                  <span className="text-[11px] text-[#acb5c3] mt-0.5">Dr. Arjun Mehta</span>
-                  <span className="text-[9px] font-mono text-[#acb5c3]/70 mt-1">faculty_f06@cit.edu</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isLoggingIn}
-                  onClick={() => handleRoleLogin('club')}
-                  className="flex flex-col text-left p-3 rounded-sm border border-[#c27d5e]/30 bg-[#c27d5e]/10 hover:bg-[#c27d5e]/20 transition-colors"
-                >
-                  <span className="font-semibold text-xs text-[#c27d5e]">Club Rep</span>
-                  <span className="text-[11px] text-[#acb5c3] mt-0.5">Dance Club</span>
-                  <span className="text-[9px] font-mono text-[#acb5c3]/70 mt-1">club_dance@cit.edu</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#f1ece120]"></div>
-              </div>
-              <div className="relative flex justify-center text-[10px] uppercase">
-                <span className="bg-[#0f172a] px-3 text-[#acb5c3] tracking-widest">
-                  or sign in with credentials
-                </span>
-              </div>
-            </div>
-
-            {/* Manual Form */}
-            <form onSubmit={handleManualLogin} className="space-y-4">
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-[#acb5c3] mb-1.5 font-medium">
-                  Email or Faculty ID
-                </label>
-                <input
-                  type="text"
-                  value={manualIdentifier}
-                  onChange={e => setManualIdentifier(e.target.value)}
-                  placeholder="e.g. admin@cit.edu or F06"
-                  disabled={isLoggingIn}
-                  className="w-full px-3 py-2 bg-[#0a1220] border border-[#f1ece130] rounded-sm text-sm text-[#f1ece1] placeholder-[#acb5c3]/50 focus:border-[#c9a96b] focus:outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-[#acb5c3] mb-1.5 font-medium">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={manualPassword}
-                    onChange={e => setManualPassword(e.target.value)}
-                    placeholder="Enter password"
-                    disabled={isLoggingIn}
-                    className="w-full px-3 py-2 bg-[#0a1220] border border-[#f1ece130] rounded-sm text-sm text-[#f1ece1] placeholder-[#acb5c3]/50 focus:border-[#c9a96b] focus:outline-none transition-colors pr-10"
-                  />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#acb5c3] hover:text-[#f1ece1]"
-                  >
-                    {showPassword ? 'Hide' : 'Show'}
-                  </button>
+            {/* Top Header Bar */}
+            <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-slate-800/80 bg-[#0c1424] flex-shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-md bg-[#c9a96b]/20 border border-[#c9a96b]/40 flex items-center justify-center text-[#c9a96b] font-serif font-bold text-sm flex-shrink-0">
+                  CIT
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-serif text-[#f1ece1] font-medium truncate">
+                      Institutional Role Access & Sign In
+                    </h2>
+                    <span className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#c9a96b]/15 text-[#c9a96b] border border-[#c9a96b]/30 flex-shrink-0">
+                      Official CIT Dataset · 62 Accounts
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#acb5c3] truncate hidden sm:block">
+                    Enter email or ID and password, or browse all 62 campus members with 1-click access.
+                  </p>
                 </div>
               </div>
 
               <button
-                type="submit"
+                type="button"
+                className="text-[#acb5c3] hover:text-[#f1ece1] text-lg font-mono p-1.5 rounded hover:bg-slate-800 transition-colors ml-3 cursor-pointer"
+                onClick={() => !isLoggingIn && setModalOpen(false)}
                 disabled={isLoggingIn}
-                className="w-full mt-2 py-3 bg-[#c9a96b] hover:bg-[#d8be85] text-[#0a1220] font-semibold text-sm rounded-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
+                aria-label="Close modal"
               >
-                {isLoggingIn ? (
-                  <span>Authenticating as {activeRoleLoggingIn}...</span>
-                ) : (
-                  <span>Sign in</span>
-                )}
+                ✕
               </button>
-            </form>
+            </div>
+
+            {/* Mobile Tab Switcher (< lg only) */}
+            <div className="flex lg:hidden border-b border-slate-800 bg-[#070c17] flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setMobileView('form')}
+                className={`flex-1 py-2.5 text-xs font-medium border-b-2 transition-all flex items-center justify-center gap-2 ${
+                  mobileView === 'form'
+                    ? 'border-[#c9a96b] text-[#c9a96b] font-semibold bg-[#0d1627]'
+                    : 'border-transparent text-[#acb5c3] hover:text-white'
+                }`}
+              >
+                <span>🔑</span>
+                <span>Sign In Form</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileView('directory')}
+                className={`flex-1 py-2.5 text-xs font-medium border-b-2 transition-all flex items-center justify-center gap-2 ${
+                  mobileView === 'directory'
+                    ? 'border-[#c9a96b] text-[#c9a96b] font-semibold bg-[#0d1627]'
+                    : 'border-transparent text-[#acb5c3] hover:text-white'
+                }`}
+              >
+                <span>👥</span>
+                <span>Campus Directory (62)</span>
+              </button>
+            </div>
+
+            {/* Main Dual-Panel Content */}
+            <div className="flex-1 min-h-0 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800/80 overflow-hidden">
+              
+              {/* Left Panel: Dedicated Credential Form */}
+              <div className={`w-full lg:w-[420px] xl:w-[450px] flex-shrink-0 flex flex-col overflow-y-auto p-5 sm:p-6 bg-[#0a1120] ${
+                mobileView === 'form' ? 'flex' : 'hidden lg:flex'
+              }`}>
+                {/* Form Header */}
+                <div className="mb-4">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-[#c9a96b] font-semibold block mb-1">
+                    Direct Authentication
+                  </span>
+                  <h3 className="text-xl font-serif text-[#f1ece1] font-normal">
+                    Enter Credentials
+                  </h3>
+                  <p className="text-xs text-[#acb5c3] mt-1 leading-relaxed">
+                    Log in with your official CIT email or institutional ID (Faculty ID, Dept code, Club name, Admin) and password.
+                  </p>
+                </div>
+
+                {/* Error Banner */}
+                {loginError && (
+                  <div className="mb-4 p-3 bg-red-950/70 border border-red-500/50 rounded-sm text-red-200 text-xs flex items-start justify-between gap-2 animate-in fade-in">
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-red-400 font-bold">⚠️</span>
+                      <span>{loginError}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setLoginError(null)}
+                      className="text-red-400 hover:text-white text-xs underline flex-shrink-0 cursor-pointer"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                )}
+
+                {/* Form Inputs */}
+                <form
+                  onSubmit={handleManualLogin}
+                  className={`space-y-4 transition-all duration-300 ${
+                    isFormHighlighted ? 'ring-2 ring-[#c9a96b] p-2 rounded-md bg-[#0e172a]' : ''
+                  }`}
+                >
+                  {/* Campus Identifier */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-[11px] uppercase tracking-wider text-[#acb5c3] font-semibold">
+                        Campus ID or Official Email
+                      </label>
+                      {manualIdentifier && (
+                        <button
+                          type="button"
+                          onClick={() => setManualIdentifier('')}
+                          className="text-[10px] text-[#acb5c3] hover:text-[#f1ece1] underline cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      value={manualIdentifier}
+                      onChange={e => setManualIdentifier(e.target.value)}
+                      placeholder="e.g. F06, CSE, dance, admin, or full email"
+                      disabled={isLoggingIn}
+                      className="w-full px-3.5 py-2.5 bg-[#050912] border border-slate-700 focus:border-[#c9a96b] rounded-sm text-sm text-[#f1ece1] placeholder-[#acb5c3]/40 focus:outline-none transition-all"
+                    />
+                    {/* Live Detection Badge */}
+                    {detectedAccount ? (
+                      <div className="mt-1.5 p-2 rounded-sm bg-[#c9a96b]/15 border border-[#c9a96b]/35 flex items-center justify-between text-xs animate-in fade-in">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-[#c9a96b] font-bold text-[11px]">✓</span>
+                          <span className="text-white font-medium truncate">{detectedAccount.name}</span>
+                          <span className="text-[10px] font-mono px-1 rounded bg-[#0a1120] text-[#c9a96b]">
+                            {detectedAccount.faculty_id || detectedAccount.department || detectedAccount.role}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setManualPassword(detectedAccount.rule_password)}
+                          className="text-[10px] font-mono text-[#c9a96b] hover:text-white underline ml-2 whitespace-nowrap cursor-pointer"
+                        >
+                          Use Pwd
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-[#acb5c3]/65 block mt-1">
+                        Accepts Faculty ID (F01–F40), Dept Code (CSE, ECE, ME, CE...), Club (dance, coding...), Admin, or full email.
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider text-[#acb5c3] mb-1.5 font-semibold">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={manualPassword}
+                        onChange={e => setManualPassword(e.target.value)}
+                        placeholder="Enter rule password (e.g. F06@123, Faculty@123)"
+                        disabled={isLoggingIn}
+                        className="w-full px-3.5 py-2.5 bg-[#050912] border border-slate-700 focus:border-[#c9a96b] rounded-sm text-sm text-[#f1ece1] placeholder-[#acb5c3]/40 focus:outline-none transition-all pr-16 font-mono"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#acb5c3] hover:text-[#f1ece1] font-mono px-2 py-1 rounded bg-slate-800/80 cursor-pointer"
+                      >
+                        {showPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
+                    <span className="text-[10px] text-[#acb5c3]/65 block mt-1">
+                      Accepts member rule password (<span className="text-slate-300">F06@123</span>, <span className="text-slate-300">Coord@CSE123</span>) or role universal password (<span className="text-slate-300">Faculty@123</span>).
+                    </span>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={isLoggingIn}
+                    className="w-full py-3 bg-[#c9a96b] hover:bg-[#d8be85] text-[#0a1220] font-semibold text-sm rounded-sm transition-all cursor-pointer shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 mt-1"
+                  >
+                    {isLoggingIn ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-[#0a1220] border-t-transparent rounded-full animate-spin"></div>
+                        <span>Signing in to platform...</span>
+                      </>
+                    ) : (
+                      <span>Sign In to Platform →</span>
+                    )}
+                  </button>
+                </form>
+
+                {/* Quick-Fill Sample Accounts */}
+                <div className="mt-5 pt-4 border-t border-slate-800/80">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-[#acb5c3] block mb-2 font-semibold">
+                    1-Tap Test Accounts (Fills Form):
+                  </span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => fillFormCredentials('F06', 'F06@123')}
+                      className="text-left p-2 rounded-sm bg-[#050912] hover:bg-slate-800/80 border border-slate-800 hover:border-[#c9a96b]/40 text-xs transition-colors cursor-pointer group"
+                    >
+                      <span className="text-[#c9a96b] font-medium block truncate group-hover:text-white">Dr. Arjun Mehta</span>
+                      <span className="text-[10px] text-[#acb5c3] font-mono block">F06 · F06@123</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fillFormCredentials('CSE', 'Coord@CSE123')}
+                      className="text-left p-2 rounded-sm bg-[#050912] hover:bg-slate-800/80 border border-slate-800 hover:border-[#5fa8a0]/40 text-xs transition-colors cursor-pointer group"
+                    >
+                      <span className="text-[#5fa8a0] font-medium block truncate group-hover:text-white">CSE Coordinator</span>
+                      <span className="text-[10px] text-[#acb5c3] font-mono block">CSE · Coord@CSE123</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fillFormCredentials('dance', 'Club@Dance123')}
+                      className="text-left p-2 rounded-sm bg-[#050912] hover:bg-slate-800/80 border border-slate-800 hover:border-[#c27d5e]/40 text-xs transition-colors cursor-pointer group"
+                    >
+                      <span className="text-[#c27d5e] font-medium block truncate group-hover:text-white">Dance Club</span>
+                      <span className="text-[10px] text-[#acb5c3] font-mono block">dance · Club@Dance123</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fillFormCredentials('admin', 'Admin@123')}
+                      className="text-left p-2 rounded-sm bg-[#050912] hover:bg-slate-800/80 border border-slate-800 hover:border-[#6f8fb8]/40 text-xs transition-colors cursor-pointer group"
+                    >
+                      <span className="text-[#6f8fb8] font-medium block truncate group-hover:text-white">Dean's Office</span>
+                      <span className="text-[10px] text-[#acb5c3] font-mono block">admin · Admin@123</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Compact Rule Reference */}
+                <div className="mt-auto pt-4 border-t border-slate-800/80 text-[11px] text-[#acb5c3] space-y-1.5">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#acb5c3]/70 block font-semibold">
+                    Rule Credential Formulas:
+                  </span>
+                  <div className="flex justify-between items-center py-0.5 border-b border-slate-800/40">
+                    <span className="text-[#c9a96b]">Faculty (40)</span>
+                    <span className="font-mono text-white/90">ID (F01–F40) · &lt;ID&gt;@123</span>
+                  </div>
+                  <div className="flex justify-between items-center py-0.5 border-b border-slate-800/40">
+                    <span className="text-[#5fa8a0]">Coordinators (9)</span>
+                    <span className="font-mono text-white/90">Dept (CSE, ECE...) · Coord@&lt;DEPT&gt;123</span>
+                  </div>
+                  <div className="flex justify-between items-center py-0.5 border-b border-slate-800/40">
+                    <span className="text-[#c27d5e]">Clubs (11)</span>
+                    <span className="font-mono text-white/90">Slug (dance, coding...) · Club@&lt;Slug&gt;123</span>
+                  </div>
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-[#6f8fb8]">Admin (2)</span>
+                    <span className="font-mono text-white/90">admin, admin2 · Admin@123</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Panel: Full Campus Directory (62 Accounts) */}
+              <div className={`flex-1 flex flex-col min-h-0 p-5 sm:p-6 bg-[#080d19] overflow-hidden ${
+                mobileView === 'directory' ? 'flex' : 'hidden lg:flex'
+              }`}>
+                {/* Directory Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800/80 flex-shrink-0">
+                  <div>
+                    <h3 className="text-xl font-serif text-[#f1ece1] font-normal">
+                      Campus Members Directory
+                    </h3>
+                    <p className="text-xs text-[#acb5c3]">
+                      Browse all 62 dataset members. Use "Fill Form" to populate credentials or "Sign In ⚡" for instant access.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono px-2.5 py-1 rounded bg-[#c9a96b]/15 text-[#c9a96b] border border-[#c9a96b]/30 whitespace-nowrap">
+                      62 Verified Accounts
+                    </span>
+                  </div>
+                </div>
+
+                {/* Role Filters & Search */}
+                <div className="pt-3 pb-2 space-y-2.5 flex-shrink-0">
+                  {/* Role Filter Tabs */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                    {(['all', 'faculty', 'coordinator', 'club', 'admin'] as const).map(tab => {
+                      const label = tab === 'all' ? 'All (62)' : tab === 'faculty' ? 'Faculty (40)' : tab === 'coordinator' ? 'Coordinators (9)' : tab === 'club' ? 'Clubs (11)' : 'Admin (2)';
+                      const isActive = activeDirectoryTab === tab;
+                      return (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => {
+                            setActiveDirectoryTab(tab);
+                            setSearchQuery('');
+                          }}
+                          className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                            isActive
+                              ? 'bg-[#c9a96b] text-[#0a1220] font-semibold shadow-sm'
+                              : 'bg-[#0f172a] text-[#acb5c3] hover:text-[#f1ece1] border border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          <span>{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Live Search Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="Search 62 accounts by name, faculty ID (e.g. F06), department (CSE), club, or email..."
+                      className="w-full pl-9 pr-8 py-2 bg-[#050912] border border-slate-700 focus:border-[#c9a96b] rounded-sm text-xs text-[#f1ece1] placeholder-[#acb5c3]/45 focus:outline-none transition-colors"
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#acb5c3]">
+                      🔍
+                    </span>
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#acb5c3] hover:text-white cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Readout */}
+                  <div className="flex items-center justify-between text-[11px] text-[#acb5c3] px-0.5">
+                    {(() => {
+                      const baseList = activeDirectoryTab === 'all'
+                        ? ALL_ACCOUNTS
+                        : (ACCOUNTS_DATA[activeDirectoryTab] || []);
+                      const q = searchQuery.toLowerCase().trim();
+                      const filtered = q
+                        ? baseList.filter((a: AccountItem) =>
+                            a.name.toLowerCase().includes(q) ||
+                            a.email.toLowerCase().includes(q) ||
+                            (a.faculty_id && a.faculty_id.toLowerCase().includes(q)) ||
+                            (a.department && a.department.toLowerCase().includes(q)) ||
+                            (a.club_name && a.club_name.toLowerCase().includes(q)) ||
+                            a.identifier.toLowerCase().includes(q)
+                          )
+                        : baseList;
+
+                      return (
+                        <>
+                          <span>
+                            Showing <strong className="text-white">{filtered.length}</strong> of {baseList.length} members
+                          </span>
+                          <span className="text-[#acb5c3]/60 hidden sm:inline">
+                            Click "Fill Form" to populate left panel
+                          </span>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Member Cards Scrollable List */}
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1.5 divide-y divide-slate-800/40">
+                  {(() => {
+                    const baseList = activeDirectoryTab === 'all'
+                      ? ALL_ACCOUNTS
+                      : (ACCOUNTS_DATA[activeDirectoryTab] || []);
+                    const q = searchQuery.toLowerCase().trim();
+                    const filtered = q
+                      ? baseList.filter((a: AccountItem) =>
+                          a.name.toLowerCase().includes(q) ||
+                          a.email.toLowerCase().includes(q) ||
+                          (a.faculty_id && a.faculty_id.toLowerCase().includes(q)) ||
+                          (a.department && a.department.toLowerCase().includes(q)) ||
+                          (a.club_name && a.club_name.toLowerCase().includes(q)) ||
+                          a.identifier.toLowerCase().includes(q)
+                        )
+                      : baseList;
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="text-center py-12 text-xs text-[#acb5c3] space-y-2">
+                          <p>No members matched "{searchQuery}".</p>
+                          <button
+                            type="button"
+                            onClick={() => setSearchQuery('')}
+                            className="text-[#c9a96b] underline cursor-pointer"
+                          >
+                            Clear search filter
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return filtered.map((acc: AccountItem) => (
+                      <div
+                        key={acc.id}
+                        className="p-3 bg-[#0d1627]/70 hover:bg-[#111c33] border border-slate-800/90 hover:border-[#c9a96b]/40 rounded-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-sm text-[#f1ece1] group-hover:text-white">
+                              {acc.name}
+                            </span>
+                            {acc.faculty_id && (
+                              <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#c9a96b]/20 text-[#c9a96b] border border-[#c9a96b]/30">
+                                {acc.faculty_id}
+                              </span>
+                            )}
+                            {acc.department && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/25">
+                                {acc.department}
+                              </span>
+                            )}
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase font-mono ${
+                              acc.role === 'admin' ? 'bg-[#6f8fb8]/20 text-[#6f8fb8] border border-[#6f8fb8]/30' :
+                              acc.role === 'department_coordinator' ? 'bg-[#5fa8a0]/20 text-[#5fa8a0] border border-[#5fa8a0]/30' :
+                              acc.role === 'faculty' ? 'bg-[#c9a96b]/20 text-[#c9a96b] border border-[#c9a96b]/30' :
+                              'bg-[#c27d5e]/20 text-[#c27d5e] border border-[#c27d5e]/30'
+                            }`}>
+                              {acc.role === 'department_coordinator' ? 'Coordinator' : acc.role}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-[11px] text-[#acb5c3] font-mono flex-wrap">
+                            <span>{acc.email}</span>
+                            <span>·</span>
+                            <span className="text-[#c9a96b]/90 bg-[#c9a96b]/10 px-1 py-0.2 rounded border border-[#c9a96b]/20">
+                              Rule Pwd: {acc.rule_password}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => fillFormCredentials(acc.faculty_id || acc.identifier || acc.email, acc.rule_password)}
+                            className="px-2.5 py-1.5 rounded-sm bg-slate-800 hover:bg-slate-700 text-[#f1ece1] text-xs font-medium border border-slate-700 hover:border-[#c9a96b]/40 transition-all cursor-pointer flex items-center gap-1"
+                            title="Populate this member's ID & rule password in the form"
+                          >
+                            <span>Fill Form ↗</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isLoggingIn}
+                            onClick={() => handleAccountLogin(acc)}
+                            className="px-2.5 py-1.5 rounded-sm bg-[#c9a96b]/20 hover:bg-[#c9a96b] hover:text-[#0a1220] text-[#c9a96b] font-semibold text-xs border border-[#c9a96b]/35 transition-all cursor-pointer flex items-center gap-1 disabled:opacity-50"
+                            title="Direct 1-Click Sign In"
+                          >
+                            {isLoggingIn && activeRoleLoggingIn === acc.name ? (
+                              <span>Signing in...</span>
+                            ) : (
+                              <span>Sign In ⚡</span>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

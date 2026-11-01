@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   BarChart3, Award, RefreshCw, CheckCircle2, History
 } from 'lucide-react';
@@ -9,6 +10,11 @@ import {
 } from 'recharts';
 
 export const AdminPage: React.FC = () => {
+  usePageMetadata(
+    'Central Administration Console | CIT Campus Scheduler',
+    'Administrative controls for Chilika Institute of Technology campus scheduling: dataset management, solver execution, disruption approvals, and logs.'
+  );
+
   const [activeTab, setActiveTab] = useState<'analytics' | 'dataset' | 'audit'>('analytics');
   const [roomAnalytics, setRoomAnalytics] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);

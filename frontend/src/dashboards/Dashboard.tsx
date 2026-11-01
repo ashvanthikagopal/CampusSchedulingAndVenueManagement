@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../lib/authContext';
 import { api } from '../services/api';
 import { Link } from 'react-router-dom';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   CheckCircle2, Clock, Calendar, 
   Sparkles, ShieldCheck, ArrowRight,
@@ -22,6 +23,11 @@ const DEFAULT_METRICS = {
 };
 
 export const Dashboard: React.FC = () => {
+  usePageMetadata(
+    'Campus Scheduling Dashboard | CIT Schedule Portal',
+    'Real-time Chilika Institute of Technology scheduling overview, venue allocation metrics, disruption notifications, and solver-verified timetables.'
+  );
+
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<any>(null);
   const [recentDecisions, setRecentDecisions] = useState<any[]>([]);

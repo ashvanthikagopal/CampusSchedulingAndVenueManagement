@@ -209,14 +209,14 @@ The platform features a **rule-based dynamic account system** that generates and
 6. **Environment Variable `DEMO_MODE=true`**: Enables the safe `/auth/directory` endpoint for one-click demo navigation in development and judging. Passwords are never returned over the API.
 7. **Idempotent Reset**: The Admin "Reset demo data" button (or `POST /api/admin/reset-demo`) restores the database to the clean starter baseline and guarantees all 62 accounts are re-seeded.
 
-### Role Passwords & Capabilities Table
+### Rule-Based Credentials & Capabilities Table
 
-| Role | Scope & Permissions | Demo Password | Email / Identifier Pattern | Priority Ceiling |
-| :--- | :--- | :--- | :--- | :--- |
-| **Campus Admin** | Full schedule generation, disruption approval, system reset | `Admin@123` | `admin@cit.edu`, `admin2@cit.edu` | `institute_event` |
-| **Department Coordinator** | Department timetable ownership, lab booking approval, session moves | `Coord@123` | `coord_<dept>@cit.edu`, `coord_tnp@cit.edu` | `department_event` |
-| **Faculty Member** | Personal timetable, unavailability requests, guest lecture bookings | `Faculty@123` | `faculty_<fid>@cit.edu` or Faculty ID (`F01`–`F40`) | `guest_lecture` |
-| **Club Representative** | Student event booking requests, venue availability tracking | `Club@123` | `club_<slug>@cit.edu` | `club_event` |
+| Role | Scope & Permissions | Universal Password | Member-Specific Rule Password | Identifier Formats | Priority Ceiling |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Campus Admin** | Full schedule generation, disruption approval, system reset | `Admin@123` | `Admin@123` | `admin@cit.edu`, `admin2@cit.edu`, `admin` | `institute_event` |
+| **Department Coordinator** | Department timetable ownership, lab booking approval, session moves | `Coord@123` | `Coord@<DEPT>123` (e.g. `Coord@CSE123`) | Dept code (`CSE`, `ECE`, `ME`, `CE`, etc.) or `coord_<dept>@cit.edu` | `department_event` |
+| **Faculty Member** | Personal timetable, unavailability requests, guest lecture bookings | `Faculty@123` | `<FacultyID>@123` (e.g. `F06@123`, `F01@123`) | Faculty ID (`F01`–`F40`) or `faculty_<fid>@cit.edu` | `guest_lecture` |
+| **Club Representative** | Student event booking requests, venue availability tracking | `Club@123` | `Club@<Slug>123` (e.g. `Club@Dance123`) | Club name, slug (`dance`, `coding`, etc.) or `club_<slug>@cit.edu` | `club_event` |
 
 <details>
 <summary><strong>Click to expand all 62 rule-generated demo accounts</strong></summary>

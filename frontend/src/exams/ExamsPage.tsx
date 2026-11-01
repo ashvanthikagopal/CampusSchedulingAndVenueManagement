@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { Clock, ShieldCheck } from 'lucide-react';
 
 export const ExamsPage: React.FC = () => {
+  usePageMetadata(
+    'Midsem Examination Calendar & Seating | CIT Schedule',
+    'Chilika Institute of Technology midsem examination schedule with strict half-capacity seating arithmetic across 12 AM/PM slots with zero clashes.'
+  );
+
   const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedDay, setSelectedDay] = useState<string>('ALL');

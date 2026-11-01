@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   Sparkles, PlusCircle, CheckCircle2, AlertTriangle, 
   X, Clock, HelpCircle
 } from 'lucide-react';
 
 export const BookingsPage: React.FC = () => {
+  usePageMetadata(
+    'Campus Venue Booking & Spectra Events | CIT Schedule',
+    'Request lecture halls, labs, and auditoriums at Chilika Institute of Technology with real-time clash checking, capacity validation, and NLP search.'
+  );
+
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [bookings, setBookings] = useState<any[]>([]);

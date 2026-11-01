@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   Building2, Calendar, Clock, Filter, ChevronLeft, ChevronRight, 
   Info, Sparkles, CheckCircle2, AlertTriangle, ShieldAlert,
@@ -42,6 +43,11 @@ interface RoomData {
 }
 
 export const ClubTimetable: React.FC = () => {
+  usePageMetadata(
+    'Club Venue Availability & Timetable | CIT Schedule',
+    'Explore 27 campus rooms, find free venue slots for Spectra week, and request space with transparent clash detection.'
+  );
+
   const { user } = useAuth();
   const navigate = useNavigate();
 

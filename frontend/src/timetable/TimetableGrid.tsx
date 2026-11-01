@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
 import { ClubTimetable } from './ClubTimetable';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   Calendar, Filter, Sparkles, 
   X, CheckCircle2, AlertOctagon, Move,
@@ -25,6 +26,11 @@ interface FilterOptionsData {
 }
 
 export const TimetableGrid: React.FC = () => {
+  usePageMetadata(
+    'Master Interactive Timetable Grid | CIT Scheduler',
+    'Browse and search the official CIT weekly timetable by room, faculty member, student group, or department with zero timetable clashes guaranteed.'
+  );
+
   const { user } = useAuth();
 
   // If logged in as club representative, render dedicated Club Representative Timetable

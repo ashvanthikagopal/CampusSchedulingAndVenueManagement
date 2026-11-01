@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
 import { useToast } from '../components/Toast';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   Calendar, Clock, CheckCircle2, AlertCircle, 
   HelpCircle, X, ShieldCheck, Plus, Sparkles,
@@ -13,6 +14,11 @@ const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
 const PERIODS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export const MyRequestsPage: React.FC = () => {
+  usePageMetadata(
+    'Faculty Reschedule Requests & Status | CIT Schedule',
+    'Track status of submitted class shift and venue booking requests. Review admin decisions, alternative slot proposals, and solver verifications.'
+  );
+
   const { user } = useAuth();
   const { showToast } = useToast();
 

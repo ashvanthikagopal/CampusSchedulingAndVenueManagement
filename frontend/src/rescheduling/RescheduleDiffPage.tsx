@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   ShieldCheck, CheckCircle2, 
   Upload, Check, Move
 } from 'lucide-react';
 
 export const RescheduleDiffPage: React.FC = () => {
+  usePageMetadata(
+    'Timetable Approvals & Schedule Diff | CIT Schedule',
+    'Review faculty class reschedule requests, compare visual timetable diffs, and approve minimal-change disruption proposals with zero collisions.'
+  );
+
   const { user } = useAuth();
   const [proposals, setProposals] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

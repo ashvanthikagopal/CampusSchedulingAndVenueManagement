@@ -2,12 +2,18 @@ import React, { useState } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
 import { useToast } from '../components/Toast';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   Send, ShieldCheck, 
   CheckCircle2, ArrowRight, User as UserIcon, Bot
 } from 'lucide-react';
 
 export const AssistantPage: React.FC = () => {
+  usePageMetadata(
+    'AI Faculty Timetable Assistant | CIT Campus Portal',
+    'Natural language timetable scheduler assistant powered by Google Gemini and deterministic constraint validation for faculty slot explanations.'
+  );
+
   const { user } = useAuth();
   const { showToast } = useToast();
   const [messages, setMessages] = useState<any[]>([

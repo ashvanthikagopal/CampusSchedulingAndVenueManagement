@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../lib/authContext';
 import {
   Calendar, Clock, ShieldCheck, MessageSquare,
   BarChart3, RefreshCw, LogOut, Menu, X, PlusCircle, Award,
-  Bell, Check, CheckCheck, FileText, UserCheck
+  Bell, Check, CheckCheck, FileText
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -15,6 +15,24 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // Close menus on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+        setNotificationsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setNotificationsOpen(false);
+  }, [location.pathname]);
 
   // Notifications query
   const { data: notifData, refetch: refetchNotifs } = useQuery({
@@ -173,13 +191,17 @@ export const Navbar: React.FC = () => {
             {user && (
               <div className="relative shrink-0">
                 <button
+                  type="button"
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className="relative p-2 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                  aria-expanded={notificationsOpen}
+                  aria-haspopup="true"
+                  aria-label={`Notifications, ${unreadCount} unread`}
+                  className="relative min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
                   title="Notifications"
                 >
                   <Bell className="w-4 h-4" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                    <span className="absolute top-2 right-2 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
                       {unreadCount}
                     </span>
                   )}
@@ -187,7 +209,7 @@ export const Navbar: React.FC = () => {
 
                 {/* Notifications Dropdown */}
                 {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in">
                     <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white uppercase tracking-wider">Notifications</span>
@@ -199,8 +221,9 @@ export const Navbar: React.FC = () => {
                       </div>
                       {unreadCount > 0 && (
                         <button
+                          type="button"
                           onClick={handleMarkAllRead}
-                          className="text-[11px] text-sky-400 hover:text-sky-300 flex items-center gap-1 font-medium"
+                          className="text-[11px] text-sky-400 hover:text-sky-300 flex items-center gap-1 font-medium cursor-pointer"
                         >
                           <CheckCheck className="w-3.5 h-3.5" />
                           Mark all read
@@ -236,9 +259,11 @@ export const Navbar: React.FC = () => {
                             </div>
                             {!n.read && (
                               <button
+                                type="button"
                                 onClick={(e) => handleMarkAsRead(n.id, e)}
-                                className="text-[10px] text-slate-400 hover:text-white p-1"
+                                className="text-[10px] text-slate-400 hover:text-white p-1 cursor-pointer"
                                 title="Mark read"
+                                aria-label="Mark notification as read"
                               >
                                 <Check className="w-3 h-3" />
                               </button>
@@ -269,9 +294,11 @@ export const Navbar: React.FC = () => {
                 </div>
 
                 <button
+                  type="button"
                   onClick={logout}
-                  className="p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors shrink-0"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-slate-800/80 text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
                   title="Logout"
+                  aria-label="Log out of session"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -280,10 +307,12 @@ export const Navbar: React.FC = () => {
 
             {user?.role === 'admin' && (
               <button
+                type="button"
                 onClick={handleResetDemo}
                 disabled={isResetting}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all hover:border-slate-600 disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all hover:border-slate-600 disabled:opacity-50 cursor-pointer"
                 title="Reset Database to Clean Baseline State"
+                aria-label="Reset demo state to baseline"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-sky-400' : ''}`} />
                 Reset Demo
@@ -291,24 +320,31 @@ export const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu & Notification Buttons */}
           <div className="lg:hidden flex items-center gap-2">
             {user && (
               <button
+                type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-lg bg-slate-800 text-slate-300"
+                aria-expanded={notificationsOpen}
+                aria-label={`Notifications, ${unreadCount} unread`}
+                className="relative min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
+                  <span className="absolute top-2 right-2 w-4 h-4 bg-rose-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
                     {unreadCount}
                   </span>
                 )}
               </button>
             )}
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation-menu"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -318,7 +354,12 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-800 bg-slate-950/95 px-4 pt-2 pb-4 space-y-1">
+        <div
+          id="mobile-navigation-menu"
+          role="navigation"
+          aria-label="Mobile Navigation"
+          className="lg:hidden border-b border-slate-800 bg-slate-950/95 px-4 pt-2 pb-5 space-y-1 animate-in fade-in slide-in-from-top-2"
+        >
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = location.pathname === link.path;
@@ -327,26 +368,33 @@ export const Navbar: React.FC = () => {
                 key={link.path}
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium ${isActive ? 'bg-sky-500/20 text-sky-400' : 'text-slate-300 hover:bg-slate-800'
+                className={`min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-sky-500/20 text-sky-400 font-semibold' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
               >
-                <Icon className="w-5 h-5" />
-                {link.name}
+                <Icon className="w-5 h-5 shrink-0" />
+                <span>{link.name}</span>
+                {link.badge && (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono ml-auto">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
           {user && (
-            <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+            <div className="pt-4 mt-2 border-t border-slate-800 flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-white">{user.name}</div>
-                <div className="text-xs text-sky-400 capitalize">{user.role} {user.faculty_id ? `(${user.faculty_id})` : ''}</div>
+                <div className="text-xs text-sky-400 capitalize">{user.role.replace('_', ' ')} {user.faculty_id ? `(${user.faculty_id})` : ''}</div>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   logout();
                   setMobileMenuOpen(false);
                 }}
-                className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 text-xs font-semibold"
+                className="min-h-[44px] px-4 py-2 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 text-xs font-semibold transition-colors cursor-pointer"
+                aria-label="Log out of session"
               >
                 Logout
               </button>

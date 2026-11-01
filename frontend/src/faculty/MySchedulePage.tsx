@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
 import { useToast } from '../components/Toast';
+import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
   Calendar, Clock, CheckCircle2, AlertCircle, AlertTriangle,
   HelpCircle, X, ShieldCheck, UserCheck, Plus, Sparkles
@@ -24,6 +25,11 @@ const PERIOD_TIMES: Record<number, string> = {
 };
 
 export const MySchedulePage: React.FC = () => {
+  usePageMetadata(
+    'Faculty Personal Schedule & Leaves | CIT Scheduler',
+    'Personalized weekly lecture timetable for faculty members. View assigned teaching slots, student cohorts, and mark planned academic leaves.'
+  );
+
   const { user } = useAuth();
   const { showToast } = useToast();
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
