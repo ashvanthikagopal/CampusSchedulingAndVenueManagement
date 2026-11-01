@@ -11,7 +11,7 @@ export const AssistantPage: React.FC = () => {
   const [messages, setMessages] = useState<any[]>([
     {
       role: 'assistant',
-      text: `Hello ${user?.name || 'Professor'}! I am your CIT Faculty Scheduling Assistant. I can explain slot allocations, evaluate room shifts, and generate minimal-change disruption proposals verified with 0 hard violations.`,
+      text: `Hello ${user?.name || 'Professor'}! I am your Zero Hour Scheduling Assistant. I can explain slot allocations, evaluate room shifts, and generate minimal-change disruption proposals verified with 0 hard violations.`,
       proposalCard: null
     }
   ]);
@@ -84,7 +84,7 @@ export const AssistantPage: React.FC = () => {
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">CIT Faculty Timetable Assistant</h1>
+            <h1 className="text-xl font-bold text-white">Zero Hour Assistant</h1>
             <p className="text-xs text-slate-400">
               Deterministic rule facts wrapped with Google Gemini conversational interface
             </p>

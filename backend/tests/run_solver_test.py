@@ -37,7 +37,7 @@ def main():
         for sid, (day, start, rid) in sorted(assign.items())
     ]
     sched = {
-        "team": "CIT Scheduler Team",
+        "team": "Zero Hour Team",
         "dataset_id": data["dataset_id"],
         "sessions": sessions_list
     }

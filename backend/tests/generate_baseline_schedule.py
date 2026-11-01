@@ -53,7 +53,7 @@ def generate_baseline(
     print(f"Bookings solved: {stats_b}")
 
     schedule = {
-        "team": "CIT Scheduler Master Team",
+        "team": "Zero Hour Master Team",
         "dataset_id": data["dataset_id"],
         "sessions": sessions_list,
         "fest_week": {

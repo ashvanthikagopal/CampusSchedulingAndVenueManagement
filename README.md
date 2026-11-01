@@ -1,4 +1,4 @@
-# CIT Campus Scheduling and Venue Management Platform
+# Zero Hour - Campus Scheduling and Venue Management Platform
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)

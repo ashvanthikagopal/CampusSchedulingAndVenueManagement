@@ -50,7 +50,7 @@ export const Navbar: React.FC = () => {
             </div>
             <div>
               <span className="font-bold text-lg text-white tracking-tight flex items-center gap-1.5">
-                CIT Scheduler
+                Zero Hour
                 <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-semibold">
                   Zero Clashes
                 </span>

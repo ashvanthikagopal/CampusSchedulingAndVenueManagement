@@ -1,5 +1,5 @@
 """
-Domain models for the CIT Scheduler rules engine and solver.
+Domain models for the Zero Hour rules engine and solver.
 Pure Python dataclasses with zero FastAPI or database dependencies.
 """
 from dataclasses import dataclass, field

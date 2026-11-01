@@ -67,7 +67,7 @@ def run_solver_background_job(job_id: str, admin_email: str):
             for sid, (d, st, r) in sorted(timetable_assign.items())
         ]
         sched_dict = {
-            "team": "CIT Scheduler Master Team",
+            "team": "Zero Hour Master Team",
             "dataset_id": ctx.dataset_id,
             "sessions": sessions_list,
             "fest_week": {

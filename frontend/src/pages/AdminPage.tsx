@@ -59,7 +59,7 @@ export const AdminPage: React.FC = () => {
             <Award className="w-3.5 h-3.5" />
             Administrative Authority
           </div>
-          <h1 className="text-2xl font-bold text-white">CIT Campus Control & Analytics</h1>
+          <h1 className="text-2xl font-bold text-white">Zero Hour Campus Control & Analytics</h1>
           <p className="text-xs text-slate-400 mt-0.5">
             Monitor room utilisation, inspect official validator logs, review audit trails, and manage priorities.
           </p>

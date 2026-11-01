@@ -1,5 +1,5 @@
 """
-FastAPI application entry point for CIT Campus Scheduler and Venue Management.
+FastAPI application entry point for Zero Hour Campus Scheduler and Venue Management.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -163,6 +163,6 @@ app.include_router(admin_router, prefix=settings.API_PREFIX)
 def health_check():
     return {
         "status": "healthy",
-        "service": "cit-scheduler-api",
+        "service": "zero-hour-api",
         "version": settings.VERSION
     }

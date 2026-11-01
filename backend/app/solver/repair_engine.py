@@ -298,7 +298,7 @@ def repair_schedule(
     ]
 
     schedule_after = {
-        "team": base_schedule.get("team", "CIT Scheduler Master Team"),
+        "team": base_schedule.get("team", "Zero Hour Master Team"),
         "dataset_id": new_ctx.dataset_id,
         "sessions": repaired_sessions_list,
         "fest_week": {

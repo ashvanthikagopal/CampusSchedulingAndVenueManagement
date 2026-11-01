@@ -7,7 +7,7 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "CIT Campus Scheduler"
+    PROJECT_NAME: str = "Zero Hour Campus Scheduler"
     VERSION: str = "1.0.0"
     API_PREFIX: str = "/api"
 
