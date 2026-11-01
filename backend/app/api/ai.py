@@ -8,9 +8,11 @@ from typing import Dict, Any, Optional, List
 import json
 import re
 import os
+from pathlib import Path
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 
-from backend.app.core.config import settings
+from backend.app.core.config import settings, REPO_ROOT
 from backend.app.schemas.schemas import AIChatRequest, AIChatResponse
 from backend.app.api.deps import get_current_user
 from backend.app.models.entities import User
@@ -23,17 +25,148 @@ from backend.app.ai.faculty_tools import (
     tool_check_workload
 )
 
+logger = logging.getLogger("cit_scheduler.ai")
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 
 def load_system_instruction() -> str:
     """Loads system prompt from faculty_assistant.txt."""
-    prompt_path = "backend/app/ai/prompts/faculty_assistant.txt"
-    try:
-        with open(prompt_path, encoding="utf-8") as f:
-            return f.read()
-    except Exception:
-        return "You are the CIT Faculty Timetable Assistant. Base all answers on deterministic facts."
+    candidates = [
+        REPO_ROOT / "backend" / "app" / "ai" / "prompts" / "faculty_assistant.txt",
+        Path("backend/app/ai/prompts/faculty_assistant.txt")
+    ]
+    for c in candidates:
+        if c.exists():
+            try:
+                with open(c, encoding="utf-8") as f:
+                    return f.read()
+            except Exception:
+                pass
+    return "You are the CIT Faculty Timetable Assistant. Base all answers on deterministic facts."
+
+
+GROQ_FACULTY_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "explain_session",
+            "description": "Explains why a faculty's session is in its current slot and computes real legal options count.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "session_id": {"type": "string", "description": "The session ID to explain, e.g. CS202-L1"}
+                },
+                "required": ["session_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "propose_reschedule",
+            "description": "Generates a minimal-change disruption proposal to reschedule a faculty's session with 0 hard violations.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "session_id": {"type": "string", "description": "The session ID to reschedule, e.g. CS202-T1"},
+                    "reason": {"type": "string", "description": "Reason for the reschedule"},
+                    "preferred_day": {"type": "string", "description": "Optional preferred day like MON, TUE, WED, THU, FRI"}
+                },
+                "required": ["session_id", "reason"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "find_free_rooms",
+            "description": "Finds free classrooms or halls on a given day and period with 0 clashes.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "day": {"type": "string", "description": "Day of week (MON-FRI)"},
+                    "period": {"type": "integer", "description": "Period number (1-9)"}
+                },
+                "required": ["day", "period"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "show_my_schedule",
+            "description": "Shows the faculty member's current weekly teaching schedule.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "day": {"type": "string", "description": "Optional day to filter (MON-FRI)"}
+                }
+            }
+        }
+    }
+]
+
+
+def execute_faculty_tool(fn_name: str, fn_args: dict, raw_msg: str, fac_id: str) -> Optional[AIChatResponse]:
+    """Executes deterministic tool calls requested by Groq or Gemini."""
+    if fn_name == "propose_reschedule":
+        sid = fn_args.get("session_id")
+        resolved_sid, clar = resolve_faculty_session(raw_msg, fac_id)
+        if resolved_sid:
+            sid = resolved_sid
+        if clar:
+            return AIChatResponse(reply=clar, proposal_card=None, suggested_actions=["Specify Session"], is_fallback=False)
+
+        res = tool_propose_reschedule(
+            session_id=sid,
+            reason=fn_args.get("reason", raw_msg),
+            faculty_id=fac_id,
+            preferred_day=fn_args.get("preferred_day")
+        )
+        if res.get("status") == "FEASIBLE":
+            return AIChatResponse(
+                reply=res.get("message", "I have prepared a verified minimal-change proposal for your review."),
+                proposal_card=res.get("proposal_card"),
+                suggested_actions=["Submit for Admin Approval", "Check Alternative Slot"],
+                is_fallback=False
+            )
+        else:
+            return AIChatResponse(
+                reply=f"Unable to reschedule {sid}: {res.get('error', 'No open slot')}. Conflicting constraints: {', '.join(res.get('conflicting_rules', []))}.",
+                proposal_card=None,
+                suggested_actions=["Try Different Day", "Check Free Rooms"],
+                is_fallback=False
+            )
+
+    elif fn_name == "explain_session":
+        sid = fn_args.get("session_id")
+        resolved_sid, clar = resolve_faculty_session(raw_msg, fac_id)
+        sid = resolved_sid or sid
+        res = tool_explain_session(sid, fac_id)
+        if "error" in res:
+            return AIChatResponse(reply=res["error"], proposal_card=None, is_fallback=False)
+        reply_text = (
+            f"Session {res['session_id']} ({res['course_id']}) is assigned to {res['assigned_slot']}. "
+            f"{res['capacity_match']}, {res['room_type_match']}. {res['lunch_protected']}."
+        )
+        return AIChatResponse(reply=reply_text, proposal_card=None, suggested_actions=["Move Session", "Check Workload"], is_fallback=False)
+
+    elif fn_name == "find_free_rooms":
+        d = fn_args.get("day", "TUE")
+        p = int(fn_args.get("period", 3))
+        res = tool_find_free_rooms(d, p)
+        rms = [f"{r['room_id']} ({r['room_name']}, cap {r['capacity']})" for r in res.get("rooms", [])[:4]]
+        reply_text = f"Found {res.get('free_rooms_count')} free rooms on {d} Period {p}: {', '.join(rms)}."
+        return AIChatResponse(reply=reply_text, proposal_card=None, suggested_actions=["Check Morning Slots", "Check Afternoon Slots"], is_fallback=False)
+
+    elif fn_name == "show_my_schedule":
+        d = fn_args.get("day")
+        res = tool_show_my_schedule(fac_id, d)
+        s_list = [f"{s['session_id']} at {s['day']} P{s['start_period']} in {s['room_id']}" for s in res.get("sessions", [])]
+        reply_text = f"You have {res.get('total_sessions')} teaching sessions: {'; '.join(s_list)}."
+        return AIChatResponse(reply=reply_text, proposal_card=None, suggested_actions=["Why is my class at 8 AM?", "Move my class"], is_fallback=False)
+
+    return None
 
 
 @router.post("/chat", response_model=AIChatResponse)
@@ -111,15 +244,60 @@ def ai_chat(req: AIChatRequest, current_user: User = Depends(get_current_user)):
             is_fallback=False
         )
 
-    # --- 2. Check if Gemini API is available ---
-    use_gemini = bool(settings.GEMINI_API_KEY)
-    if use_gemini:
+    resolved_sid, clar = resolve_faculty_session(raw_msg, fac_id)
+    session_context = f"\nMatched Faculty Session: {resolved_sid}" if resolved_sid else ""
+    prompt_content = f"Authenticated faculty: {current_user.name} (ID: {fac_id}, Dept: {current_user.department}){session_context}\nUser request: {raw_msg}"
+    sys_inst = load_system_instruction()
+    reschedule_keywords = ["move", "reschedule", "shift", "travelling", "traveling", "chhutti", "jaana hai", "badal do"]
+
+    # --- 2. Primary Provider: Groq API ---
+    if settings.GROQ_API_KEY:
+        try:
+            from groq import Groq
+            client = Groq(api_key=settings.GROQ_API_KEY)
+            response = client.chat.completions.create(
+                model=settings.GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": sys_inst},
+                    {"role": "user", "content": prompt_content}
+                ],
+                tools=GROQ_FACULTY_TOOLS,
+                temperature=0.1
+            )
+            msg_choice = response.choices[0].message
+            if msg_choice.tool_calls:
+                call = msg_choice.tool_calls[0]
+                fn_name = call.function.name
+                fn_args = json.loads(call.function.arguments) if call.function.arguments else {}
+                tool_res = execute_faculty_tool(fn_name, fn_args, raw_msg, fac_id)
+                if tool_res:
+                    return tool_res
+
+            if any(k in msg for k in reschedule_keywords) and resolved_sid:
+                tool_res = execute_faculty_tool("propose_reschedule", {"session_id": resolved_sid, "reason": raw_msg}, raw_msg, fac_id)
+                if tool_res:
+                    return tool_res
+
+            if msg_choice.content:
+                return AIChatResponse(
+                    reply=msg_choice.content,
+                    proposal_card=None,
+                    suggested_actions=["Move my DBMS class", "Why is my class at 8 AM?", "Find a free room"],
+                    is_fallback=False
+                )
+        except Exception as groq_err:
+            logger.warning(
+                f"[AI Assistant] Primary provider Groq failed: {groq_err}. "
+                "Failing over to secondary provider Gemini..."
+            )
+
+    # --- 3. Secondary Provider: Google Gemini API ---
+    if settings.GEMINI_API_KEY:
         try:
             from google import genai
             from google.genai import types
 
             client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            sys_inst = load_system_instruction()
 
             # Define functions for Gemini
             explain_func = types.FunctionDeclaration(
@@ -174,92 +352,52 @@ def ai_chat(req: AIChatRequest, current_user: User = Depends(get_current_user)):
 
             tools = types.Tool(function_declarations=[explain_func, reschedule_func, free_rooms_func, schedule_func])
 
-            prompt_content = f"Authenticated faculty: {current_user.name} (ID: {fac_id}, Dept: {current_user.department})\nUser request: {raw_msg}"
-            response = client.models.generate_content(
-                model=settings.GEMINI_MODEL,
-                contents=prompt_content,
-                config=types.GenerateContentConfig(
-                    system_instruction=sys_inst,
-                    temperature=0.1,
-                    tools=[tools]
-                )
-            )
+            gemini_models = [settings.GEMINI_MODEL, "gemini-3.5-flash-lite", "gemini-3.5-flash"]
+            response = None
+            for model_name in gemini_models:
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=prompt_content,
+                        config=types.GenerateContentConfig(
+                            system_instruction=sys_inst,
+                            temperature=0.1,
+                            tools=[tools]
+                        )
+                    )
+                    break
+                except Exception as m_err:
+                    if "503" in str(m_err) or "UNAVAILABLE" in str(m_err) or "404" in str(m_err):
+                        continue
+                    raise m_err
 
             # Check if Gemini made a function call
-            if response.function_calls:
+            if response and response.function_calls:
                 call = response.function_calls[0]
                 fn_name = call.name
                 fn_args = dict(call.args) if call.args else {}
+                tool_res = execute_faculty_tool(fn_name, fn_args, raw_msg, fac_id)
+                if tool_res:
+                    return tool_res
 
-                if fn_name == "propose_reschedule":
-                    sid = fn_args.get("session_id")
-                    # If sid looks vague, resolve via entity resolver
-                    resolved_sid, clar = resolve_faculty_session(raw_msg, fac_id)
-                    if resolved_sid:
-                        sid = resolved_sid
-                    if clar:
-                        return AIChatResponse(reply=clar, proposal_card=None, suggested_actions=["Specify Session"], is_fallback=False)
-
-                    res = tool_propose_reschedule(
-                        session_id=sid,
-                        reason=fn_args.get("reason", raw_msg),
-                        faculty_id=fac_id,
-                        preferred_day=fn_args.get("preferred_day")
-                    )
-                    if res.get("status") == "FEASIBLE":
-                        return AIChatResponse(
-                            reply=res.get("message", "I have prepared a verified minimal-change proposal for your review."),
-                            proposal_card=res.get("proposal_card"),
-                            suggested_actions=["Submit for Admin Approval", "Check Alternative Slot"],
-                            is_fallback=False
-                        )
-                    else:
-                        return AIChatResponse(
-                            reply=f"Unable to reschedule {sid}: {res.get('error', 'No open slot')}. Conflicting constraints: {', '.join(res.get('conflicting_rules', []))}.",
-                            proposal_card=None,
-                            suggested_actions=["Try Different Day", "Check Free Rooms"],
-                            is_fallback=False
-                        )
-
-                elif fn_name == "explain_session":
-                    sid = fn_args.get("session_id")
-                    resolved_sid, clar = resolve_faculty_session(raw_msg, fac_id)
-                    sid = resolved_sid or sid
-                    res = tool_explain_session(sid, fac_id)
-                    if "error" in res:
-                        return AIChatResponse(reply=res["error"], proposal_card=None, is_fallback=False)
-                    reply_text = (
-                        f"Session {res['session_id']} ({res['course_id']}) is assigned to {res['assigned_slot']}. "
-                        f"{res['capacity_match']}, {res['room_type_match']}. {res['lunch_protected']}."
-                    )
-                    return AIChatResponse(reply=reply_text, proposal_card=None, suggested_actions=["Move Session", "Check Workload"], is_fallback=False)
-
-                elif fn_name == "find_free_rooms":
-                    d = fn_args.get("day", "TUE")
-                    p = int(fn_args.get("period", 3))
-                    res = tool_find_free_rooms(d, p)
-                    rms = [f"{r['room_id']} ({r['room_name']}, cap {r['capacity']})" for r in res.get("rooms", [])[:4]]
-                    reply_text = f"Found {res.get('free_rooms_count')} free rooms on {d} Period {p}: {', '.join(rms)}."
-                    return AIChatResponse(reply=reply_text, proposal_card=None, suggested_actions=["Check Morning Slots", "Check Afternoon Slots"], is_fallback=False)
-
-                elif fn_name == "show_my_schedule":
-                    d = fn_args.get("day")
-                    res = tool_show_my_schedule(fac_id, d)
-                    s_list = [f"{s['session_id']} at {s['day']} P{s['start_period']} in {s['room_id']}" for s in res.get("sessions", [])]
-                    reply_text = f"You have {res.get('total_sessions')} teaching sessions: {'; '.join(s_list)}."
-                    return AIChatResponse(reply=reply_text, proposal_card=None, suggested_actions=["Why is my class at 8 AM?", "Move my class"], is_fallback=False)
+            if any(k in msg for k in reschedule_keywords) and resolved_sid:
+                tool_res = execute_faculty_tool("propose_reschedule", {"session_id": resolved_sid, "reason": raw_msg}, raw_msg, fac_id)
+                if tool_res:
+                    return tool_res
 
             # If Gemini returned plain text without function call
-            if response.text:
+            if response and response.text:
                 return AIChatResponse(
                     reply=response.text,
                     proposal_card=None,
                     suggested_actions=["Move my DBMS class", "Why is my class at 8 AM?", "Find a free room"],
                     is_fallback=False
                 )
-        except Exception as e:
-            # On any Gemini error, smoothly fall back to deterministic pipeline
-            pass
+        except Exception as gemini_err:
+            logger.warning(
+                f"[AI Assistant] Secondary provider Gemini failed: {gemini_err}. "
+                "Failing over to tertiary deterministic rules engine..."
+            )
 
     # --- 3. Deterministic Fallback Pipeline (Rule/Regex Intent Parser) ---
     # Works 100% offline with zero external API dependencies

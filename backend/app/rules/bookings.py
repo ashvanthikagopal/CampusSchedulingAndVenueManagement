@@ -2,7 +2,7 @@
 Deterministic rules for Spectra Week bookings (B1, B2, B3, H13, and priority inversions).
 Matches official validator.py exactly.
 """
-from typing import Dict, List, Tuple, Set, Any
+from typing import Dict, List, Tuple, Set, Any, Optional
 from collections import defaultdict
 from backend.app.rules.models import DatasetContext, BookingRequest, CAT_WEIGHT, MAX_PERIOD, effective_category, outranks
 from backend.app.rules.timetable import validate_full_timetable, block

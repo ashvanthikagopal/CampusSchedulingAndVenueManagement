@@ -8,7 +8,64 @@ import re
 import json
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Tuple
-from backend.app.core.config import settings
+from pathlib import Path
+from backend.app.core.config import settings, REPO_ROOT
+from backend.app.ai.llm_client import call_llm_json
+
+
+def load_booking_instruction() -> str:
+    """Loads system prompt from booking_parser.txt."""
+    candidates = [
+        REPO_ROOT / "backend" / "app" / "ai" / "prompts" / "booking_parser.txt",
+        Path("backend/app/ai/prompts/booking_parser.txt")
+    ]
+    for c in candidates:
+        if c.exists():
+            try:
+                with open(c, encoding="utf-8") as f:
+                    return f.read()
+            except Exception:
+                pass
+    return "Extract structured booking parameters from English and Hinglish text into strictly valid JSON."
+
+
+def parse_booking_text(text: str, user_role: str = "club") -> Dict[str, Any]:
+    """
+    Main parser entry point.
+    Multi-tier AI orchestration:
+    1. Primary: Groq API (High-speed LLaMA/Qwen)
+    2. Secondary: Google Gemini API (automatic failover if Groq fails or tokens exhausted)
+    3. Tertiary: Built-in deterministic regex & Hinglish lexicon parser
+    """
+    system_inst = load_booking_instruction()
+    user_content = (
+        f"Today's demo date: {settings.DEMO_TODAY_DATE}\n"
+        f"User role: '{user_role}'\n"
+        f"Request text: '{text}'"
+    )
+
+    data, provider = call_llm_json(system_inst, user_content)
+    if data and isinstance(data, dict) and data.get("windows"):
+        data["parsed_by"] = provider
+        if not data.get("room_types"):
+            data["room_types"] = ["classroom", "lecture_hall", "seminar_hall"]
+
+        # Domain rule post-alignment
+        text_lower = text.lower()
+        assumptions = data.setdefault("assumptions", [])
+        if ("accessible" in data.get("needs", []) or "wheelchair" in text_lower) and data.get("requested_room") == "SH-2":
+            data["requested_room"] = "SH-1"
+            if not any("SH-1" in a or "accessible" in a for a in assumptions):
+                assumptions.append("SH-2 is not wheelchair accessible; SH-1 recommended as accessible alternative")
+
+        if ("after lunch" in text_lower or "dopahar" in text_lower) and not any("after lunch" in a.lower() for a in assumptions):
+            assumptions.append("After lunch window inferred as P6 onward")
+
+        return data
+
+    # Use built-in deterministic fallback parser
+    res = fallback_parse_request(text, base_date_str=settings.DEMO_TODAY_DATE)
+    return res
 
 # Hinglish lexicon
 HINGLISH_LEXICON = {
@@ -214,41 +271,4 @@ def fallback_parse_request(text: str, base_date_str: str = "2027-01-25") -> Dict
     }
 
 
-def parse_booking_text(text: str, user_role: str = "club") -> Dict[str, Any]:
-    """
-    Main parser entry point.
-    Tries Google GenAI first if API key is configured; otherwise uses deterministic fallback.
-    """
-    if settings.GEMINI_API_KEY:
-        try:
-            from google import genai
-            from google.genai import types
 
-            client = genai.Client(api_key=settings.GEMINI_API_KEY)
-            prompt_path = "backend/app/ai/prompts/booking_parser.txt"
-            system_instruction = ""
-            try:
-                with open(prompt_path, encoding="utf-8") as f:
-                    system_instruction = f.read()
-            except Exception:
-                pass
-
-            response = client.models.generate_content(
-                model=settings.GEMINI_MODEL,
-                contents=f"Request text: '{text}'\nUser role: '{user_role}'",
-                config=types.GenerateContentConfig(
-                    system_instruction=system_instruction,
-                    temperature=0.1,
-                    response_mime_type="application/json"
-                )
-            )
-            data = json.loads(response.text)
-            data["parsed_by"] = "gemini"
-            return data
-        except Exception as e:
-            # Fall back seamlessly on any API error or timeout
-            pass
-
-    # Use built-in deterministic fallback parser
-    res = fallback_parse_request(text, base_date_str=settings.DEMO_TODAY_DATE)
-    return res

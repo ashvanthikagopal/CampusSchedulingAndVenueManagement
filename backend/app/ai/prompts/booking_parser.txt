@@ -27,9 +27,17 @@ Time Mapping:
 - P6: 14:00-15:00, P7: 15:00-16:00, P8: 16:00-17:00, P9: 17:00-18:00
 - P10: 18:00-19:00, P11: 19:00-20:00, P12: 20:00-21:00, P13: 21:00-22:00
 
+Domain Rules & Assumptions:
+- SH-2 is NOT wheelchair accessible. If wheelchair or accessible is requested with SH-2, note in assumptions: "SH-2 is not wheelchair accessible; SH-1 recommended as accessible alternative" and set requested_room to "SH-1".
+- "after lunch" or "dopahar": P6 onward (14:00). Note in assumptions: "After lunch window inferred as P6 onward".
+- "shaam" or "evening": P10 onward (18:00). Note in assumptions: "Evening window inferred as P10 onward".
+- "LHC-5" does not exist; note in assumptions: "LHC-5 does not exist and LH-5 lacks PA; proposing LH-1/LH-2".
+
 Lexicon Mapping (Hinglish):
 - kal = tomorrow's weekday
 - shaam = evening (periods 10 to 13)
+- shaam 6 baje / 6 pm = 18:00 = Period 10 (P10)
+- shaam 7 baje / 7 pm = 19:00 = Period 11 (P11)
 - dopahar / after lunch = afternoon (periods 6 to 9)
 - baje = o'clock
 - log = people / attendance
