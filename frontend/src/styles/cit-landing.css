@@ -943,6 +943,59 @@ html.lenis body {
   overflow: hidden;
 }
 
+/* Custom visible scrollbar and scroll isolation for modal and member directory */
+.cit-modal-scrollbar {
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 169, 107, 0.5) #080d19;
+}
+
+.cit-modal-scrollbar::-webkit-scrollbar {
+  width: 9px;
+}
+
+.cit-modal-scrollbar::-webkit-scrollbar-track {
+  background: #080d19;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cit-modal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(201, 169, 107, 0.45);
+  border-radius: 6px;
+  border: 1.5px solid #080d19;
+  min-height: 48px;
+  transition: background-color 0.15s ease;
+}
+
+.cit-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 169, 107, 0.85);
+  cursor: grab;
+}
+
+.cit-modal-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #e5c98f;
+  cursor: grabbing;
+}
+
+/* Horizontal scrollbar for modal role filter tabs */
+.cit-modal-scrollbar-x {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 169, 107, 0.3) transparent;
+}
+
+.cit-modal-scrollbar-x::-webkit-scrollbar {
+  height: 4px;
+}
+
+.cit-modal-scrollbar-x::-webkit-scrollbar-thumb {
+  background: rgba(201, 169, 107, 0.3);
+  border-radius: 4px;
+}
+
 [hidden] {
   display: none !important;
 }

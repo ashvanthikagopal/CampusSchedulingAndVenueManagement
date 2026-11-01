@@ -62,6 +62,22 @@ export const LandingPage: React.FC = () => {
   const [stats, setStats] = useState<PublicStats | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<any>(null);
+  const memberListRef = useRef<HTMLDivElement>(null);
+
+  // Pause Lenis smooth-scroll when modal is open so mouse wheel and touchpad natively scroll the modal lists
+  useEffect(() => {
+    if (modalOpen) {
+      lenisRef.current?.stop();
+      document.body.style.overflow = 'hidden';
+    } else {
+      lenisRef.current?.start();
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [modalOpen]);
 
   // Computed detected account based on typed identifier
   const detectedAccount = findMatchingAccount(manualIdentifier);
@@ -655,12 +671,16 @@ export const LandingPage: React.FC = () => {
       if (reduced) {
         lenis?.destroy();
         lenis = null;
+        lenisRef.current = null;
         finishIntro(false);
         if (reBtn) reBtn.disabled = true;
         for (const h of headings) h.classList.add('seen');
       } else {
         const LenisClass = (window as any).Lenis;
-        if (LenisClass && !failed) lenis = new LenisClass({ autoRaf: false, duration: 1.1, smoothWheel: true });
+        if (LenisClass && !failed) {
+          lenis = new LenisClass({ autoRaf: false, duration: 1.1, smoothWheel: true });
+          lenisRef.current = lenis;
+        }
         if (reBtn) reBtn.disabled = !scene;
       }
       scrollDirty = true;
@@ -1267,6 +1287,10 @@ export const LandingPage: React.FC = () => {
         const LenisClass = (window as any).Lenis;
         if (!reduced && LenisClass) {
           lenis = new LenisClass({ autoRaf: false, duration: 1.1, smoothWheel: true, syncTouch: false });
+          lenisRef.current = lenis;
+          if (modalOpen) {
+            lenis.stop();
+          }
         }
 
         if (reduced || skipped || window.scrollY > window.innerHeight * 0.3) {
@@ -1311,6 +1335,7 @@ export const LandingPage: React.FC = () => {
       observer?.disconnect();
       lenis?.destroy();
       lenis = null;
+      lenisRef.current = null;
 
       try {
         audio?.close();
@@ -1788,12 +1813,18 @@ export const LandingPage: React.FC = () => {
       {/* Role Sign-in / Custom Credentials Modal */}
       {modalOpen && (
         <div
+          data-lenis-prevent
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[#030712]/90 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => !isLoggingIn && setModalOpen(false)}
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
         >
           <div
+            data-lenis-prevent
             className="bg-[#090f1d] border border-slate-700/70 rounded-xl shadow-2xl w-full max-w-6xl h-[92vh] max-h-[860px] flex flex-col overflow-hidden relative text-[#f1ece1]"
             onClick={e => e.stopPropagation()}
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
           >
             {/* Top Header Bar */}
             <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-slate-800/80 bg-[#0c1424] flex-shrink-0">
@@ -1859,9 +1890,16 @@ export const LandingPage: React.FC = () => {
             <div className="flex-1 min-h-0 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-800/80 overflow-hidden">
               
               {/* Left Panel: Dedicated Credential Form */}
-              <div className={`w-full lg:w-[420px] xl:w-[450px] flex-shrink-0 flex flex-col overflow-y-auto p-5 sm:p-6 bg-[#0a1120] ${
-                mobileView === 'form' ? 'flex' : 'hidden lg:flex'
-              }`}>
+              <div
+                data-lenis-prevent
+                tabIndex={0}
+                className={`w-full lg:w-[420px] xl:w-[450px] flex-shrink-0 flex flex-col overflow-y-auto cit-modal-scrollbar p-5 sm:p-6 bg-[#0a1120] focus:outline-none ${
+                  mobileView === 'form' ? 'flex' : 'hidden lg:flex'
+                }`}
+                onWheel={(e) => e.stopPropagation()}
+                onTouchMove={(e) => e.stopPropagation()}
+                style={{ overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+              >
                 {/* Form Header */}
                 <div className="mb-4">
                   <span className="text-[10px] uppercase font-mono tracking-wider text-[#c9a96b] font-semibold block mb-1">
@@ -2059,9 +2097,14 @@ export const LandingPage: React.FC = () => {
               </div>
 
               {/* Right Panel: Full Campus Directory (62 Accounts) */}
-              <div className={`flex-1 flex flex-col min-h-0 p-5 sm:p-6 bg-[#080d19] overflow-hidden ${
-                mobileView === 'directory' ? 'flex' : 'hidden lg:flex'
-              }`}>
+              <div
+                data-lenis-prevent
+                className={`flex-1 flex flex-col min-h-0 p-5 sm:p-6 bg-[#080d19] overflow-hidden ${
+                  mobileView === 'directory' ? 'flex' : 'hidden lg:flex'
+                }`}
+                onWheel={(e) => e.stopPropagation()}
+                onTouchMove={(e) => e.stopPropagation()}
+              >
                 {/* Directory Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800/80 flex-shrink-0">
                   <div>
@@ -2082,7 +2125,11 @@ export const LandingPage: React.FC = () => {
                 {/* Role Filters & Search */}
                 <div className="pt-3 pb-2 space-y-2.5 flex-shrink-0">
                   {/* Role Filter Tabs */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  <div
+                    data-lenis-prevent
+                    className="flex items-center gap-1.5 overflow-x-auto pb-1 cit-modal-scrollbar-x"
+                    onWheel={(e) => e.stopPropagation()}
+                  >
                     {(['all', 'faculty', 'coordinator', 'club', 'admin'] as const).map(tab => {
                       const label = tab === 'all' ? 'All (62)' : tab === 'faculty' ? 'Faculty (40)' : tab === 'coordinator' ? 'Coordinators (9)' : tab === 'club' ? 'Clubs (11)' : 'Admin (2)';
                       const isActive = activeDirectoryTab === tab;
@@ -2162,7 +2209,15 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Member Cards Scrollable List */}
-                <div className="flex-1 overflow-y-auto space-y-2 pr-1.5 divide-y divide-slate-800/40">
+                <div
+                  ref={memberListRef}
+                  data-lenis-prevent
+                  tabIndex={0}
+                  className="flex-1 overflow-y-auto space-y-2 pr-2 divide-y divide-slate-800/40 cit-modal-scrollbar focus:outline-none"
+                  onWheel={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
+                  style={{ overscrollBehavior: 'contain', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
+                >
                   {(() => {
                     const baseList = activeDirectoryTab === 'all'
                       ? ALL_ACCOUNTS
