@@ -1,0 +1,353 @@
+/* ==========================================================================
+   Campus Ledger Design System
+   Scoped exclusively to the authenticated application under .ledger-app
+   ========================================================================== */
+
+@theme {
+  /* Campus Ledger Color Palette */
+  --color-ledger-canvas: #F5F7FB;
+  --color-ledger-surface: #FFFFFF;
+  --color-ledger-sunken: #F1F5F9;
+  --color-ledger-border: #E2E8F0;
+  --color-ledger-border-strong: #CBD5E1;
+  --color-ledger-ink: #172B4D;
+  --color-ledger-secondary: #475569;
+  --color-ledger-tertiary: #64748B;
+  --color-ledger-hover: #EEF4FC;
+  --color-ledger-active: #DBEAFE;
+
+  /* Evergreen Palette (Sidebar & Primary Authority) */
+  --color-evergreen-950: #10223F;
+  --color-evergreen-900: #142D50;
+  --color-evergreen-800: #1E3A5F;
+  --color-evergreen-700: #244B78;
+  --color-evergreen-600: #315F91;
+  --color-evergreen-text: #F1F5F9;
+  --color-evergreen-muted: #A9BDD5;
+
+  /* Brass Accent (Restrained Focus, Primary Actions & Active Nav) */
+  --color-brass-500: #2563EB;
+  --color-brass-600: #1D4ED8;
+  --color-brass-400: #3B82F6;
+  --color-brass-300: #60A5FA;
+  --color-brass-100: #EFF6FF;
+  --color-brass-50: #F5F7FB;
+
+  /* Institutional Status Colors (Always paired with text or icon) */
+  --color-status-success: #2F7D4F;
+  --color-status-success-bg: #EBF5EE;
+  --color-status-success-border: #C3E2CD;
+  --color-status-warning: #B7791F;
+  --color-status-warning-bg: #FDF5E6;
+  --color-status-warning-border: #EBD19E;
+  --color-status-danger: #B3402F;
+  --color-status-danger-bg: #FBEFEF;
+  --color-status-danger-border: #EFC5BF;
+  --color-status-info: #2C6A8A;
+  --color-status-info-bg: #EDF4F8;
+  --color-status-info-border: #C6DFEB;
+
+  /* Timetable Session Types */
+  --color-session-lecture: #EEF5FA;
+  --color-session-lecture-border: #2C6A8A;
+  --color-session-lecture-text: #1D4D65;
+
+  --color-session-tutorial: #EEF6F0;
+  --color-session-tutorial-border: #2F7D4F;
+  --color-session-tutorial-text: #205737;
+
+  --color-session-lab: #F4F0F9;
+  --color-session-lab-border: #6B4E8C;
+  --color-session-lab-text: #4F3569;
+
+  --color-session-event: #FCF2EC;
+  --color-session-event-border: #B0653E;
+  --color-session-event-text: #7D4323;
+
+  --color-session-exam: #FAF4E6;
+  --color-session-exam-border: #B7791F;
+  --color-session-exam-text: #7A4F10;
+}
+
+/* Dynamic full viewport background applied only when AppShell mounts */
+body.ledger-body {
+  background-color: #F5F7FB !important;
+  color: #172B4D !important;
+}
+
+/* ==========================================================================
+   Root Authenticated App Scope
+   ========================================================================== */
+.ledger-app {
+  --ledger-canvas: #F5F7FB;
+  --ledger-surface: #FFFFFF;
+  --ledger-sunken: #F1F5F9;
+  --ledger-border: #E2E8F0;
+  --ledger-border-strong: #CBD5E1;
+  --ledger-ink: #172B4D;
+  --ledger-secondary: #475569;
+  --ledger-tertiary: #64748B;
+  --ledger-hover: #EEF4FC;
+  --ledger-active: #DBEAFE;
+
+  --ledger-evergreen-sidebar: #142D50;
+  --ledger-evergreen-hover: #1E3A5F;
+  --ledger-evergreen-active: #244B78;
+  --ledger-evergreen-text: #F1F5F9;
+  --ledger-evergreen-muted: #A9BDD5;
+
+  --ledger-brass: #2563EB;
+  --ledger-brass-hover: #1D4ED8;
+  --ledger-brass-light: #EFF6FF;
+
+  --ledger-radius-card: 10px;
+  --ledger-radius-control: 8px;
+  --ledger-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --ledger-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+
+  background-color: var(--ledger-canvas);
+  color: var(--ledger-ink);
+  font-family: 'Onest', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   Panel Primitives
+   ========================================================================== */
+.ledger-app .ledger-panel {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.ledger-app .ledger-panel-raised {
+  background-color: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.ledger-app .ledger-panel-sunken {
+  background-color: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+}
+
+/* ==========================================================================
+   Scrollbar for Campus Ledger
+   ========================================================================== */
+.ledger-app ::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.ledger-app ::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+.ledger-app ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+.ledger-app ::-webkit-scrollbar-thumb:hover {
+  background: #2563EB;
+}
+
+.ledger-app {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 #F1F5F9;
+}
+
+/* ==========================================================================
+   Form Controls and Interactive Focus
+   ========================================================================== */
+.ledger-app input:focus-visible,
+.ledger-app select:focus-visible,
+.ledger-app textarea:focus-visible,
+.ledger-app button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #2563EB;
+}
+
+/* ==========================================================================
+   Toast Scoped Overrides for Authenticated Ledger
+   ========================================================================== */
+body.ledger-body .ledger-toast-item {
+  background-color: #FFFFFF !important;
+  color: #172B4D !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1) !important;
+}
+
+body.ledger-body .ledger-toast-item.toast-success {
+  border-left: 4px solid #2F7D4F !important;
+}
+
+body.ledger-body .ledger-toast-item.toast-error {
+  border-left: 4px solid #B3402F !important;
+}
+
+body.ledger-body .ledger-toast-item.toast-warning {
+  border-left: 4px solid #B7791F !important;
+}
+
+body.ledger-body .ledger-toast-item.toast-info {
+  border-left: 4px solid #2C6A8A !important;
+}
+
+body.ledger-body .ledger-toast-item .toast-icon-success {
+  color: #2F7D4F !important;
+}
+
+body.ledger-body .ledger-toast-item .toast-icon-error {
+  color: #B3402F !important;
+}
+
+body.ledger-body .ledger-toast-item .toast-icon-warning {
+  color: #B7791F !important;
+}
+
+body.ledger-body .ledger-toast-item .toast-icon-info {
+  color: #2C6A8A !important;
+}
+
+body.ledger-body .ledger-toast-item .toast-close-btn {
+  color: #64748B !important;
+}
+
+body.ledger-body .ledger-toast-item .toast-close-btn:hover {
+  color: #172B4D !important;
+}
+
+/* Authenticated workspace shell. Public landing styles remain untouched. */
+.ledger-app { font-size: 14px; line-height: 1.5; color-scheme: light; }
+.campus-header { position: sticky; top: 0; z-index: 30; background: #fff; box-shadow: 0 2px 8px rgb(15 23 42 / 4%); }
+.campus-header-inner { max-width: 1440px; margin: auto; min-height: 80px; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.campus-brand { display: flex; align-items: center; gap: 12px; min-width: 0; color: #142d50; text-decoration: none; }
+.campus-brand-mark { width: 44px; height: 44px; border-radius: 12px; background: #142d50; color: #fff; display: grid; place-items: center; flex-shrink: 0; }
+.campus-brand strong { display: block; font-size: 18px; letter-spacing: -.5px; font-weight: 700; }
+.campus-brand small { display: block; font-size: 11px; color: #64748b; margin-top: 1px; }
+.campus-header-tools { display: flex; align-items: center; gap: 10px; }
+.campus-profile { display: flex; align-items: center; gap: 10px; padding-left: 16px; margin-left: 6px; border-left: 1px solid #e2e8f0; }
+.campus-avatar { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; background: #eaf1ff; color: #1d4ed8; font-weight: 700; }
+.campus-profile-copy { min-width: 0; max-width: 180px; }
+.campus-profile-copy strong { display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.campus-profile-copy > span { display: block; font-size: 11px; text-transform: capitalize; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ledger-app .campus-icon-button { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid #e2e8f0; border-radius: 8px; color: #475569; background: #fff; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+.ledger-app .campus-icon-button:hover { background: #f1f5f9; color: #142d50; }
+.campus-nav-surface { background: #142d50; }
+.campus-nav { position: relative; display: flex; align-items: stretch; gap: 6px; max-width: 1440px; margin: auto; padding: 0 32px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: #49688e #142d50; }
+.campus-nav a { position: relative; flex: 0 0 auto; display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px; color: #d0dcee; font-size: 13px; font-weight: 500; white-space: nowrap; text-decoration: none; transition: background .15s, color .15s; }
+.campus-nav a:hover { background: #1e3a5f; color: #fff; }
+.campus-nav a[aria-current="page"] { background: #24456d; color: #fff; font-weight: 600; }
+.campus-nav a[aria-current="page"]::after { content: ''; position: absolute; bottom: 0; height: 3px; left: 14px; right: 14px; border-radius: 3px 3px 0 0; background: #7db4ff; }
+.campus-main { flex: 1; width: 100%; max-width: 1440px; min-width: 0; margin: 0 auto; padding: 32px; }
+.campus-main:focus { outline: none; }
+.campus-main > * { min-width: 0; }
+.campus-footer { width: 100%; max-width: 1440px; margin: auto; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 11px; }
+.campus-footer > div { display: flex; gap: 20px; }
+.campus-footer a:hover { color: #2563eb; }
+.campus-actions { position: absolute; right: 0; top: calc(100% + 10px); z-index: 50; width: 240px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; box-shadow: 0 12px 36px rgb(15 23 42 / 14%); }
+.campus-actions-label { display: block; padding: 8px 10px; font-size: 11px; font-weight: 600; color: #64748b; }
+.campus-actions button, .campus-actions a { display: flex; align-items: center; gap: 8px; padding: 10px; width: 100%; border-radius: 6px; font-size: 12px; text-align: left; cursor: pointer; }
+.campus-actions button { color: #b3402f; }
+.campus-actions button:hover { background: #fbefef; }
+.campus-actions a:hover { background: #f1f5f9; }
+.campus-skip-link { position: fixed; top: -100px; left: 16px; z-index: 100; padding: 12px 20px; border-radius: 8px; background: #fff; color: #142d50; box-shadow: 0 4px 20px rgb(15 23 42 / 20%); }
+.campus-skip-link:focus { top: 12px; }
+.ledger-app a:focus-visible { outline: 2px solid #60a5fa; outline-offset: -2px; border-radius: 4px; }
+.ledger-app .ledger-panel, .ledger-app .ledger-panel-raised { border-radius: 12px; box-shadow: 0 2px 6px rgb(15 23 42 / 3%); }
+.ledger-app input:not([type="checkbox"]):not([type="radio"]), .ledger-app select { min-height: 40px; max-width: 100%; }
+.ledger-app textarea { min-height: 96px; }
+.ledger-app input[type="checkbox"], .ledger-app input[type="radio"] { accent-color: #2563eb; }
+.ledger-app th { line-height: 1.5; }
+.ledger-app td { line-height: 1.6; }
+.ledger-app h1, .ledger-app h2, .ledger-app h3 { text-wrap: balance; }
+@media (max-width: 1100px) {
+  .campus-health { display: none; }
+  .campus-header-inner { padding: 14px 24px; }
+  .campus-nav { padding: 0 24px; }
+  .campus-nav a { padding: 0 12px; }
+  .campus-main { padding: 24px; }
+}
+@media (max-width: 640px) {
+  .campus-header-inner { min-height: 68px; padding: 12px 16px; gap: 8px; }
+  .campus-brand { gap: 8px; }
+  .campus-brand-mark { width: 34px; height: 34px; border-radius: 9px; }
+  .campus-brand-mark svg { width: 21px; }
+  .campus-brand strong { font-size: 14px; letter-spacing: -.3px; }
+  .campus-brand small, .campus-profile-copy, .campus-avatar { display: none; }
+  .campus-header-tools { gap: 6px; }
+  .campus-profile { border: 0; padding: 0; margin: 0; }
+  .campus-nav { padding: 0 12px; gap: 2px; }
+  .campus-nav a { min-height: 48px; font-size: 12px; padding: 0 12px; }
+  .campus-main { padding: 24px 16px; }
+  .campus-footer { align-items: flex-start; flex-direction: column; padding: 16px; gap: 8px; }
+  .campus-footer > div { gap: 16px; flex-wrap: wrap; }
+  .ledger-app input:not([type="checkbox"]):not([type="radio"]), .ledger-app select, .ledger-app textarea { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ledger-app *, .ledger-app *::before, .ledger-app *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* Keep public cinematic title styles out of the authenticated workspace.
+   Unlayered rules also override the landing page's global h1 selector. */
+.ledger-app h1 {
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.ledger-app h2 { font-size: 15px; line-height: 1.5; }
+.ledger-app h3 { font-size: 14px; line-height: 1.5; }
+.ledger-app h1,
+.ledger-app h2,
+.ledger-app h3 {
+  filter: none;
+  text-shadow: none;
+  background-image: none;
+  -webkit-text-stroke: 0;
+}
+.ledger-app .text-2xl { font-size: 20px; line-height: 1.4; }
+@media (max-width: 640px) {
+  .ledger-app h1 { font-size: 18px; }
+}
+
+
+/* Shared alignment for workspace headers, filters, and scrollable schedules. */
+.ledger-app .campus-page-actions { flex: 0 1 auto; }
+.ledger-app .campus-page-actions > * { max-width: 100%; }
+.ledger-app .campus-timetable-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+.ledger-app .campus-timetable-filters > .relative {
+  flex: 1 1 220px;
+  width: auto;
+  max-width: 340px;
+  min-width: 0;
+}
+.ledger-app .campus-timetable-scroll { scrollbar-gutter: stable; }
+.ledger-app .campus-timetable-scroll:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
+.ledger-app .campus-timetable-scroll td { vertical-align: top; }
+.ledger-app .campus-timetable-scroll td:first-child { vertical-align: middle; }
+.ledger-app .grid > * { min-width: 0; }
+@media (max-width: 640px) {
+  .ledger-app .campus-timetable-filters { align-items: stretch; }
+  .ledger-app .campus-timetable-filters > .relative { flex-basis: 100%; max-width: none; }
+  .ledger-app .campus-page-actions { width: 100%; }
+  .ledger-app .campus-page-actions > button { flex: 1 1 auto; }
+}

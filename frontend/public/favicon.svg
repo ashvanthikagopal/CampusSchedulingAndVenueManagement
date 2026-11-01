@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Rect -->
+  <rect width="48" height="48" rx="12" fill="url(#bgGrad)"/>
+  <!-- Top Calendar Header Bar -->
+  <rect x="8" y="8" width="32" height="7" rx="3" fill="#0f172a" fill-opacity="0.4"/>
+  <!-- Calendar Rings -->
+  <rect x="14" y="6" width="3" height="5" rx="1.5" fill="#f1ece1"/>
+  <rect x="31" y="6" width="3" height="5" rx="1.5" fill="#f1ece1"/>
+  <!-- Calendar Grid Lines / Slots -->
+  <rect x="8" y="15" width="32" height="24" rx="4" fill="#0a1220" fill-opacity="0.6" stroke="#38bdf8" stroke-width="1.5"/>
+  <!-- Checkmark / Zero Clash Symbol -->
+  <path d="M16 27L22 33L32 21" stroke="#38bdf8" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
