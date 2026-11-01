@@ -10,6 +10,48 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEFAULT_DB_PATH = (REPO_ROOT / "cit_scheduler.db").as_posix()
 
 
+def get_sample_disruption_path() -> Path:
+    """Returns absolute path to sample_disruption.json with multi-location fallback."""
+    candidates = [
+        REPO_ROOT / "starter_pack" / "examples" / "sample_disruption.json",
+        REPO_ROOT / "data" / "starter_dataset" / "examples" / "sample_disruption.json",
+        Path("starter_pack/examples/sample_disruption.json"),
+        Path("data/starter_dataset/examples/sample_disruption.json"),
+    ]
+    for c in candidates:
+        if c.exists():
+            return c.resolve()
+    return (REPO_ROOT / "starter_pack" / "examples" / "sample_disruption.json")
+
+
+def get_schedule_example_path() -> Path:
+    """Returns absolute path to schedule.example.json with fallback."""
+    candidates = [
+        REPO_ROOT / "starter_pack" / "examples" / "schedule.example.json",
+        REPO_ROOT / "data" / "starter_dataset" / "examples" / "schedule.example.json",
+        REPO_ROOT / "exports" / "schedule.json",
+    ]
+    for c in candidates:
+        if c.exists():
+            return c.resolve()
+    return (REPO_ROOT / "starter_pack" / "examples" / "schedule.example.json")
+
+
+def get_starter_dataset_path() -> Path:
+    """Returns absolute path to cit_public.json."""
+    return (REPO_ROOT / "data" / "starter_dataset" / "cit_public.json").resolve()
+
+
+def get_export_schedule_path() -> Path:
+    """Returns absolute path to exports/schedule.json."""
+    return (REPO_ROOT / "exports" / "schedule.json").resolve()
+
+
+def get_export_schedule_after_path() -> Path:
+    """Returns absolute path to exports/schedule_after.json."""
+    return (REPO_ROOT / "exports" / "schedule_after.json").resolve()
+
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CIT Campus Scheduler"
     VERSION: str = "1.0.0"
@@ -49,4 +91,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-

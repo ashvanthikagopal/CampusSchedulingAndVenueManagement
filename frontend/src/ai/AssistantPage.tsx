@@ -7,6 +7,10 @@ import {
   Send, ShieldCheck, 
   CheckCircle2, ArrowRight, User as UserIcon, Bot
 } from 'lucide-react';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Panel } from '../components/ui/Panel';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { Button } from '../components/ui/Button';
 
 export const AssistantPage: React.FC = () => {
   usePageMetadata(
@@ -100,46 +104,32 @@ export const AssistantPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-bold">
-            <Bot className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">CIT Faculty Timetable Assistant</h1>
-            <p className="text-xs text-slate-400">
-              Deterministic rule facts wrapped with Google Gemini conversational interface
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isFallbackMode ? (
-            <span className="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5" /> AI offline: using rule-based mode
-            </span>
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="CIT Scheduling Assistant"
+        subtitle="Deterministic constraint facts wrapped in Google Gemini conversational interface for schedule queries and move simulations."
+        badge={
+          isFallbackMode ? (
+            <StatusBadge status="warning" size="sm" label="Rule-based mode" />
           ) : (
-            <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5" /> Gemini + Deterministic Bounds Active
-            </span>
-          )}
-        </div>
-      </div>
+            <StatusBadge status="success" size="sm" label="Gemini + Rules Active" icon={<ShieldCheck className="w-3.5 h-3.5" />} />
+          )
+        }
+      />
 
       {/* Chat Messages Log */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-950/80 min-h-[450px] max-h-[600px] overflow-y-auto space-y-5">
+      <Panel variant="default" padded={false} className="p-5 sm:p-6 min-h-[460px] max-h-[600px] overflow-y-auto space-y-4">
         {messages.map((m, idx) => (
           <div
             key={idx}
             className={`flex items-start gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}
           >
             <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold ${
+              className={`w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 text-xs font-bold ${
                 m.role === 'user'
-                  ? 'bg-sky-600 text-white'
-                  : 'bg-slate-800 text-sky-400 border border-slate-700'
+                  ? 'bg-[#12372A] text-[#E8EFE6]'
+                  : 'bg-[#FAF6EC] text-[#B08A3E] border border-[#E4DBC6]'
               }`}
             >
               {m.role === 'user' ? <UserIcon className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -147,10 +137,10 @@ export const AssistantPage: React.FC = () => {
 
             <div className={`space-y-3 max-w-xl ${m.role === 'user' ? 'text-right' : ''}`}>
               <div
-                className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                className={`p-3.5 rounded-[10px] text-xs sm:text-sm leading-relaxed ${
                   m.role === 'user'
-                    ? 'bg-sky-600 text-white rounded-tr-none'
-                    : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none'
+                    ? 'bg-[#12372A] text-[#E8EFE6] rounded-tr-none text-left'
+                    : 'bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] rounded-tl-none shadow-xs text-left'
                 }`}
               >
                 {m.text}
@@ -158,43 +148,43 @@ export const AssistantPage: React.FC = () => {
 
               {/* Proposal Card with Validation Badge */}
               {m.proposalCard && (
-                <div className="glass-panel p-5 rounded-2xl border border-slate-800 bg-slate-900/90 text-left space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span className="font-bold text-xs text-white">{m.proposalCard.title}</span>
-                    <span className="font-mono text-[10px] text-sky-400">{m.proposalCard.session_id}</span>
+                <Panel variant="raised" className="p-4 text-left space-y-3">
+                  <div className="flex items-center justify-between border-b border-[#E4DBC6] pb-2">
+                    <span className="font-serif font-bold text-xs text-[#1F2A24]">{m.proposalCard.title}</span>
+                    <span className="font-mono text-[10px] text-[#B08A3E]">{m.proposalCard.session_id}</span>
                   </div>
 
-                  <div className="text-xs text-slate-300 space-y-1">
-                    <div>From: <span className="text-slate-400 line-through">{m.proposalCard.current_slot}</span></div>
-                    <div>To: <strong className="text-emerald-300">{m.proposalCard.proposed_slot}</strong></div>
-                    <div className="text-[11px] text-slate-400 italic">"{m.proposalCard.reason}"</div>
+                  <div className="text-xs text-[#55625A] space-y-1">
+                    <div>From: <span className="text-[#7C877F] line-through">{m.proposalCard.current_slot}</span></div>
+                    <div>To: <strong className="text-[#2F7D4F]">{m.proposalCard.proposed_slot}</strong></div>
+                    <div className="text-[11px] text-[#7C877F] italic">"{m.proposalCard.reason}"</div>
                   </div>
 
                   {/* Minimal-change alternatives */}
                   {m.proposalCard.alternatives && m.proposalCard.alternatives.length > 0 && (
-                    <div className="pt-2 border-t border-slate-800 text-[11px] space-y-1.5">
-                      <div className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                    <div className="pt-2 border-t border-[#E4DBC6] text-[11px] space-y-1.5">
+                      <div className="text-[#55625A] font-semibold uppercase tracking-wider text-[10px]">
                         Solver-Verified Alternatives:
                       </div>
                       {m.proposalCard.alternatives.map((alt: any, aIdx: number) => (
-                        <div key={aIdx} className="bg-slate-950/60 p-2 rounded-lg border border-slate-800 text-slate-300 flex items-center justify-between">
+                        <div key={aIdx} className="bg-[#FAF6EC] p-2 rounded-[6px] border border-[#E4DBC6] text-[#1F2A24] flex items-center justify-between">
                           <span>{alt.label || `${alt.day} P${alt.start_period} in ${alt.room_name}`}</span>
-                          <span className="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">0 Clashes</span>
+                          <span className="font-mono text-[10px] text-[#2F7D4F] bg-[#EBF5EE] px-1.5 py-0.5 rounded border border-[#C3E2CD]">0 Clashes</span>
                         </div>
                       ))}
                     </div>
                   )}
 
                   {/* Validation Badge & Soft Breakdown */}
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs space-y-1.5">
+                  <div className="p-2.5 rounded-[8px] bg-[#EBF5EE] border border-[#C3E2CD] text-[#2F7D4F] text-xs space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span className="font-semibold">{m.proposalCard.validation_badge.label}</span>
                     </div>
                     {m.proposalCard.validation_badge.soft_breakdown && (
-                      <div className="flex flex-wrap gap-1 text-[9px] font-mono pt-1 border-t border-emerald-500/20 text-emerald-200">
+                      <div className="flex flex-wrap gap-1 text-[9px] font-mono pt-1 border-t border-[#C3E2CD] text-[#2F7D4F]">
                         {Object.entries(m.proposalCard.validation_badge.soft_breakdown).map(([k, v]: [string, any]) => (
-                          <span key={k} className="px-1.5 py-0.2 rounded bg-slate-900/80 border border-emerald-500/30">
+                          <span key={k} className="px-1.5 py-0.2 rounded bg-[#FFFDF8] border border-[#C3E2CD]">
                             {k}: {v >= 0 ? `+${v}` : v}
                           </span>
                         ))}
@@ -203,37 +193,41 @@ export const AssistantPage: React.FC = () => {
                   </div>
 
                   {/* Submit button */}
-                  <button
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="w-full"
                     onClick={() => handleApplyProposal(m.proposalCard)}
-                    className="w-full py-2 px-3 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5"
+                    icon={<ArrowRight className="w-3.5 h-3.5" />}
+                    iconPosition="right"
                   >
-                    <span>Submit for Admin Approval</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                    Submit for Admin Approval
+                  </Button>
+                </Panel>
               )}
             </div>
           </div>
         ))}
 
         {isSending && (
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Bot className="w-4 h-4 animate-spin text-sky-400" />
+          <div className="flex items-center gap-2 text-xs text-[#55625A] font-mono">
+            <Bot className="w-4 h-4 animate-spin text-[#B08A3E]" />
             Analyzing schedule constraints and running deterministic rule checks...
           </div>
         )}
-      </div>
+      </Panel>
 
       {/* Suggested Prompt Chips */}
-      <div className="flex flex-wrap gap-2 items-center text-xs">
-        <span className="text-slate-500 text-[11px]">Suggestions:</span>
+      <div className="flex flex-wrap gap-1.5 items-center text-xs">
+        <span className="text-[#7C877F] text-[11px] font-mono">Suggestions:</span>
         {suggestedActions.map((p, idx) => (
           <button
             key={idx}
+            type="button"
             onClick={() => handleSend(p)}
-            className="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-sky-300 hover:border-slate-700 transition-colors text-[11px]"
+            className="px-3 py-1 rounded-full bg-[#FFFDF8] hover:bg-[#F2ECDC] border border-[#E4DBC6] text-[#55625A] hover:text-[#1F2A24] transition-colors text-[11px] cursor-pointer"
           >
-            {p}
+            "{p}"
           </button>
         ))}
       </div>
@@ -245,16 +239,18 @@ export const AssistantPage: React.FC = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask a scheduling question or request a session shift..."
-          className="flex-grow px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-500"
+          placeholder="Ask a scheduling question or request a class move..."
+          className="flex-grow px-4 py-2.5 rounded-[8px] bg-[#FFFDF8] border border-[#E4DBC6] text-[#1F2A24] placeholder-[#7C877F]/60 text-sm focus:outline-none focus:ring-1 focus:ring-[#B08A3E]"
         />
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={() => handleSend()}
           disabled={isSending || !input.trim()}
-          className="px-5 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50"
+          icon={<Send className="w-4 h-4" />}
         >
-          <Send className="w-4 h-4" />
-        </button>
+          Send
+        </Button>
       </div>
     </div>
   );

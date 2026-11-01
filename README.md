@@ -111,7 +111,7 @@ python backend/validator/validator.py --data data/starter_dataset/cit_public.jso
 | Metric | `exports/schedule.json` | `exports/schedule_after.json` | Benchmark Goal |
 |---|---|---|---|
 | **Hard Violations** | **0** | **0** | Exactly 0 |
-| **Soft Penalty Total** | **3** (S4=3) | **8** (S2=5, S4=3) | Minimal |
+| **Soft Penalty Total** | **3** (S4=3) | **3** (S4=3) | Minimal |
 | **Bookings Score** | **67.0 / 70.0** | **67.0 / 70.0** | Theoretical Ceiling |
 | **Approved Bookings** | 22 approved | 22 approved | Maximum feasible |
 | **Alternative Offered** | 1 (BR-17 at Wed P12-13) | 1 (BR-17 at Wed P12-13) | Best alternative |

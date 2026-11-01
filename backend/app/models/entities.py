@@ -259,6 +259,13 @@ class SessionRequestModel(Base):
     target_session_id = Column(String(50), nullable=True)
     status = Column(String(50), default="pending")  # pending, approved, rejected
     submitted_by = Column(String(50), nullable=False)
+    department = Column(String(50), nullable=True)
+    assigned_approver = Column(String(100), nullable=True)
+    decision_reason = Column(Text, nullable=True)
+    decided_at = Column(DateTime, nullable=True)
+    target_day = Column(String(10), nullable=True)
+    target_period = Column(Integer, nullable=True)
+    target_room_id = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

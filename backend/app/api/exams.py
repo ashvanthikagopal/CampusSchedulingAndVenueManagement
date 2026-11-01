@@ -9,7 +9,9 @@ import json
 
 from backend.app.database.session import get_db
 from backend.app.models.entities import User, AuditLogModel
-from backend.app.api.deps import require_admin
+from backend.app.api.deps import require_admin, get_current_user
+from backend.app.core.config import get_export_schedule_path
+from backend.app.core.dataset_loader import get_active_dataset_dict
 from backend.app.schemas.schemas import ExamAssignmentItem
 from backend.app.rules.models import DatasetContext
 from backend.app.solver.exam_solver import solve_exams
@@ -18,14 +20,19 @@ router = APIRouter(prefix="/exams", tags=["exams"])
 
 
 @router.get("/schedule", response_model=List[ExamAssignmentItem])
-def get_exam_schedule(db: Session = Depends(get_db)):
+def get_exam_schedule(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Returns all 41 midsem exams with detailed half-capacity room seat arithmetic."""
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
-        sched = json.load(f)
+    if current_user.role == "club":
+        raise HTTPException(status_code=403, detail="Exams schedule is restricted to academic members and administration")
+    data = get_active_dataset_dict(db)
+    sched_path = get_export_schedule_path()
 
-    ctx = DatasetContext.from_dict(data)
+    try:
+        with open(sched_path, encoding="utf-8") as f:
+            sched = json.load(f)
+    except Exception:
+        sched = {"exams": []}
+
     exam_meta = {e["id"]: e for e in data.get("exams", [])}
     room_meta = {r["id"]: r for r in data.get("rooms", [])}
 
@@ -67,16 +74,20 @@ def get_exam_schedule(db: Session = Depends(get_db)):
 @router.post("/generate")
 def generate_exams_endpoint(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
     """Re-runs the CP-SAT exam scheduler."""
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
-        sched = json.load(f)
+    data = get_active_dataset_dict(db)
+    sched_path = get_export_schedule_path()
+
+    try:
+        with open(sched_path, encoding="utf-8") as f:
+            sched = json.load(f)
+    except Exception:
+        sched = {"exams": []}
 
     ctx = DatasetContext.from_dict(data)
     status_e, exam_assigns, stats = solve_exams(ctx, time_limit_seconds=30.0)
 
     sched["exams"] = exam_assigns
-    with open("exports/schedule.json", "w", encoding="utf-8") as f:
+    with open(sched_path, "w", encoding="utf-8") as f:
         json.dump(sched, f, indent=2)
 
     db.add(AuditLogModel(
@@ -89,7 +100,6 @@ def generate_exams_endpoint(db: Session = Depends(get_db), admin: User = Depends
 
     return {
         "status": status_e,
-        "total_scheduled": len(exam_assigns),
+        "total_scheduled": len(exam_assigns or []),
         "stats": stats
     }
-

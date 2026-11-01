@@ -13,6 +13,7 @@ from backend.app.rules.models import DatasetContext, Session
 from backend.app.rules.timetable import validate_full_timetable, compute_soft_penalties, block
 from backend.app.solver.timetable_solver import solve_timetable
 from backend.app.solver.booking_engine import solve_bookings
+from backend.app.solver.exam_solver import solve_exams
 from backend.validator.validator import apply_disruption as official_apply_disruption
 
 
@@ -363,6 +364,53 @@ def repair_schedule(
     # As Section C6.4 says: "then re-run the Week 7 booking engine against the new timetable"
     new_bookings, new_overrides, booking_stats = solve_bookings(new_ctx, repaired_assign, time_limit_seconds=20.0)
 
+    # 7. Preserve or regenerate all 41 examinations (Requirement B)
+    base_exams = base_schedule.get("exams", [])
+    data_exams = new_data.get("exams", [])
+    exams_valid = bool(base_exams and len(base_exams) == len(data_exams))
+    if exams_valid:
+        exam_meta = {e["id"]: e for e in data_exams}
+        used_rooms_by_slot = defaultdict(set)
+        used_groups_by_slot = defaultdict(set)
+        for ex in base_exams:
+            eid = ex.get("exam_id")
+            if eid not in exam_meta:
+                exams_valid = False
+                break
+            ex_obj = exam_meta[eid]
+            slot = (ex.get("day"), ex.get("session"))
+            rooms = ex.get("rooms", [])
+            tot_seats = 0
+            for rid in rooms:
+                r_obj = new_ctx.rooms.get(rid)
+                if not r_obj or "exam" not in r_obj.allowed_uses:
+                    exams_valid = False
+                    break
+                if (slot[0], 1) in new_ctx.room_unavailability.get(rid, set()) or (rid == "LH-4" and slot[0] == "THU"):
+                    exams_valid = False
+                    break
+                if rid in used_rooms_by_slot[slot]:
+                    exams_valid = False
+                    break
+                used_rooms_by_slot[slot].add(rid)
+                tot_seats += (r_obj.capacity // 2)
+
+            for g in ex_obj.get("groups", []):
+                if g in used_groups_by_slot[slot]:
+                    exams_valid = False
+                    break
+                used_groups_by_slot[slot].add(g)
+
+            if not exams_valid or tot_seats < ex_obj.get("size", 0):
+                exams_valid = False
+                break
+
+    if exams_valid:
+        repaired_exams = copy.deepcopy(base_exams)
+    else:
+        status_e, solved_exams, _ = solve_exams(new_ctx, time_limit_seconds=25.0)
+        repaired_exams = solved_exams if solved_exams else copy.deepcopy(base_exams)
+
     # Build schedule_after structure
     repaired_sessions_list = [
         {"session_id": sid, "day": d, "start_period": st, "room_id": r}
@@ -376,7 +424,8 @@ def repair_schedule(
         "fest_week": {
             "bookings": new_bookings,
             "session_overrides": new_overrides
-        }
+        },
+        "exams": repaired_exams or []
     }
 
     proposal = {

@@ -279,7 +279,19 @@ class SessionRequestItem(BaseModel):
     target_session_id: Optional[str] = None
     status: str
     submitted_by: str
+    department: Optional[str] = None
+    assigned_approver: Optional[str] = None
+    decision_reason: Optional[str] = None
+    decided_at: Optional[str] = None
     created_at: Optional[str] = None
+
+
+class SessionRequestDecisionRequest(BaseModel):
+    action: str
+    reason: Optional[str] = None
+    day: Optional[str] = None
+    start_period: Optional[int] = None
+    room_id: Optional[str] = None
 
 
 # --- Faculty Schedule Schemas ---

@@ -6,13 +6,12 @@ import copy
 import json
 import pytest
 from pathlib import Path
+from backend.app.core.config import get_starter_dataset_path, get_schedule_example_path
 from backend.app.rules.engine import evaluate_schedule
 from backend.validator.validator import run as official_validator_run
 
-DATA_PATH = Path("data/starter_dataset/cit_public.json")
-EXAMPLE_PATH = Path("starter_pack/examples/schedule.example.json")
-if not EXAMPLE_PATH.exists():
-    EXAMPLE_PATH = Path("exports/schedule.json")
+DATA_PATH = get_starter_dataset_path()
+EXAMPLE_PATH = get_schedule_example_path()
 
 
 @pytest.fixture
@@ -288,4 +287,3 @@ def test_e1_and_e2_exams(dataset):
     }
     report = evaluate_schedule(dataset, sched)
     assert report["hard_by_rule"].get("E2", 0) >= 1
-

@@ -5,9 +5,14 @@ import { useAuth } from '../lib/authContext';
 import { useToast } from '../components/Toast';
 import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
-  Calendar, Clock, CheckCircle2, AlertCircle, AlertTriangle,
-  HelpCircle, X, ShieldCheck, UserCheck, Plus, Sparkles
+  Calendar, CheckCircle2, AlertCircle, AlertTriangle,
+  HelpCircle, X, ShieldCheck, UserCheck, Plus
 } from 'lucide-react';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Panel } from '../components/ui/Panel';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { Button } from '../components/ui/Button';
+import { Select, Input, Label } from '../components/ui/Input';
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
 const PERIODS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -132,9 +137,9 @@ export const MySchedulePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-24 flex flex-col items-center justify-center space-y-4">
-        <div className="w-10 h-10 border-4 border-sky-500/20 border-t-sky-500 rounded-full animate-spin" />
-        <p className="text-sm text-slate-400 font-mono">Loading your teaching timetable...</p>
+      <div className="py-24 flex flex-col items-center justify-center space-y-4">
+        <div className="w-8 h-8 border-3 border-[#B08A3E]/30 border-t-[#B08A3E] rounded-full animate-spin" />
+        <p className="text-sm text-[#55625A] font-mono">Loading your teaching timetable...</p>
       </div>
     );
   }
@@ -152,110 +157,111 @@ export const MySchedulePage: React.FC = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-sky-950/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-semibold mb-3">
-            <UserCheck className="w-3.5 h-3.5" />
-            Faculty Portal · {scheduleData?.faculty_name || user?.name} ({scheduleData?.faculty_id || user?.faculty_id})
-          </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            My Teaching Schedule
-          </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-xl">
-            Department of {scheduleData?.department || user?.department}. Weekly teaching assignments with automated workload checks and interactive slot explainability.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            type="button"
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="My Teaching Schedule"
+        subtitle={`Department of ${scheduleData?.department || user?.department}. Weekly teaching assignments with automated workload checks and interactive slot explainability.`}
+        badge={
+          <StatusBadge
+            status="info"
+            size="sm"
+            label={`${scheduleData?.faculty_name || user?.name} (${scheduleData?.faculty_id || user?.faculty_id})`}
+            icon={<UserCheck className="w-3.5 h-3.5" />}
+          />
+        }
+        actions={
+          <Button
+            variant="primary"
+            size="md"
             onClick={() => {
               setDryRunResult(null);
               setLeaveModalOpen(true);
             }}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-md shadow-sky-500/20 transition-all cursor-pointer relative z-10"
+            icon={<Plus className="w-4 h-4" />}
           >
-            <Plus className="w-4 h-4" />
-            <span>Mark Unavailability / Leave</span>
-          </button>
-        </div>
-      </div>
+            Mark Unavailability / Leave
+          </Button>
+        }
+      />
 
       {/* Daily Workload KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {scheduleData?.daily_workload?.map((w: any) => {
           const isAtLimit = w.teaching_hours >= w.max_hours;
           return (
-            <div key={w.day} className="glass-panel p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+            <Panel key={w.day} variant="default" className="p-4 space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-300">{w.day}</span>
-                <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full border ${
-                  isAtLimit ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                }`}>
-                  {isAtLimit ? 'Max Hours' : 'Under Limit (H12)'}
-                </span>
+                <span className="font-bold text-[#1F2A24] font-mono">{w.day}</span>
+                <StatusBadge
+                  status={isAtLimit ? 'warning' : 'success'}
+                  size="sm"
+                  label={isAtLimit ? 'Max Hours' : 'Under Limit'}
+                  showIcon={false}
+                />
               </div>
-              <div className="text-2xl font-extrabold text-white">
-                {w.teaching_hours}h <span className="text-xs font-normal text-slate-500">/ {w.max_hours}h limit</span>
+              <div className="text-2xl font-mono font-bold text-[#1F2A24] tabular-nums">
+                {w.teaching_hours}h <span className="text-xs font-normal text-[#7C877F]">/ {w.max_hours}h</span>
               </div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-[#F2ECDC] h-1.5 rounded-full overflow-hidden">
                 <div 
-                  className={`h-full rounded-full ${isAtLimit ? 'bg-amber-400' : 'bg-sky-400'}`}
+                  className={`h-full rounded-full transition-all ${isAtLimit ? 'bg-[#B7791F]' : 'bg-[#12372A]'}`}
                   style={{ width: `${Math.min(100, (w.teaching_hours / w.max_hours) * 100)}%` }}
                 />
               </div>
-              <div className="text-[11px] text-slate-400">
-                Free: {w.free_periods.length > 0 ? `Periods ${w.free_periods.join(', ')}` : 'None'}
+              <div className="text-[11px] text-[#55625A] font-mono">
+                Free: {w.free_periods.length > 0 ? `P${w.free_periods.join(', P')}` : 'None'}
               </div>
-            </div>
+            </Panel>
           );
         })}
       </div>
 
       {/* Weekly Timetable Grid */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-sky-400" />
-            Weekly Session Grid (Periods 1 - 9)
+      <Panel variant="default" className="space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E4DBC6]">
+          <h2 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-[#B08A3E]" />
+            <span>Weekly Session Grid (Periods 1 - 9)</span>
           </h2>
-          <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" /> 0 Timetable Clashes
-          </span>
+          <StatusBadge
+            status="success"
+            size="sm"
+            label="0 Timetable Clashes"
+            icon={<ShieldCheck className="w-3.5 h-3.5" />}
+          />
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-[8px] border border-[#E4DBC6]">
           <table className="w-full border-collapse text-left text-xs min-w-[700px]">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400">
-                <th className="py-3 px-3 w-24">Day</th>
+              <tr className="bg-[#F2ECDC] border-b border-[#E4DBC6] text-[#55625A] font-mono">
+                <th className="py-3 px-3 w-20 font-semibold uppercase tracking-wider text-[11px]">Day</th>
                 {PERIODS.map(p => (
-                  <th key={p} className={`py-3 px-2 text-center ${p === 5 ? 'bg-slate-950/80 text-amber-400 font-bold' : ''}`}>
+                  <th key={p} className={`py-3 px-2 text-center text-[11px] ${p === 5 ? 'bg-[#EBD19E]/30 text-[#B7791F] font-bold' : ''}`}>
                     P{p}
-                    <div className="text-[9px] font-normal text-slate-500">{p === 5 ? 'Lunch' : PERIOD_TIMES[p].split(' - ')[0]}</div>
+                    <div className="text-[9px] font-normal text-[#7C877F]">{p === 5 ? 'Lunch' : PERIOD_TIMES[p].split(' - ')[0]}</div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#E4DBC6]">
               {DAYS.map(day => (
-                <tr key={day} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="py-4 px-3 font-bold text-white bg-slate-900/60">{day}</td>
+                <tr key={day} className="hover:bg-[#FAF6EC] transition-colors">
+                  <td className="py-3.5 px-3 font-mono font-bold text-[#1F2A24] bg-[#F2ECDC]/40 border-r border-[#E4DBC6]">{day}</td>
                   {PERIODS.map(p => {
                     if (p === 5) {
                       return (
-                        <td key={p} className="p-2 text-center bg-slate-950/60 border-x border-slate-800/60">
-                          <span className="text-[10px] text-amber-500/80 font-mono">Lunch</span>
+                        <td key={p} className="p-2 text-center bg-[#FDF5E6]/60 border-x border-[#E4DBC6]">
+                          <span className="text-[10px] text-[#B7791F] font-mono font-medium">Lunch</span>
                         </td>
                       );
                     }
                     const sess = gridMap[day]?.[p];
                     if (!sess) {
                       return (
-                        <td key={p} className="p-2 text-center">
-                          <span className="text-[10px] text-slate-700 font-mono">-</span>
+                        <td key={p} className="p-2 text-center text-[#7C877F]/50 font-mono">
+                          -
                         </td>
                       );
                     }
@@ -264,17 +270,17 @@ export const MySchedulePage: React.FC = () => {
                       <td key={p} className="p-1.5">
                         <div
                           onClick={() => setSelectedSessionId(sess.session_id)}
-                          className="p-2 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-200 cursor-pointer transition-all hover:scale-[1.02] shadow-sm space-y-1"
+                          className="p-2.5 rounded-[6px] bg-[#EEF5FA] hover:bg-[#E2EEF7] border-l-[3px] border-l-[#2C6A8A] border-y border-r border-[#C6DFEB] text-[#1D4D65] cursor-pointer transition-all shadow-xs space-y-1 group"
                         >
-                          <div className="font-bold text-[11px] text-white flex items-center justify-between">
-                            <span>{sess.course_id}</span>
-                            <span className="text-[9px] font-mono text-sky-400 capitalize">{sess.kind[0]}</span>
+                          <div className="font-bold text-[11px] flex items-center justify-between">
+                            <span className="truncate">{sess.course_id}</span>
+                            <span className="text-[9px] font-mono uppercase bg-[#2C6A8A]/10 px-1 rounded text-[#2C6A8A]">{sess.kind[0]}</span>
                           </div>
-                          <div className="text-[10px] text-slate-300 font-medium">{sess.room_name || sess.room_id}</div>
-                          <div className="text-[9px] text-slate-400 truncate">{sess.groups?.join(', ')}</div>
-                          <button className="text-[9px] text-sky-400 hover:text-sky-300 flex items-center gap-0.5 pt-1">
-                            <HelpCircle className="w-2.5 h-2.5" /> Why here?
-                          </button>
+                          <div className="text-[10px] text-[#55625A] font-medium truncate">{sess.room_name || sess.room_id}</div>
+                          <div className="text-[9px] text-[#7C877F] font-mono truncate">{sess.groups?.join(', ')}</div>
+                          <div className="text-[9px] text-[#B08A3E] group-hover:text-[#9A7633] flex items-center gap-0.5 pt-0.5 font-medium">
+                            <HelpCircle className="w-2.5 h-2.5" /> Explain
+                          </div>
                         </div>
                       </td>
                     );
@@ -284,60 +290,61 @@ export const MySchedulePage: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </Panel>
 
       {/* "Why here?" Explain Modal */}
       {selectedSessionId && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative z-[101] space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] relative space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-[#E4DBC6] pb-3">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-sky-400" />
-                  Slot Explainability: {selectedSessionId}
+                <h3 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-[#B08A3E]" />
+                  <span>Slot Explainability: {selectedSessionId}</span>
                 </h3>
-                <p className="text-xs text-slate-400">Deterministic constraint and placement breakdown</p>
+                <p className="text-xs text-[#55625A]">Deterministic constraint and placement breakdown</p>
               </div>
               <button
                 onClick={() => setSelectedSessionId(null)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+                aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {explainLoading ? (
-              <div className="py-8 text-center text-xs text-slate-400">Loading placement explanation...</div>
+              <div className="py-8 text-center text-xs text-[#7C877F]">Loading placement explanation...</div>
             ) : explainData ? (
-              <div className="space-y-4 text-xs">
-                <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
-                  <div className="text-slate-400">Assigned Slot:</div>
-                  <div className="text-white font-bold text-sm">
+              <div className="space-y-3.5 text-xs">
+                <Panel variant="sunken" className="p-3.5 space-y-1">
+                  <div className="text-[#55625A] text-[11px] font-medium">Assigned Slot:</div>
+                  <div className="text-[#1F2A24] font-bold text-sm">
                     {explainData.assigned_day} Period {explainData.assigned_period} in {explainData.assigned_room}
                   </div>
-                  <div className="text-emerald-400 font-mono text-[11px] pt-1 flex items-center justify-between">
-                    <span>{explainData.legal_options_count} total mathematically legal options across campus</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-mono">0 Hard Violations</span>
+                  <div className="text-[#2F7D4F] font-mono text-[11px] pt-1 flex items-center justify-between">
+                    <span>{explainData.legal_options_count} legal placement options</span>
+                    <StatusBadge status="success" size="sm" label="0 Hard Violations" />
                   </div>
                   {explainData.checked_rules && explainData.checked_rules.length > 0 && (
-                    <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
+                    <div className="text-[10px] text-[#7C877F] pt-1 border-t border-[#E4DBC6]">
                       ✓ Rules Verified: H1-H12, H14, Fest Bookings
                     </div>
                   )}
-                </div>
+                </Panel>
 
-                <div className="space-y-2">
-                  <div className="font-semibold text-slate-300">Placement Factors:</div>
-                  <ul className="list-disc list-inside space-y-1 text-slate-400">
+                <div className="space-y-1.5">
+                  <div className="font-semibold text-[#1F2A24]">Placement Factors:</div>
+                  <ul className="list-disc list-inside space-y-0.5 text-[#55625A]">
                     {explainData.reasons_for_placement?.map((r: string, idx: number) => (
                       <li key={idx}>{r}</li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="font-semibold text-slate-300">Conflicts Prevented:</div>
-                  <ul className="list-disc list-inside space-y-1 text-emerald-400/90">
+                <div className="space-y-1.5">
+                  <div className="font-semibold text-[#1F2A24]">Conflicts Prevented:</div>
+                  <ul className="list-disc list-inside space-y-0.5 text-[#2F7D4F]">
                     {explainData.conflicts_avoided?.map((c: string, idx: number) => (
                       <li key={idx}>{c}</li>
                     ))}
@@ -345,137 +352,110 @@ export const MySchedulePage: React.FC = () => {
                 </div>
 
                 {explainData.infeasible_explanation && (
-                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 space-y-1.5">
+                  <div className="p-3 rounded-[8px] bg-[#FDF5E6] border border-[#EBD19E] text-[#B7791F] space-y-1">
                     <div className="font-bold text-[11px] flex items-center gap-1.5">
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                      Infeasibility Analysis (Zero Single Moves Possible):
+                      <AlertTriangle className="w-3.5 h-3.5 text-[#B7791F]" />
+                      <span>Infeasibility Analysis (Zero Single Moves Possible):</span>
                     </div>
                     {explainData.infeasible_explanation.bottlenecks?.map((b: string, bIdx: number) => (
-                      <div key={bIdx} className="text-[10px] text-slate-300">• {b}</div>
+                      <div key={bIdx} className="text-[10px] text-[#55625A]">• {b}</div>
                     ))}
                     {explainData.infeasible_explanation.suggestions?.map((s: string, sIdx: number) => (
-                      <div key={sIdx} className="text-[10px] text-amber-300 font-medium">💡 Suggestion: {s}</div>
+                      <div key={sIdx} className="text-[10px] text-[#9A7633] font-medium">💡 Suggestion: {s}</div>
                     ))}
-                  </div>
-                )}
-
-                {explainData.alternative_slots && explainData.alternative_slots.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-slate-800">
-                    <div className="font-semibold text-slate-300">Top Verified Alternatives (Ranked by Soft Delta):</div>
-                    <div className="space-y-1.5">
-                      {explainData.alternative_slots.map((alt: any, idx: number) => (
-                        <div key={idx} className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-300 space-y-1">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-medium text-white">{alt.day} Period {alt.start_period} in {alt.room_name || alt.room_id}</span>
-                            <span className="font-mono text-emerald-400 font-semibold">Δ soft: {alt.soft_delta ?? 0}</span>
-                          </div>
-                          {alt.soft_breakdown && (
-                            <div className="flex flex-wrap gap-1 text-[9px] font-mono text-slate-400 pt-0.5">
-                              {Object.entries(alt.soft_breakdown).map(([k, v]: [string, any]) => (
-                                <span key={k} className="px-1.5 py-0.2 rounded bg-slate-800 border border-slate-700">
-                                  {k}: {v >= 0 ? `+${v}` : v}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="py-4 text-center text-xs text-rose-400">Unable to load explanation.</div>
+              <div className="py-4 text-center text-xs text-[#B3402F]">Unable to load explanation.</div>
             )}
 
-            <button
+            <Button
+              variant="secondary"
+              size="md"
+              className="w-full"
               onClick={() => setSelectedSessionId(null)}
-              className="w-full py-2.5 rounded-xl font-semibold text-xs text-white bg-slate-800 hover:bg-slate-700 transition-colors"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Leave Declaration Modal with Solver Dry-Run */}
       {leaveModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative z-[101] space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-lg w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] relative space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-[#E4DBC6] pb-3">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-sky-400" />
+                <h3 className="text-base font-serif font-bold text-[#1F2A24]">
                   Mark Unavailability / Leave
                 </h3>
-                <p className="text-xs text-slate-400">Submit unavailability with solver impact preview</p>
+                <p className="text-xs text-[#55625A]">Submit unavailability with solver impact preview</p>
               </div>
               <button
                 onClick={() => setLeaveModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+                aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-4 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Day of Week</label>
-                <select
+                <Label>Day of Week</Label>
+                <Select
                   value={leaveDay}
                   onChange={e => setLeaveDay(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
                 >
                   {DAYS.map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Start Period</label>
-                  <select
+                  <Label>Start Period</Label>
+                  <Select
                     value={leaveStartPeriod}
                     onChange={e => setLeaveStartPeriod(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
                   >
                     {PERIODS.map(p => (
                       <option key={p} value={p}>Period {p} ({PERIOD_TIMES[p].split(' - ')[0]})</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">End Period</label>
-                  <select
+                  <Label>End Period</Label>
+                  <Select
                     value={leaveEndPeriod}
                     onChange={e => setLeaveEndPeriod(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
                   >
                     {PERIODS.filter(p => p >= leaveStartPeriod).map(p => (
                       <option key={p} value={p}>Period {p} ({PERIOD_TIMES[p].split(' - ')[1]})</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Reason for Leave</label>
-                <input
+                <Label>Reason for Leave</Label>
+                <Input
                   type="text"
                   value={leaveReason}
                   onChange={e => setLeaveReason(e.target.value)}
                   placeholder="e.g. Academic conference, medical appointment"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
                 />
               </div>
 
               {/* Dry-Run Result Preview */}
               {dryRunResult && (
-                <div className={`p-3 rounded-xl border text-xs space-y-1.5 ${
+                <div className={`p-3 rounded-[8px] border text-xs space-y-1.5 ${
                   dryRunResult.status === 'FEASIBLE'
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                    : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                    ? 'bg-[#EBF5EE] border-[#C3E2CD] text-[#2F7D4F]'
+                    : 'bg-[#FBEFEF] border-[#EFC5BF] text-[#B3402F]'
                 }`}>
                   <div className="font-bold flex items-center gap-1.5">
                     {dryRunResult.status === 'FEASIBLE' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
@@ -493,23 +473,25 @@ export const MySchedulePage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
+            <div className="flex gap-2.5 pt-2">
+              <Button
+                variant="secondary"
+                size="md"
+                className="flex-1"
                 onClick={handleDryRun}
-                disabled={dryRunLoading}
-                className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 transition-colors disabled:opacity-50"
+                loading={dryRunLoading}
               >
-                {dryRunLoading ? 'Simulating Repair...' : 'Run Feasibility Dry-Run'}
-              </button>
-              <button
-                type="button"
+                Run Feasibility Dry-Run
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                className="flex-1"
                 onClick={handleSubmitLeave}
-                disabled={isSubmittingLeave}
-                className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-md shadow-sky-500/20 transition-all disabled:opacity-50"
+                loading={isSubmittingLeave}
               >
-                {isSubmittingLeave ? 'Submitting...' : 'Submit Leave Request'}
-              </button>
+                Submit Leave Request
+              </Button>
             </div>
           </div>
         </div>
@@ -517,4 +499,3 @@ export const MySchedulePage: React.FC = () => {
     </div>
   );
 };
-

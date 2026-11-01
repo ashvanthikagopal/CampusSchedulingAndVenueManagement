@@ -11,10 +11,12 @@ from sqlalchemy.orm import Session
 from backend.app.database.session import get_db
 from backend.app.models.entities import (
     DisruptionModel, ChangeProposalModel, ScheduleVersion, ScheduleEntry,
-    AuditLogModel, User
+    SessionOverride, AuditLogModel, User
 )
 from backend.app.api.deps import require_admin, get_current_user, get_current_user_optional, get_optional_user
 from backend.app.schemas.schemas import DisruptionCreateRequest, ChangeProposalResponse
+from backend.app.core.config import get_sample_disruption_path, get_export_schedule_path, get_export_schedule_after_path
+from backend.app.core.dataset_loader import get_active_dataset_dict
 from backend.app.solver.repair_engine import repair_schedule
 from backend.validator.validator import run as official_validator_run, apply_disruption as official_apply_disruption
 
@@ -80,16 +82,15 @@ def propose_repair(
     dis = db.query(DisruptionModel).filter(DisruptionModel.id == disruption_id).first()
     if not dis:
         if disruption_id == "sample-disruption":
-            with open("starter_pack/examples/sample_disruption.json", encoding="utf-8") as f:
+            with open(get_sample_disruption_path(), encoding="utf-8") as f:
                 dis_payload = json.load(f)
         else:
             raise HTTPException(status_code=404, detail="Disruption not found")
     else:
         dis_payload = dis.payload
 
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        base_data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
+    base_data = get_active_dataset_dict(db)
+    with open(get_export_schedule_path(), encoding="utf-8") as f:
         base_sched = json.load(f)
 
     status_r, sched_after, proposal = repair_schedule(
@@ -191,9 +192,8 @@ def dry_run_disruption(
                 elif ch.get("faculty_id") != user_fac:
                     raise HTTPException(status_code=403, detail="Faculty can only declare their own unavailability")
 
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        base_data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
+    base_data = get_active_dataset_dict(db)
+    with open(get_export_schedule_path(), encoding="utf-8") as f:
         base_sched = json.load(f)
 
     dis_payload = {"changes": req.changes, "description": req.description}
@@ -244,8 +244,7 @@ def list_proposals(
 
     if current_user and current_user.role == "faculty" and current_user.faculty_id:
         try:
-            with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-                d_meta = json.load(f)
+            d_meta = get_active_dataset_dict(db)
             fac_sids = {s["id"] for s in d_meta.get("sessions", []) if s.get("faculty_id") == current_user.faculty_id}
         except Exception:
             fac_sids = set()
@@ -298,9 +297,8 @@ def approve_proposal(
         raise HTTPException(status_code=409, detail="Stale proposal: The active timetable version has changed since this proposal was generated.")
 
     # Re-validate proposal against current base data and official validator
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        base_data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
+    base_data = get_active_dataset_dict(db)
+    with open(get_export_schedule_path(), encoding="utf-8") as f:
         base_sched = json.load(f)
 
     sched_to_apply = prop.repaired_schedule_json
@@ -375,10 +373,8 @@ def approve_proposal(
             displaced_by=ov["displaced_by"]
         ))
 
-    # Atomically write to exports/schedule.json and exports/schedule_after.json
-    with open("exports/schedule.json", "w", encoding="utf-8") as f:
-        json.dump(sched_to_apply, f, indent=2)
-    with open("exports/schedule_after.json", "w", encoding="utf-8") as f:
+    # Atomically write to exports/schedule_after.json
+    with open(get_export_schedule_after_path(), "w", encoding="utf-8") as f:
         json.dump(sched_to_apply, f, indent=2)
 
     # Update proposal and disruption status
@@ -442,3 +438,64 @@ def approve_proposal(
         "message": "Change proposal approved. Repaired schedule activated atomically with zero hard violations."
     }
 
+
+
+
+@router.post("/proposals/{prop_id}/reject")
+def reject_proposal(
+    prop_id: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
+    """
+    Admin rejects a disruption change proposal.
+    Updates proposal and disruption status to 'rejected', records audit log, and notifies reporter.
+    """
+    prop = db.query(ChangeProposalModel).filter(ChangeProposalModel.id == prop_id).first()
+    if not prop:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+
+    if prop.status == "rejected":
+        raise HTTPException(status_code=400, detail="Proposal has already been rejected")
+
+    # Anti-self-approval enforcement
+    dis = None
+    if prop.disruption_id:
+        dis = db.query(DisruptionModel).filter(DisruptionModel.id == prop.disruption_id).first()
+        if dis and dis.reported_by and dis.reported_by.lower() == admin.email.lower():
+            raise HTTPException(
+                status_code=403,
+                detail="Anti-self-approval violation: An administrator cannot decide a disruption proposal they reported."
+            )
+
+    prop.status = "rejected"
+    if dis:
+        dis.status = "rejected"
+
+    db.add(AuditLogModel(
+        actor=admin.email,
+        action="REJECT_CHANGE_PROPOSAL",
+        entity=f"Proposal:{prop_id}",
+        after_json={"status": "rejected", "proposal_id": prop_id}
+    ))
+
+    # Notify disruption reporter
+    if dis and dis.reported_by:
+        rep_user = db.query(User).filter(User.email == dis.reported_by).first()
+        if rep_user:
+            db.add(NotificationModel(
+                id=f"notif_{uuid.uuid4().hex[:8]}",
+                user_id=rep_user.id,
+                title="Disruption Proposal Rejected",
+                message=f"Your disruption request ({dis.payload.get('description', 'Disruption')}) proposal was rejected by Admin review.",
+                type="disruption_rejected",
+                link="/my-requests"
+            ))
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "proposal_id": prop_id,
+        "message": "Change proposal rejected successfully."
+    }

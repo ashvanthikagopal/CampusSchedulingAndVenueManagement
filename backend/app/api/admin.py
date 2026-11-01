@@ -5,7 +5,7 @@ priority configuration, and idempotent demo data reset.
 from typing import List, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 from backend.app.database.session import get_db, Base, engine
@@ -14,7 +14,8 @@ from backend.app.models.entities import (
     AuditLogModel, PriorityConfigModel, DatasetModel
 )
 from backend.app.api.deps import require_admin, get_current_user
-from backend.app.core.security import get_password_hash
+from backend.app.core.config import get_export_schedule_path, get_starter_dataset_path
+from backend.app.core.dataset_loader import get_active_dataset_dict
 from backend.app.schemas.schemas import DashboardMetrics, PriorityUpdateRequest
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -23,14 +24,10 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 @router.get("/dashboard", response_model=DashboardMetrics)
 def get_dashboard_metrics(db: Session = Depends(get_db)):
     """Provides high-level dashboard KPIs dynamically computed from the active schedule and dataset."""
-    try:
-        with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-            data = json.load(f)
-    except Exception:
-        data = {"sessions": [], "rooms": [], "booking_requests": []}
+    data = get_active_dataset_dict(db)
 
     try:
-        with open("exports/schedule.json", encoding="utf-8") as f:
+        with open(get_export_schedule_path(), encoding="utf-8") as f:
             sched = json.load(f)
     except Exception:
         sched = {"sessions": [], "fest_week": {"bookings": []}}
@@ -54,11 +51,10 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
         b_score = 0.0
 
     booking_reqs = data.get("booking_requests", [])
-    # Max feasible booking score is sum of weight (primary=3) for all requests
     max_b_score = float(len(booking_reqs) * 3.0) if booking_reqs else 70.0
 
     rooms = data.get("rooms", [])
-    total_slots = len(rooms) * 5 * 8  # 8 periods per day (excluding lunch P5) * 5 days
+    total_slots = len(rooms) * 5 * 8  # 8 teaching periods per day (excluding lunch P5) * 5 days
     used_slots = sum(s.get("duration", 1) for s in sched.get("sessions", []))
     room_util = round((used_slots / total_slots * 100), 1) if total_slots > 0 else 0.0
 
@@ -85,23 +81,21 @@ def get_metrics_endpoint(db: Session = Depends(get_db)):
 @router.get("/analytics/rooms")
 def get_room_analytics(db: Session = Depends(get_db)):
     """Calculates weekly hours occupied and utilization percentage for each campus room."""
+    data = get_active_dataset_dict(db)
     try:
-        with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-            data = json.load(f)
-        with open("exports/schedule.json", encoding="utf-8") as f:
+        with open(get_export_schedule_path(), encoding="utf-8") as f:
             sched = json.load(f)
     except Exception:
-        return []
+        sched = {"sessions": []}
 
     rooms = data.get("rooms", [])
     sessions = sched.get("sessions", [])
 
-    # Map room to total teaching hours (each period = 1 hr)
     room_hours = {r["id"]: 0 for r in rooms}
     for s in sessions:
         rid = s.get("room_id")
         if rid in room_hours:
-            room_hours[rid] += 1  # Standard lecture / block period
+            room_hours[rid] += 1
 
     total_avail_hours = 5 * 9  # 45 teaching hours per week (P1-P9 Mon-Fri)
 
@@ -120,24 +114,23 @@ def get_room_analytics(db: Session = Depends(get_db)):
             "utilization_pct": pct
         })
 
-    # Sort by utilization descending
     res.sort(key=lambda x: x["utilization_pct"], reverse=True)
     return res
 
 
 @router.get("/audit")
-def get_audit_logs(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Returns chronologically ordered audit logs for all administrative actions."""
+def get_audit_logs(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    """Returns chronologically ordered audit logs for all administrative actions (Admin only)."""
     logs = db.query(AuditLogModel).order_by(AuditLogModel.timestamp.desc()).limit(100).all()
     if not logs:
-        # Provide clean seeded audit trail
+        now_str = datetime.now(timezone.utc).isoformat()
         return [
             {
                 "id": 1,
                 "actor": "admin@cit.edu",
                 "action": "SYSTEM_INITIALIZE",
                 "entity": "System",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": now_str,
                 "after_json": {"status": "Database initialized with 0 hard violations"}
             },
             {
@@ -145,7 +138,7 @@ def get_audit_logs(db: Session = Depends(get_db), current_user: User = Depends(g
                 "actor": "admin@cit.edu",
                 "action": "GENERATE_TIMETABLE",
                 "entity": "ScheduleVersion:v_base_1",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": now_str,
                 "after_json": {"sessions_scheduled": 189, "hard_violations": 0, "soft_total": 3}
             }
         ]
@@ -181,7 +174,7 @@ def update_priority_config(
     else:
         p_config.priority_order = body.priority_order
         p_config.updated_by = admin.email
-        p_config.updated_at = datetime.utcnow()
+        p_config.updated_at = datetime.now(timezone.utc)
 
     db.add(AuditLogModel(
         actor=admin.email,
@@ -196,43 +189,48 @@ def update_priority_config(
 
 
 @router.post("/reset-demo")
-def reset_demo(db: Session = Depends(get_db)):
+def reset_demo(
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin)
+):
     """
-    Idempotent Admin reset: restores database to a pristine demo state,
+    Secure Idempotent Admin reset: restores database to a pristine demo state,
     seeds demo accounts, loads starter dataset, and resets active schedule.
+    Strictly requires an authenticated Admin account (Requirement D).
     """
-    # 1. Recreate tables
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-
-    # 2. Load starter dataset
     try:
-        with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
+        # 1. Recreate tables
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
+
+        # 2. Load starter dataset
+        starter_path = get_starter_dataset_path()
+        with open(starter_path, encoding="utf-8") as f:
             data = json.load(f)
 
         db.add(DatasetModel(
             dataset_id=data.get("dataset_id", "cit-public-v1"),
             raw_json=data,
-            imported_by="system_demo_reset",
+            imported_by=admin.email,
             is_active=True
         ))
 
-        # Seed priority config
+        # Seed priority config with official default ordering
         db.add(PriorityConfigModel(
             id=1,
             priority_order=data.get("priority_order", [
                 "exam", "regular_session", "institute_event",
                 "guest_lecture", "department_event", "club_event"
             ]),
-            updated_by="system_demo_reset"
+            updated_by=admin.email
         ))
 
         # Seed initial audit log
         db.add(AuditLogModel(
-            actor="system",
+            actor=admin.email,
             action="RESET_DEMO_STATE",
             entity="Database",
-            after_json={"message": "Demo state reset cleanly with all 62 dataset-driven accounts"}
+            after_json={"message": f"Demo state reset cleanly by admin {admin.email}"}
         ))
 
         db.commit()
@@ -253,4 +251,3 @@ def reset_demo(db: Session = Depends(get_db)):
             for u in seeded_users
         ]
     }
-

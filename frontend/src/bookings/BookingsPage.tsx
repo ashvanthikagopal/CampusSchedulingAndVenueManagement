@@ -4,9 +4,14 @@ import { api } from '../services/api';
 import { useAuth } from '../lib/authContext';
 import { usePageMetadata } from '../lib/usePageMetadata';
 import { 
-  Sparkles, PlusCircle, CheckCircle2, AlertTriangle, 
-  X, Clock, HelpCircle
+  Sparkles, PlusCircle, CheckCircle2, AlertCircle, 
+  X, Clock
 } from 'lucide-react';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Panel } from '../components/ui/Panel';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { Button } from '../components/ui/Button';
+import { Input, Select, Label } from '../components/ui/Input';
 
 export const BookingsPage: React.FC = () => {
   usePageMetadata(
@@ -21,9 +26,9 @@ export const BookingsPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [naturalText, setNaturalText] = useState<string>('');
   const [isParsing, setIsParsing] = useState<boolean>(false);
-  const [parseResult, setParseResult] = useState<any>(null);
+  const [_parseResult, setParseResult] = useState<any>(null);
   const [checkResult, setCheckResult] = useState<any>(null);
-  const [isChecking, setIsChecking] = useState<boolean>(false);
+  const [_isChecking, setIsChecking] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Editable Form fields
@@ -62,7 +67,7 @@ export const BookingsPage: React.FC = () => {
     "Book the auditorium for CSE farewell, Friday evening, around 400 people, stage and mic.",
     "Can I get a lab with computers for a 3-hour coding contest on Thursday afternoon? About 60 participants.",
     "seminar hall kal shaam 6 baje, 2 ghante, 100 log, mic chahiye",
-    "I want SH-2 on Friday at 10 am for a wheelchair-accessible poster session, 60 people."
+    "I want SH-2 on Friday at 10 am for a poster session, 60 people."
   ];
 
   const fetchBookings = async () => {
@@ -168,302 +173,344 @@ export const BookingsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/60 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-semibold mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            Spectra Week (Week 7) & Campus Venues
-          </div>
-          <h1 className="text-2xl font-bold text-white">Campus Venue Bookings & Approvals</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Deterministic CP-SAT allocation engine with server-side role capping and zero priority inversions.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {user?.role === 'admin' && (
-            <button
-              onClick={handleDecideAll}
-              className="px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="Campus Venue Bookings & Approvals"
+        subtitle="Deterministic CP-SAT allocation engine with server-side role capping and zero priority inversions."
+        badge={
+          <StatusBadge
+            status="brass"
+            size="sm"
+            label="Spectra Week 7 Matrix Active"
+            icon={<Sparkles className="w-3.5 h-3.5" />}
+          />
+        }
+        actions={
+          <>
+            {user?.role === 'admin' && (
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={handleDecideAll}
+              >
+                Optimize All (CP-SAT)
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => setModalOpen(true)}
+              icon={<PlusCircle className="w-4 h-4" />}
             >
-              Optimize All (CP-SAT)
-            </button>
-          )}
+              Book a Venue
+            </Button>
+          </>
+        }
+      />
 
-          <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/20 transition-all"
-          >
-            <PlusCircle className="w-4 h-4" />
-            Book a Venue (AI Assistant)
-          </button>
-        </div>
-      </div>
-
-      {/* Bookings Queue */}
-      <div className="glass-panel rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <Clock className="w-4 h-4 text-sky-400" />
-            Spectra Week Booking Requests ({bookings.length})
+      {/* Bookings Queue Panel */}
+      <Panel variant="default" padded={false} className="overflow-hidden">
+        <div className="p-4 border-b border-[#E4DBC6] flex items-center justify-between bg-[#F2ECDC]/40">
+          <h2 className="text-sm font-serif font-bold text-[#1F2A24] flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#B08A3E]" />
+            <span>Spectra Week Booking Requests ({bookings.length})</span>
           </h2>
-          
+          <StatusBadge
+            status="success"
+            size="sm"
+            label="Zero Inversions Guaranteed"
+            icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+          />
         </div>
 
-        <div className="divide-y divide-slate-800/60">
+        <div className="divide-y divide-[#E4DBC6]/70">
           {loading ? (
-            <div className="p-8 text-center text-sm text-slate-500">Loading booking allocations...</div>
-          ) : (
-            bookings.map((b) => (
-            <div
-              key={b.id}
-              className="p-5 hover:bg-slate-900/40 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
-            >
-              <div className="space-y-1.5 max-w-3xl">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="font-mono text-xs font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
-                    {b.id}
-                  </span>
-                  <span className="font-bold text-sm text-white">{b.title}</span>
-                  <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                      b.status === 'approved'
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                        : b.status === 'alternative_offered'
-                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                        : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                    }`}
-                  >
-                    {b.status === 'approved'
-                      ? 'Approved'
-                      : b.status === 'alternative_offered'
-                      ? 'Alternative Offered'
-                      : 'Rejected'}
-                  </span>
-                  {b.reason_code && (
-                    <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded">
-                      {b.reason_code}
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-xs text-slate-400 flex items-center gap-4 flex-wrap">
-                  <span>Requester: <strong className="text-slate-300">{b.requester}</strong> ({b.role})</span>
-                  <span>Attendance: <strong className="text-slate-300">{b.attendance}</strong></span>
-                  {b.assigned_room && (
-                    <span>Assigned: <strong className="text-sky-300">{b.assigned_room}</strong> ({b.assigned_day} P{b.start_period}-P{b.end_period})</span>
-                  )}
-                </div>
-
-                {b.reason && (
-                  <div className="text-xs text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800 italic">
-                    Reason: "{b.reason}"
-                  </div>
-                )}
-              </div>
-
-              {/* Status Indicator */}
-              <div className="flex-shrink-0 text-right">
-                <span className="text-xs font-mono text-emerald-400 flex items-center justify-end gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> 0 Inversions
-                </span>
-              </div>
+            <div className="p-12 text-center text-xs text-[#55625A] font-mono">
+              Loading booking allocations...
             </div>
-          )))}
-        </div>
-      </div>
+          ) : bookings.length === 0 ? (
+            <div className="p-12 text-center text-xs text-[#7C877F]">
+              No booking requests registered yet.
+            </div>
+          ) : (
+            bookings.map((b) => {
+              const statusVariant: 'success' | 'warning' | 'danger' =
+                b.status === 'approved' ? 'success' : b.status === 'alternative_offered' ? 'warning' : 'danger';
+              const statusLabel =
+                b.status === 'approved' ? 'Approved' : b.status === 'alternative_offered' ? 'Alternative Offered' : 'Rejected';
 
-      {/* Modal: Book a Venue (Natural Language + Fallback Form) */}
+              return (
+                <div
+                  key={b.id}
+                  className="p-5 hover:bg-[#FAF6EC]/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+                >
+                  <div className="space-y-1.5 max-w-3xl">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-2 py-0.5 rounded border border-[#B08A3E]/30">
+                        {b.id}
+                      </span>
+                      <span className="font-bold text-sm text-[#1F2A24]">{b.title}</span>
+                      <StatusBadge status={statusVariant} size="sm" label={statusLabel} />
+                      {b.reason_code && (
+                        <span className="text-[10px] font-mono text-[#55625A] bg-[#F2ECDC] px-2 py-0.5 rounded border border-[#E4DBC6]">
+                          {b.reason_code}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="text-xs text-[#55625A] flex items-center gap-3 flex-wrap">
+                      <span>Requester: <strong className="text-[#1F2A24]">{b.requester}</strong> ({b.role})</span>
+                      <span>Attendance: <strong className="text-[#1F2A24]">{b.attendance}</strong></span>
+                      {b.assigned_room && (
+                        <span>Assigned: <strong className="text-[#2F7D4F] font-mono">{b.assigned_room}</strong> ({b.assigned_day} P{b.start_period}-P{b.end_period})</span>
+                      )}
+                    </div>
+
+                    {b.reason && (
+                      <div className="text-xs text-[#55625A] bg-[#FAF6EC] p-2.5 rounded-[6px] border border-[#E4DBC6] italic">
+                        Reason: "{b.reason}"
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="shrink-0 text-right">
+                    <span className="text-[11px] font-mono text-[#2F7D4F] flex items-center justify-end gap-1 font-semibold">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> 0 Inversions
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </Panel>
+
+      {/* Modal: Book a Venue (Natural Language + Grouped Form) */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900 max-w-2xl w-full space-y-6 my-8">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-[#FFFDF8] border border-[#E4DBC6] rounded-[10px] max-w-2xl w-full p-6 shadow-[0_8px_30px_rgba(31,42,36,0.15)] space-y-5 my-8 animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E4DBC6]">
               <div>
-                <h3 className="font-bold text-lg text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-sky-400" />
-                  Book a Venue
+                <h3 className="font-serif font-bold text-base text-[#1F2A24] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#B08A3E]" />
+                  <span>Book a Campus Venue</span>
                 </h3>
-                <p className="text-xs text-slate-400">
-                  Type naturally in English or Hinglish; our deterministic AI normalizer fills and checks the form.
+                <p className="text-xs text-[#55625A]">
+                  Type naturally in English or Hinglish; our deterministic parser fills and verifies the request.
                 </p>
               </div>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
+              <button
+                onClick={() => setModalOpen(false)}
+                className="text-[#7C877F] hover:text-[#1F2A24] p-1 rounded cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Plain-Language Input Bar */}
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-300">
-                Natural Language Request (English / Hinglish)
-              </label>
+              <Label>Natural Language Request (English / Hinglish)</Label>
               <div className="flex gap-2">
-                <input
-                  type="text"
+                <Input
                   value={naturalText}
                   onChange={(e) => setNaturalText(e.target.value)}
-                  placeholder="e.g. Need a seminar hall tomorrow at 6 pm for 2 hours, 100 people, mic needed"
-                  className="flex-grow px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                  placeholder="e.g. Need Seminar Hall 2 on Friday at 6 pm for 80 people with projector"
                 />
-                <button
-                  type="button"
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={() => handleParse()}
-                  disabled={isParsing || !naturalText.trim()}
-                  className="px-4 py-2.5 rounded-xl font-semibold text-xs text-white bg-sky-600 hover:bg-sky-500 transition-all disabled:opacity-50 flex-shrink-0"
+                  loading={isParsing}
+                  disabled={!naturalText.trim()}
                 >
-                  {isParsing ? 'Parsing...' : 'Parse'}
-                </button>
+                  Parse & Fill
+                </Button>
               </div>
 
-              {/* Sample Quick Test Chips */}
-              <div className="space-y-1.5 pt-1">
-                <span className="text-[11px] text-slate-500 font-medium">Quick test requests:</span>
-                <div className="flex flex-wrap gap-2">
-                  {sampleChips.map((chip, idx) => {
-                    const isHinglish = chip.includes('kal shaam') || chip.includes('baje');
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setNaturalText(chip);
-                          handleParse(chip);
-                        }}
-                        className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 bg-slate-800/80 hover:bg-slate-800 hover:text-sky-300 px-3 py-1.5 rounded-full border border-slate-700/60 transition-colors text-left max-w-full"
-                      >
-                        {isHinglish && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider shrink-0">
-                            Hinglish
-                          </span>
-                        )}
-                        <span className="truncate max-w-[280px] sm:max-w-none">{chip}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+              {/* Sample Chips */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {sampleChips.map((chip, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      setNaturalText(chip);
+                      handleParse(chip);
+                    }}
+                    className="text-[11px] px-2.5 py-1 rounded-full bg-[#FAF6EC] hover:bg-[#F2ECDC] text-[#55625A] hover:text-[#1F2A24] border border-[#E4DBC6] transition-colors cursor-pointer text-left truncate max-w-xs"
+                  >
+                    "{chip}"
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Assumptions & Parser Notes */}
-            {parseResult?.assumptions?.length > 0 && (
-              <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-xs text-sky-300 space-y-1">
-                <div className="font-semibold flex items-center gap-1.5">
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  Parser Inferences:
-                </div>
-                <ul className="list-disc list-inside space-y-0.5 text-[11px] text-sky-300/90">
-                  {parseResult.assumptions.map((a: string, idx: number) => (
-                    <li key={idx}>{a}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Structured Editable Form Fields */}
-            <div className="space-y-3 pt-2 border-t border-slate-800 text-xs">
-              <div>
-                <label className="block text-slate-400 mb-1">Event Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white"
-                />
+            {/* Grouped Form Fields */}
+            <div className="space-y-4 pt-2 border-t border-[#E4DBC6]">
+              <div className="text-xs font-serif font-bold text-[#1F2A24] uppercase tracking-wider">
+                Booking Parameters
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Group 1: Event Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Headcount</label>
-                  <input
+                  <Label required>Event Title</Label>
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. AI Hackathon Briefing" />
+                </div>
+                <div>
+                  <Label required>Expected Attendance</Label>
+                  <Input
                     type="number"
                     value={attendance}
-                    onChange={(e) => setAttendance(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1">Duration (Periods)</label>
-                  <input
-                    type="number"
-                    value={duration}
-                    onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1">Day</label>
-                  <select
-                    value={day}
-                    onChange={(e) => setDay(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white"
-                  >
-                    {['MON', 'TUE', 'WED', 'THU', 'FRI'].map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1">Requested Venue</label>
-                  <input
-                    type="text"
-                    value={requestedRoom}
-                    onChange={(e) => setRequestedRoom(e.target.value.toUpperCase())}
-                    placeholder="Optional (wish)"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono"
+                    onChange={(e) => setAttendance(Number(e.target.value))}
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Real-time Dry Run Validation Result Badge */}
-            {checkResult && (
-              <div
-                className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
-                  checkResult.pass_validation
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                    : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                }`}
-              >
+              {/* Group 2: Time Window */}
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <div className="font-bold flex items-center gap-1.5">
-                    {checkResult.pass_validation ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-                    {checkResult.pass_validation ? 'Validation Pass: Feasible Inside Window' : 'Validation Warning'}
+                  <Label required>Day of Week</Label>
+                  <Select value={day} onChange={(e) => setDay(e.target.value)}>
+                    {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label required>From Period</Label>
+                  <Select value={fromPeriod} onChange={(e) => setFromPeriod(Number(e.target.value))}>
+                    {[1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13].map((p) => (
+                      <option key={p} value={p}>Period {p}</option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label required>Duration (Hours)</Label>
+                  <Select
+                    value={duration}
+                    onChange={(e) => {
+                      const dur = Number(e.target.value);
+                      setDuration(dur);
+                      setToPeriod(fromPeriod + dur - 1);
+                    }}
+                  >
+                    {[1, 2, 3, 4].map((d) => (
+                      <option key={d} value={d}>{d} hour{d > 1 ? 's' : ''}</option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+
+              {/* Group 3: Venue Preferences */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label>Preferred Specific Room (Optional)</Label>
+                  <Input
+                    value={requestedRoom}
+                    onChange={(e) => setRequestedRoom(e.target.value.toUpperCase())}
+                    placeholder="e.g. AUD, SH-1, CR-101"
+                  />
+                </div>
+                <div>
+                  <Label>Required Amenities</Label>
+                  <div className="flex gap-2 pt-1 text-xs">
+                    {['projector', 'stage', 'mic', 'computers'].map((need) => (
+                      <label key={need} className="flex items-center gap-1.5 cursor-pointer text-[#55625A]">
+                        <input
+                          type="checkbox"
+                          checked={needs.includes(need)}
+                          onChange={(e) => {
+                            if (e.target.checked) setNeeds([...needs, need]);
+                            else setNeeds(needs.filter((n) => n !== need));
+                          }}
+                          className="rounded border-[#E4DBC6] text-[#B08A3E] focus:ring-[#B08A3E]"
+                        />
+                        <span className="capitalize">{need}</span>
+                      </label>
+                    ))}
                   </div>
-                  <div className="mt-0.5 opacity-90">{checkResult.reason}</div>
-                  {checkResult.suggested_alternative && (
-                    <div className="mt-1 text-[11px] font-semibold text-amber-300">
-                      Suggested alternative: {checkResult.suggested_alternative.room_id} ({checkResult.suggested_alternative.reason})
+                </div>
+              </div>
+
+              {/* Real-Time Clash Check Results Panel */}
+              {checkResult && (
+                <div
+                  className={`p-3.5 rounded-[8px] border text-xs space-y-1.5 ${
+                    checkResult.can_fulfill
+                      ? 'bg-[#EBF5EE] border-[#C3E2CD] text-[#2F7D4F]'
+                      : 'bg-[#FBEFEF] border-[#EFC5BF] text-[#B3402F]'
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1.5">
+                    {checkResult.can_fulfill ? (
+                      <CheckCircle2 className="w-4 h-4" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4" />
+                    )}
+                    <span>{checkResult.message}</span>
+                  </div>
+
+                  {checkResult.assigned_room && (
+                    <div>
+                      Target room available: <strong>{checkResult.assigned_room}</strong>
+                    </div>
+                  )}
+
+                  {checkResult.conflicts?.length > 0 && (
+                    <div className="space-y-0.5 pt-1">
+                      <div className="font-semibold">Clash Details:</div>
+                      <ul className="list-disc list-inside">
+                        {checkResult.conflicts.map((c: any, i: number) => (
+                          <li key={i}>{c.reason || c.detail || 'Room is occupied'}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {checkResult.alternative_suggestions?.length > 0 && (
+                    <div className="space-y-1 pt-1 border-t border-[#EFC5BF] text-[#1F2A24]">
+                      <div className="font-semibold text-xs text-[#2C6A8A]">
+                        Alternative Venue Suggestions:
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {checkResult.alternative_suggestions.map((alt: any, i: number) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setRequestedRoom(alt.room_id)}
+                            className="px-2 py-0.5 rounded bg-[#FFFDF8] border border-[#E4DBC6] hover:border-[#B08A3E] text-xs font-mono transition-colors cursor-pointer"
+                          >
+                            {alt.room_id} ({alt.day} P{alt.start_period})
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
-                <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-black/30">
-                  {checkResult.reason_code}
-                </span>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Actions */}
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-              <button
-                type="button"
+            {/* Modal Actions */}
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E4DBC6]">
+              <Button
+                variant="secondary"
+                size="md"
                 onClick={() => setModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
                 onClick={handleSubmitBooking}
-                disabled={isSubmitting || !title.trim()}
-                className="px-5 py-2 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50"
+                loading={isSubmitting}
+                disabled={!title.trim()}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Booking'}
-              </button>
+                Submit Venue Request
+              </Button>
             </div>
           </div>
         </div>

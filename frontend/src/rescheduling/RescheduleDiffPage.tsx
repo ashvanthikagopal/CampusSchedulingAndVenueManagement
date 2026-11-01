@@ -6,6 +6,11 @@ import {
   ShieldCheck, CheckCircle2, 
   Upload, Check, Move
 } from 'lucide-react';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Panel } from '../components/ui/Panel';
+import { StatCard } from '../components/ui/StatCard';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { Button } from '../components/ui/Button';
 
 export const RescheduleDiffPage: React.FC = () => {
   usePageMetadata(
@@ -14,7 +19,7 @@ export const RescheduleDiffPage: React.FC = () => {
   );
 
   const { user } = useAuth();
-  const [proposals, setProposals] = useState<any[]>([]);
+  const [_proposals, setProposals] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeProposal, setActiveProposal] = useState<any>(null);
   const [isApproving, setIsApproving] = useState<boolean>(false);
@@ -91,210 +96,263 @@ export const RescheduleDiffPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Banner */}
-      <div className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/60 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            Minimal Disruption Engine
-          </div>
-          <h1 className="text-2xl font-bold text-white">Disruptions & Reschedule Diff</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Compare before-and-after schedule triples. Human Admin approval is required before activating changes.
-          </p>
-        </div>
-
-        {activeProposal && activeProposal.status === 'pending_approval' && user?.role === 'admin' && (
-          <div className="flex items-center gap-3">
-            <button
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="Disruptions & Reschedule Diff"
+        subtitle="Compare before-and-after schedule triples. Human Admin approval is required before activating changes."
+        badge={
+          <StatusBadge
+            status="success"
+            size="sm"
+            label="Minimal Disruption Engine"
+            icon={<ShieldCheck className="w-3.5 h-3.5" />}
+          />
+        }
+        actions={
+          activeProposal && activeProposal.status === 'pending_approval' && user?.role === 'admin' ? (
+            <Button
+              variant="primary"
+              size="md"
               onClick={() => handleApprove(activeProposal.proposal_id)}
               disabled={isApproving}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+              loading={isApproving}
+              icon={<Check className="w-4 h-4" />}
             >
-              <Check className="w-4 h-4" />
-              {isApproving ? 'Activating...' : 'Approve & Activate New Schedule'}
-            </button>
-          </div>
-        )}
-      </div>
+              Approve & Activate New Schedule
+            </Button>
+          ) : undefined
+        }
+      />
 
       {approvalMsg && (
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-          {approvalMsg}
+        <div className="p-3.5 rounded-[8px] bg-[#EBF5EE] border border-[#C3E2CD] text-[#2F7D4F] text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{approvalMsg}</span>
         </div>
       )}
 
       {/* Grid: Diff Details & Upload Disruption Form */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Column: Diff View */}
         <div className="lg:col-span-8 space-y-6">
           {loading ? (
-            <div className="glass-panel p-12 text-center text-sm text-slate-500 rounded-2xl border border-slate-800">
+            <div className="p-16 text-center text-xs text-[#55625A] font-mono">
               Loading minimal-change repair diff proposals...
             </div>
           ) : activeProposal ? (
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-950/60 space-y-6">
-              
+            <div className="space-y-4">
               {/* Diff Summary Metrics */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-                  <div className="text-xs text-slate-400 mb-1">Total Moved</div>
-                  <div className="text-2xl font-bold text-sky-400">{activeProposal.moved_count}</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Minimal impact</div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-                  <div className="text-xs text-slate-400 mb-1">Time Changed</div>
-                  <div className="text-2xl font-bold text-amber-400">{activeProposal.time_changed_count}</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Only required shifts</div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-                  <div className="text-xs text-slate-400 mb-1">Room Only</div>
-                  <div className="text-2xl font-bold text-indigo-400">{activeProposal.room_only_changed_count}</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Kept same time slot</div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center">
-                  <div className="text-xs text-slate-400 mb-1">Hard Violations</div>
-                  <div className="text-2xl font-bold text-emerald-400">
-                    {activeProposal.hard_violations}
-                  </div>
-                  <div className="text-[10px] text-emerald-400/90 mt-0.5">100% Rule Parity</div>
-                </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                <StatCard
+                  title="Total Moved"
+                  value={activeProposal.moved_count}
+                  subtitle="Minimal disruption"
+                  icon={<Move className="w-4 h-4" />}
+                />
+                <StatCard
+                  title="Time Changed"
+                  value={activeProposal.time_changed_count}
+                  subtitle="Period shifts"
+                  icon={<Move className="w-4 h-4 text-[#B7791F]" />}
+                />
+                <StatCard
+                  title="Room Only"
+                  value={activeProposal.room_only_changed_count}
+                  subtitle="Same time slot"
+                  icon={<Move className="w-4 h-4 text-[#2C6A8A]" />}
+                />
+                <StatCard
+                  title="Hard Violations"
+                  value={activeProposal.hard_violations}
+                  subtitle="100% Rule Parity"
+                  highlight={true}
+                  icon={<CheckCircle2 className="w-4 h-4" />}
+                  trend={{ text: '0 Clashes', type: 'positive' }}
+                />
               </div>
 
               {/* Before vs After Session Comparison Table */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-sm text-white flex items-center gap-2">
-                  <Move className="w-4 h-4 text-sky-400" />
-                  Session Diff (Before → After)
-                </h3>
+              <Panel variant="default" padded={false} className="overflow-hidden">
+                <div className="p-4 border-b border-[#E4DBC6] flex items-center justify-between bg-[#F2ECDC]/40">
+                  <h3 className="font-serif font-bold text-sm text-[#1F2A24] flex items-center gap-2">
+                    <Move className="w-4 h-4 text-[#B08A3E]" />
+                    <span>Session Diff (Before → After)</span>
+                  </h3>
+                  <span className="text-xs font-mono text-[#55625A]">
+                    {activeProposal.moved_sessions?.length || 0} Changes
+                  </span>
+                </div>
 
-                <div className="overflow-x-auto rounded-xl border border-slate-800">
+                <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-slate-900/80 text-slate-400 border-b border-slate-800">
+                      <tr className="bg-[#F2ECDC] text-[#55625A] text-[11px] font-mono uppercase tracking-wider border-b border-[#E4DBC6]">
                         <th className="p-3 font-semibold">Session ID</th>
                         <th className="p-3 font-semibold">Baseline Slot (Before)</th>
                         <th className="p-3 font-semibold">Repaired Slot (After)</th>
                         <th className="p-3 font-semibold">Change Type</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60 bg-slate-950/40">
-                      {activeProposal.moved_sessions?.map((m: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-slate-900/40">
-                          <td className="p-3 font-mono font-bold text-sky-400">{m.session_id}</td>
-                          <td className="p-3 text-slate-400">
-                            {m.before ? (
-                              <span>
-                                {m.before.day} Period {m.before.start_period} in <strong className="text-slate-300">{m.before.room_id}</strong>
-                              </span>
-                            ) : (
-                              <span className="text-emerald-400 font-semibold">[New Session]</span>
-                            )}
-                          </td>
-                          <td className="p-3 text-white">
-                            <span className="font-semibold text-emerald-300">
-                              {m.after.day} Period {m.after.start_period} in {m.after.room_id}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                m.time_changed
-                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                  : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                              }`}
-                            >
-                              {m.before === null ? 'Added' : m.time_changed ? 'Time + Room' : 'Room Only'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                    <tbody className="divide-y divide-[#E4DBC6]/70">
+                      {activeProposal.moved_sessions?.map((m: any, idx: number) => {
+                        const isAdded = m.before === null;
+                        const isRemoved = m.after === null;
+
+                        const rowBg = isRemoved
+                          ? 'bg-[#FBEFEF]/50 hover:bg-[#FBEFEF]'
+                          : isAdded
+                          ? 'bg-[#EBF5EE]/50 hover:bg-[#EBF5EE]'
+                          : 'hover:bg-[#FAF6EC]';
+
+                        return (
+                          <tr key={idx} className={`${rowBg} transition-colors`}>
+                            <td className="p-3 font-mono font-bold text-[#1F2A24]">
+                              {m.session_id}
+                            </td>
+                            <td className="p-3 text-[#55625A]">
+                              {m.before ? (
+                                <span>
+                                  {m.before.day} Period {m.before.start_period} in <strong className="text-[#1F2A24] font-mono">{m.before.room_id}</strong>
+                                </span>
+                              ) : (
+                                <span className="text-[#2F7D4F] font-semibold font-mono">[New Session]</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              {m.after ? (
+                                <span className="font-semibold text-[#1F2A24]">
+                                  {m.after.day} Period {m.after.start_period} in <span className="font-mono text-[#2F7D4F] font-bold">{m.after.room_id}</span>
+                                </span>
+                              ) : (
+                                <span className="text-[#B3402F] font-semibold font-mono">[Removed Session]</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              {isRemoved ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FBEFEF] text-[#B3402F] border border-[#EFC5BF]">
+                                  Removed
+                                </span>
+                              ) : isAdded ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EBF5EE] text-[#2F7D4F] border border-[#C3E2CD]">
+                                  Added
+                                </span>
+                              ) : m.time_changed ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FDF5E6] text-[#B7791F] border border-[#EBD19E]">
+                                  Time + Room
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF4F8] text-[#2C6A8A] border border-[#C6DFEB]">
+                                  Room Only
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
-              </div>
 
+                {/* Sticky Action Bar */}
+                {activeProposal && activeProposal.status === 'pending_approval' && user?.role === 'admin' && (
+                  <div className="p-4 bg-[#F2ECDC] border-t border-[#E4DBC6] flex items-center justify-between gap-3">
+                    <div className="text-xs text-[#55625A]">
+                      Approve to update live timetable for all 1,000 students and 40 faculty.
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="primary"
+                        size="md"
+                        onClick={() => handleApprove(activeProposal.proposal_id)}
+                        disabled={isApproving}
+                        loading={isApproving}
+                        icon={<Check className="w-4 h-4" />}
+                      >
+                        Approve & Activate
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Panel>
             </div>
           ) : (
-            <div className="glass-panel p-12 text-center text-slate-400 text-sm">
-              No change proposals pending.
-            </div>
+            <Panel variant="default" className="p-12 text-center text-[#7C877F] text-xs">
+              No change proposals pending at this time.
+            </Panel>
           )}
         </div>
 
         {/* Right Column: Upload Disruption Form or Faculty Notice */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-4">
           {user?.role === 'faculty' ? (
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
-              <div className="p-3 bg-sky-500/10 rounded-xl text-sky-400 w-fit">
-                <ShieldCheck className="w-6 h-6" />
+            <Panel variant="default" className="space-y-3">
+              <div className="p-2.5 bg-[#FAF6EC] rounded-[8px] text-[#B08A3E] w-fit border border-[#E4DBC6]">
+                <ShieldCheck className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-base text-white">
-                Faculty Read-Only View
+              <h3 className="font-serif font-bold text-sm text-[#1F2A24]">
+                Faculty Review-Only View
               </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-[#55625A] leading-relaxed">
                 As a faculty member, you have view-only access to schedule proposals. In accordance with institutional anti-self-approval rules, timetable changes and disruption proposals can only be activated by an Administrator.
               </p>
-              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 space-y-2">
-                <div className="font-semibold text-white">Need to adjust your classes?</div>
-                <p className="text-slate-400 text-[11px]">
-                  Use the dedicated faculty workflows to request changes:
-                </p>
-                <div className="flex flex-col gap-2 pt-1">
+              <div className="p-3 rounded-[8px] bg-[#FAF6EC] border border-[#E4DBC6] text-xs space-y-2">
+                <div className="font-semibold text-[#1F2A24]">Need to adjust your classes?</div>
+                <div className="flex flex-col gap-1.5 pt-0.5 text-xs">
                   <a
                     href="/my-schedule"
-                    className="text-sky-400 hover:text-sky-300 font-medium text-[11px] flex items-center gap-1"
+                    className="text-[#B08A3E] hover:text-[#9A7633] font-medium"
                   >
                     → Declare Leave in My Schedule
                   </a>
                   <a
                     href="/my-requests"
-                    className="text-sky-400 hover:text-sky-300 font-medium text-[11px] flex items-center gap-1"
+                    className="text-[#B08A3E] hover:text-[#9A7633] font-medium"
                   >
                     → Request Class Adjustment in My Requests
                   </a>
                 </div>
               </div>
-            </div>
+            </Panel>
           ) : (
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
-              <h3 className="font-bold text-base text-white flex items-center gap-2">
-                <Upload className="w-4 h-4 text-sky-400" />
-                Apply Disruption Payload
+            <Panel variant="default" className="space-y-3">
+              <h3 className="font-serif font-bold text-sm text-[#1F2A24] flex items-center gap-2">
+                <Upload className="w-4 h-4 text-[#B08A3E]" />
+                <span>Apply Disruption Payload</span>
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#55625A]">
                 Submit disruption changes (faculty absence, venue closure, added session) to simulate real-world emergencies.
               </p>
 
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full text-xs"
                 onClick={handleLoadSampleDisruption}
-                className="w-full text-xs font-semibold py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 transition-all text-center"
               >
                 Load Official Sample Disruption
-              </button>
+              </Button>
 
               <textarea
-                rows={12}
+                rows={10}
                 value={disruptionText}
                 onChange={(e) => setDisruptionText(e.target.value)}
                 placeholder="Paste disruption JSON here..."
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 font-mono focus:outline-none focus:border-sky-500"
+                className="w-full p-3 rounded-[8px] bg-[#FFFDF8] border border-[#E4DBC6] text-xs text-[#1F2A24] font-mono focus:outline-none focus:ring-1 focus:ring-[#B08A3E]"
               />
 
-              <button
+              <Button
+                variant="evergreen"
+                size="md"
+                className="w-full"
                 onClick={handleSubmitDisruption}
                 disabled={isSubmittingDisruption || !disruptionText.trim()}
-                className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-lg shadow-sky-500/20 transition-all disabled:opacity-50"
+                loading={isSubmittingDisruption}
               >
-                {isSubmittingDisruption ? 'Solving Minimal Repair...' : 'Compute Minimal-Change Repair'}
-              </button>
-            </div>
+                Compute Minimal-Change Repair
+              </Button>
+            </Panel>
           )}
         </div>
 

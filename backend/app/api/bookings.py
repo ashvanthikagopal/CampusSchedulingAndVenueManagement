@@ -2,7 +2,7 @@
 Spectra Week and Venue Bookings API endpoints.
 Strictly enforces server-side role capping and anti-self-approval checks.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -10,15 +10,18 @@ import json
 
 from backend.app.database.session import get_db
 from backend.app.models.entities import (
-    BookingRequestModel, BookingDecisionModel, User, AuditLogModel, DatasetModel, RoomModel
+    BookingRequestModel, BookingDecisionModel, User, AuditLogModel, DatasetModel, RoomModel, PriorityConfigModel
 )
 from backend.app.api.deps import get_current_user, require_admin
+from backend.app.core.config import get_export_schedule_path, get_starter_dataset_path
+from backend.app.core.dataset_loader import get_active_dataset_dict
 from backend.app.schemas.schemas import (
     BookingCreateRequest, BookingParseRequest, BookingParseResponse,
     BookingCheckRequest, BookingCheckResponse, BookingDecisionRequest
 )
 from backend.app.ai.parser import parse_booking_text
 from backend.app.rules.models import DatasetContext, BookingRequest as RuleBookingRequest, effective_category
+from backend.app.rules.bookings import validate_single_booking
 from backend.app.solver.booking_engine import solve_bookings
 from backend.app.rules.engine import to_assign
 
@@ -96,42 +99,134 @@ def check_booking_endpoint(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Dry-run validation of a booking request against current timetable and venue constraints."""
-    b = check_req.booking
+    """Dry-run deterministic validation of a booking request against all 14 criteria (Issue C)."""
+    data = get_active_dataset_dict(db)
+    ctx = DatasetContext.from_dict(data)
 
-    # Check venue capacity
-    all_rooms = db.query(RoomModel).all()
-    max_cap = max((r.capacity for r in all_rooms if "event" in r.allowed_uses), default=0)
-    if b.attendance > max_cap:
-        return BookingCheckResponse(
-            pass_validation=False,
-            reason_code="NO_VENUE_CAPACITY",
-            reason=f"Attendance of {b.attendance} exceeds largest campus event venue capacity ({max_cap} seats in OAT)."
-        )
+    p_config = db.query(PriorityConfigModel).first()
+    if p_config and p_config.priority_order:
+        ctx.priority_order = p_config.priority_order
 
-    # Check room exists if requested
-    if b.requested_room:
-        rm = db.query(RoomModel).filter(RoomModel.id == b.requested_room).first()
-        if not rm:
-            return BookingCheckResponse(
-                pass_validation=False,
-                reason_code="ROOM_NOT_FOUND",
-                reason=f"Requested venue '{b.requested_room}' does not exist on campus.",
-                suggested_alternative={"room_id": "LH-1", "reason": "Lecture Hall 1 seats 200 with PA system"}
-            )
-        if "accessible" in b.needs and not rm.accessible:
-            return BookingCheckResponse(
-                pass_validation=False,
-                reason_code="NEEDS_NOT_MET",
-                reason=f"Venue '{b.requested_room}' is not wheelchair accessible.",
-                suggested_alternative={"room_id": "SH-1", "reason": "Seminar Hall 1 is wheelchair accessible"}
-            )
+    try:
+        with open(get_export_schedule_path(), encoding="utf-8") as f:
+            sched = json.load(f)
+        timetable_assign, _ = to_assign(sched)
+        existing_decisions = sched.get("fest_week", {}).get("bookings", [])
+    except Exception:
+        timetable_assign = {}
+        existing_decisions = []
+
+    booking_dict = check_req.booking.model_dump()
+    res = validate_single_booking(
+        ctx=ctx,
+        base_assign=timetable_assign,
+        booking_dict=booking_dict,
+        existing_decisions=existing_decisions,
+        user_role=current_user.role,
+        priority_order=ctx.priority_order
+    )
 
     return BookingCheckResponse(
-        pass_validation=True,
-        reason_code="INSIDE_WINDOW_ROOM_FREE",
-        reason="Venue and timing are feasible with zero conflicts."
+        pass_validation=res["pass"],
+        reason_code=res["reason_code"],
+        reason=res["reason"],
+        suggested_alternative=res.get("suggested_alternative")
     )
+
+
+@router.post("/{req_id}/cancel")
+def cancel_booking(
+    req_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Cancels a pending booking request:
+    - Club Representatives can cancel their own pending venue requests.
+    - Attempting to cancel another club's request returns HTTP 403.
+    - Only permitted while request status is 'pending'.
+    """
+    booking = db.query(BookingRequestModel).filter(BookingRequestModel.id == req_id).first()
+
+    # Ownership & Scoping Check
+    if current_user.role == "club":
+        is_owner = False
+        if booking and booking.submitted_by == current_user.id:
+            is_owner = True
+        elif booking and current_user.club_name and (booking.requester.lower() == current_user.club_name.lower() or current_user.club_name.lower() in booking.requester.lower()):
+            is_owner = True
+        elif not booking:
+            starter_data = get_active_dataset_dict(db)
+            for r in starter_data.get("booking_requests", []):
+                if r.get("id") == req_id:
+                    req_name = (r.get("requester") or "").lower()
+                    if current_user.club_name and (current_user.club_name.lower() in req_name or req_name in current_user.club_name.lower()):
+                        is_owner = True
+                    break
+        if not is_owner:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Club scoping violation: You can only cancel booking requests belonging to your own club."
+            )
+    elif current_user.role in ("department_coordinator", "faculty"):
+        if booking and booking.submitted_by != current_user.id and current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only cancel your own booking requests."
+            )
+
+    # Check status: only pending requests can be cancelled
+    current_status = booking.status if booking else "pending"
+    if current_status not in ("pending", None):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot cancel booking with status '{current_status}'. Only pending requests can be cancelled."
+        )
+
+    if booking:
+        booking.status = "cancelled"
+    else:
+        db.add(BookingRequestModel(
+            id=req_id,
+            submitted_at=datetime.now(timezone.utc).isoformat(),
+            requester=current_user.name,
+            role=current_user.role,
+            requested_category="club_event",
+            effective_category="club_event",
+            title=f"Request {req_id}",
+            attendance=50,
+            duration_periods=1,
+            status="cancelled",
+            submitted_by=current_user.id
+        ))
+
+    sched_path = get_export_schedule_path()
+    try:
+        with open(sched_path, encoding="utf-8") as f:
+            sched = json.load(f)
+        for b in sched.get("fest_week", {}).get("bookings", []):
+            if b.get("request_id") == req_id:
+                b["status"] = "cancelled"
+                b["reason"] = f"Cancelled by requester ({current_user.name})"
+                break
+        with open(sched_path, "w", encoding="utf-8") as f:
+            json.dump(sched, f, indent=2)
+    except Exception:
+        pass
+
+    db.add(AuditLogModel(
+        actor=current_user.email,
+        action="CANCEL_BOOKING",
+        entity=f"BookingRequest:{req_id}",
+        after_json={"status": "cancelled", "cancelled_by": current_user.email}
+    ))
+    db.commit()
+
+    return {
+        "status": "success",
+        "request_id": req_id,
+        "message": f"Booking request {req_id} cancelled successfully."
+    }
 
 
 @router.post("")
@@ -141,11 +236,12 @@ def create_booking(booking: BookingCreateRequest, db: Session = Depends(get_db),
     req_cat = booking.requested_category or "club_event"
     eff_cat, rule_trace = compute_effective_category(req_cat, current_user.role)
 
-    req_id = f"BR-REQ-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+    import uuid
+    req_id = f"BR-REQ-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
 
     new_b = BookingRequestModel(
         id=req_id,
-        submitted_at=datetime.utcnow().isoformat() + "+05:30",
+        submitted_at=datetime.now(timezone.utc).isoformat() + "+05:30",
         requester=current_user.name,
         role=current_user.role,
         requested_category=req_cat,
@@ -153,7 +249,7 @@ def create_booking(booking: BookingCreateRequest, db: Session = Depends(get_db),
         title=booking.title,
         attendance=booking.attendance,
         duration_periods=booking.duration_periods,
-        windows=[w.dict() for w in booking.windows],
+        windows=[w.model_dump() for w in booking.windows],
         room_types=booking.room_types,
         needs=booking.needs,
         requested_room=booking.requested_room,
@@ -194,7 +290,7 @@ def list_bookings(
     # Read decisions from exports/schedule.json
     disk_decisions = {}
     try:
-        with open("exports/schedule.json", encoding="utf-8") as f:
+        with open(get_export_schedule_path(), encoding="utf-8") as f:
             sched = json.load(f)
         for d in sched.get("fest_week", {}).get("bookings", []):
             disk_decisions[d["request_id"]] = d
@@ -203,7 +299,7 @@ def list_bookings(
 
     # Read requests from cit_public.json
     try:
-        with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
+        with open(get_starter_dataset_path(), encoding="utf-8") as f:
             data = json.load(f)
         starter_reqs = data.get("booking_requests", [])
     except Exception:
@@ -320,7 +416,7 @@ def decide_booking(
     else:
         # Check in starter dataset requests
         try:
-            with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
+            with open(get_starter_dataset_path(), encoding="utf-8") as f:
                 starter_data = json.load(f)
             for r in starter_data.get("booking_requests", []):
                 if r.get("id") == req_id:
@@ -349,7 +445,7 @@ def decide_booking(
         target_room = body.room_id or (booking.requested_room if booking else None)
         if not target_room:
             try:
-                with open("exports/schedule.json", encoding="utf-8") as f:
+                with open(get_export_schedule_path(), encoding="utf-8") as f:
                     sched_chk = json.load(f)
                 for b_chk in sched_chk.get("fest_week", {}).get("bookings", []):
                     if b_chk.get("request_id") == req_id:
@@ -381,10 +477,76 @@ def decide_booking(
                 detail=f"Department coordinators can only approve bookings for their department's labs (target room '{target_room}' is not a {current_user.department} lab)."
             )
 
-    # Update exports/schedule.json fest_week bookings
+        # Department Coordinators cannot approve bookings requiring a regular class to be moved!
+        # Check if target room on target day/period has an existing regular class
+        try:
+            with open(get_export_schedule_path(), encoding="utf-8") as f:
+                _cur_sched = json.load(f)
+            _t_day = body.day or (booking.windows[0]["day"] if booking and booking.windows else "WED")
+            _t_start = body.start_period or (booking.windows[0]["from_period"] if booking and booking.windows else 1)
+            _t_dur = (body.end_period - body.start_period + 1) if (body.start_period and body.end_period) else (booking.duration_periods if booking else 1)
+            _t_end = body.end_period or (_t_start + _t_dur - 1)
+            for _sess in _cur_sched.get("sessions", []):
+                if _sess.get("room_id") == target_room and _sess.get("day") == _t_day:
+                    _s_start = _sess.get("start_period", 1)
+                    _s_dur = 1
+                    # check overlap
+                    if not (_t_end < _s_start or _t_start > _s_start):
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Department Coordinator cannot approve bookings requiring an existing class to be moved. Escalated to Admin approval required."
+                        )
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
+    # Read active schedule and dataset
     try:
-        with open("exports/schedule.json", encoding="utf-8") as f:
+        sched_path = get_export_schedule_path()
+        with open(sched_path, encoding="utf-8") as f:
             sched = json.load(f)
+
+        data = get_active_dataset_dict(db)
+        ctx = DatasetContext.from_dict(data)
+        p_config = db.query(PriorityConfigModel).first()
+        if p_config and p_config.priority_order:
+            ctx.priority_order = p_config.priority_order
+        timetable_assign, _ = to_assign(sched)
+
+        # Before approving or offering alternative, validate complete resulting schedule (Issue C)
+        if body.action in ("approve", "alternative_offered"):
+            b_dur = (body.end_period - body.start_period + 1) if (body.start_period and body.end_period) else (booking.duration_periods if booking else 1)
+            target_r = body.room_id or (booking.requested_room if booking else None)
+            target_d = body.day or (booking.windows[0]["day"] if booking and booking.windows else "WED")
+            target_s = body.start_period or (booking.windows[0]["from_period"] if booking and booking.windows else 1)
+            target_e = body.end_period or (target_s + b_dur - 1)
+
+            check_data = {
+                "id": req_id,
+                "requested_room": target_r,
+                "windows": [{"day": target_d, "from_period": target_s, "to_period": target_e}],
+                "duration_periods": b_dur,
+                "attendance": booking.attendance if booking else 50,
+                "room_types": booking.room_types if booking else [],
+                "needs": booking.needs if booking else [],
+                "mandatory_for_groups": booking.mandatory_for_groups if booking else [],
+                "requested_category": booking.requested_category if booking else "club_event"
+            }
+            existing_decs = [b for b in sched.get("fest_week", {}).get("bookings", []) if b.get("request_id") != req_id]
+            val_chk = validate_single_booking(
+                ctx=ctx,
+                base_assign=timetable_assign,
+                booking_dict=check_data,
+                existing_decisions=existing_decs,
+                user_role=booking.role if booking else "club",
+                priority_order=ctx.priority_order
+            )
+            if not val_chk["pass"]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cannot {body.action} booking: {val_chk['reason']} (Violation: {val_chk['reason_code']})"
+                )
 
         found = False
         for b in sched.get("fest_week", {}).get("bookings", []):
@@ -414,7 +576,7 @@ def decide_booking(
                 "reason": body.reason or f"Decided by {current_user.name}"
             })
 
-        with open("exports/schedule.json", "w", encoding="utf-8") as f:
+        with open(get_export_schedule_path(), "w", encoding="utf-8") as f:
             json.dump(sched, f, indent=2)
 
         # Audit log
@@ -433,21 +595,25 @@ def decide_booking(
 
 @router.post("/decide-all")
 def decide_all_bookings(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    """Runs CP-SAT optimization engine to solve all 25 booking requests with 0 inversions."""
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
+    """Runs CP-SAT optimization engine to solve all booking requests with 0 inversions and admin priority."""
+    data = get_active_dataset_dict(db)
+    ctx = DatasetContext.from_dict(data)
+
+    p_config = db.query(PriorityConfigModel).first()
+    if p_config and p_config.priority_order:
+        ctx.priority_order = p_config.priority_order
+
+    sched_path = get_export_schedule_path()
+    with open(sched_path, encoding="utf-8") as f:
         sched = json.load(f)
 
-    ctx = DatasetContext.from_dict(data)
     timetable_assign, _ = to_assign(sched)
-
     decisions, overrides, stats = solve_bookings(ctx, timetable_assign)
 
     sched.setdefault("fest_week", {})["bookings"] = decisions
     sched["fest_week"]["session_overrides"] = overrides
 
-    with open("exports/schedule.json", "w", encoding="utf-8") as f:
+    with open(get_export_schedule_path(), "w", encoding="utf-8") as f:
         json.dump(sched, f, indent=2)
 
     db.add(AuditLogModel(

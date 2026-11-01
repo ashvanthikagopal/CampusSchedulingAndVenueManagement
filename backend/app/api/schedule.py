@@ -14,6 +14,8 @@ from backend.app.models.entities import (
     FacultyModel, StudentGroupModel, DatasetModel, AuditLogModel, User
 )
 from backend.app.api.deps import require_admin, get_current_user, get_current_user_optional, get_optional_user
+from backend.app.core.config import get_export_schedule_path, get_starter_dataset_path
+from backend.app.core.dataset_loader import get_active_dataset_dict
 from backend.app.schemas.schemas import (
     ScheduleViewResponse, ScheduleSessionItem, ScheduleJobResponse,
     SessionExplainResponse, ManualMoveRequest, ManualMoveResponse,
@@ -38,12 +40,7 @@ def run_solver_background_job(job_id: str, admin_email: str):
     JOBS[job_id]["status"] = "RUNNING"
     try:
         # Load dataset
-        ds = db.query(DatasetModel).filter(DatasetModel.is_active == True).first()
-        if ds:
-            data = ds.raw_json
-        else:
-            with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-                data = json.load(f)
+        data = get_active_dataset_dict(db)
 
         ctx = DatasetContext.from_dict(data)
 
@@ -119,7 +116,7 @@ def run_solver_background_job(job_id: str, admin_email: str):
 
         # Also update disk export exports/schedule.json
         try:
-            with open("exports/schedule.json", "w", encoding="utf-8") as f:
+            with open(get_export_schedule_path(), "w", encoding="utf-8") as f:
                 json.dump(sched_dict, f, indent=2)
         except Exception:
             pass
@@ -328,7 +325,7 @@ def get_schedule(
     else:
         # Load from disk
         try:
-            with open("exports/schedule.json", encoding="utf-8") as f:
+            with open(get_export_schedule_path(), encoding="utf-8") as f:
                 disk_sched = json.load(f)
             sessions_data = disk_sched.get("sessions", [])
             fest = disk_sched.get("fest_week", {})
@@ -398,7 +395,7 @@ def get_schedule(
     if week == 7:
         fest_bookings = []
         try:
-            with open("exports/schedule.json", encoding="utf-8") as f:
+            with open(get_export_schedule_path(), encoding="utf-8") as f:
                 disk_sched = json.load(f)
             fest_bookings = disk_sched.get("fest_week", {}).get("bookings", [])
         except Exception:
@@ -458,9 +455,8 @@ def get_faculty_my_schedule(
         raise HTTPException(status_code=400, detail="No faculty ID associated with this account")
 
     # Load dataset metadata
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
+    data = get_active_dataset_dict(db)
+    with open(get_export_schedule_path(), encoding="utf-8") as f:
         sched = json.load(f)
 
     ctx = DatasetContext.from_dict(data)
@@ -546,7 +542,7 @@ def validate_schedule_endpoint(schedule_data: Optional[Dict[str, Any]] = None, d
             data = json.load(f)
 
     if not schedule_data:
-        with open("exports/schedule.json", encoding="utf-8") as f:
+        with open(get_export_schedule_path(), encoding="utf-8") as f:
             schedule_data = json.load(f)
 
     rep = official_validator_run(data, schedule_data)
@@ -558,9 +554,8 @@ def explain_session(sid: str, db: Session = Depends(get_db), current_user: User 
     """Deterministic explanation: real legal options count, blockers, why here, penalty deltas."""
     from backend.app.rules.faculty_checks import enumerate_legal_options, explain_infeasible
 
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
+    data = get_active_dataset_dict(db)
+    with open(get_export_schedule_path(), encoding="utf-8") as f:
         sched = json.load(f)
 
     ctx = DatasetContext.from_dict(data)
@@ -704,12 +699,11 @@ def move_session(move: ManualMoveRequest, db: Session = Depends(get_db), current
     """
     from backend.app.rules.faculty_checks import check_candidate_move, enumerate_legal_options
 
-    if current_user.role not in ("admin", "department_coordinator"):
-        raise HTTPException(status_code=403, detail="NOT_AUTHORIZED: Only Admin and Department Coordinators can move sessions directly")
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="NOT_AUTHORIZED: Direct timetable modification requires Admin privileges. Department Coordinators and Faculty must submit a session change request via /session-requests.")
 
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
+    data = get_active_dataset_dict(db)
+    with open(get_export_schedule_path(), encoding="utf-8") as f:
         sched = json.load(f)
 
     ctx = DatasetContext.from_dict(data)
@@ -794,7 +788,7 @@ def move_session(move: ManualMoveRequest, db: Session = Depends(get_db), current
             soft_penalty_delta=check_result["soft_penalty_delta"]
         )
 
-    # Valid! Update exports/schedule.json and DB
+    # Valid! Transactionally update active ScheduleVersion, ScheduleEntry, exports/schedule.json, and audit log (Issue G)
     sched_copy = json.loads(json.dumps(sched))
     for item in sched_copy["sessions"]:
         if item["session_id"] == move.session_id:
@@ -803,16 +797,44 @@ def move_session(move: ManualMoveRequest, db: Session = Depends(get_db), current
             item["room_id"] = move.target_room_id
             break
 
-    with open("exports/schedule.json", "w", encoding="utf-8") as f:
-        json.dump(sched_copy, f, indent=2)
+    try:
+        # Update matching entry in active ScheduleVersion
+        active_version = db.query(ScheduleVersion).filter(ScheduleVersion.status == "active").order_by(ScheduleVersion.created_at.desc()).first()
+        if active_version:
+            entry = db.query(ScheduleEntry).filter(
+                ScheduleEntry.version_id == active_version.id,
+                ScheduleEntry.session_id == move.session_id
+            ).first()
+            if entry:
+                entry.day = move.target_day
+                entry.start_period = move.target_start_period
+                entry.room_id = move.target_room_id
+            else:
+                db.add(ScheduleEntry(
+                    version_id=active_version.id,
+                    session_id=move.session_id,
+                    day=move.target_day,
+                    start_period=move.target_start_period,
+                    room_id=move.target_room_id
+                ))
 
-    db.add(AuditLogModel(
-        actor=current_user.email,
-        action="MANUAL_SESSION_MOVE",
-        entity=f"Session:{move.session_id}",
-        after_json={"day": move.target_day, "start_period": move.target_start_period, "room_id": move.target_room_id}
-    ))
-    db.commit()
+            val_rep = official_validator_run(data, sched_copy)
+            active_version.soft_penalty = val_rep.get("soft_total", 0)
+            active_version.validator_report = val_rep
+
+        with open(get_export_schedule_path(), "w", encoding="utf-8") as f:
+            json.dump(sched_copy, f, indent=2)
+
+        db.add(AuditLogModel(
+            actor=current_user.email,
+            action="MANUAL_SESSION_MOVE",
+            entity=f"Session:{move.session_id}",
+            after_json={"day": move.target_day, "start_period": move.target_start_period, "room_id": move.target_room_id}
+        ))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database synchronization failed on move: {str(e)}")
 
     return ManualMoveResponse(
         valid=True,

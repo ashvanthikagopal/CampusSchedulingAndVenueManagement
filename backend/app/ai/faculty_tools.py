@@ -16,10 +16,11 @@ from backend.validator.validator import run as official_validator_run, apply_dis
 
 
 def load_dataset_and_schedule() -> Tuple[Dict[str, Any], Dict[str, Any], DatasetContext]:
-    """Loads active dataset and schedule from storage."""
-    with open("data/starter_dataset/cit_public.json", encoding="utf-8") as f:
-        data = json.load(f)
-    with open("exports/schedule.json", encoding="utf-8") as f:
+    """Loads active dataset and schedule from authoritative storage."""
+    from backend.app.core.dataset_loader import get_active_dataset_dict
+    from backend.app.core.config import get_export_schedule_path
+    data = get_active_dataset_dict()
+    with open(get_export_schedule_path(), encoding="utf-8") as f:
         sched = json.load(f)
     ctx = DatasetContext.from_dict(data)
     return data, sched, ctx

@@ -7,14 +7,21 @@ import os
 import sys
 from pathlib import Path
 
+# Ensure repository root is on sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
+from backend.app.core.config import (
+    get_sample_disruption_path, get_starter_dataset_path,
+    get_export_schedule_path, get_export_schedule_after_path
+)
 from backend.app.solver.repair_engine import repair_schedule
 from backend.validator.validator import run as official_validator_run, apply_disruption as official_apply_disruption
 
 def main():
-    data_path = Path("data/starter_dataset/cit_public.json")
-    disruption_path = Path("starter_pack/examples/sample_disruption.json")
-    baseline_path = Path("exports/schedule.json")
-    output_path = Path("exports/schedule_after.json")
+    data_path = get_starter_dataset_path()
+    disruption_path = get_sample_disruption_path()
+    baseline_path = get_export_schedule_path()
+    output_path = get_export_schedule_after_path()
 
     with open(data_path, encoding="utf-8") as f:
         base_data = json.load(f)
@@ -59,6 +66,8 @@ def main():
     if "bookings" in rep:
         b = rep["bookings"]
         print(f"Bookings: score {b['booking_score']}/{b['booking_score_max_if_all_approved']} | approved {b['approved']}, alt {b['alternatives']}, rej {b['rejected']}, inversions {len(b['priority_inversions'])}")
+    if "exam_soft_penalty" in rep:
+        print(f"Exam soft penalty: {rep['exam_soft_penalty']}")
 
     if rep["hard_violation_count"] != 0:
         print("ERROR: Hard violations found in repaired schedule!")
@@ -70,4 +79,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
