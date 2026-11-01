@@ -60,7 +60,7 @@ export const TimetableGrid: React.FC = () => {
   const [targetSessionId, setTargetSessionId] = useState('');
   const [targetDay, setTargetDay] = useState('MON');
   const [targetPeriod, setTargetPeriod] = useState(1);
-  const [targetRoom, setTargetRoom] = useState('CR-101');
+  const [targetRoom, setTargetRoom] = useState('');
   const [moveResult, setMoveResult] = useState<any>(null);
   const [isSubmittingMove, setIsSubmittingMove] = useState(false);
 
@@ -100,7 +100,7 @@ export const TimetableGrid: React.FC = () => {
     if (!user) return;
     if (user.role === 'student') {
       setFilterView('group');
-      setFilterId(user.student_group || 'Y1-A');
+      setFilterId(user.student_group || (groupsData?.groups?.[0]?.id ?? ''));
     } else if (user.role === 'faculty') {
       setFilterView('faculty');
       setFilterId(user.faculty_id || 'F06');
@@ -253,7 +253,7 @@ export const TimetableGrid: React.FC = () => {
         subtitle={
           isSingleClassView
             ? `Viewing schedule matrix for ${classSummary?.group?.name || filterId}.`
-            : 'Synchronized weekly teaching schedule across 14 Student Groups, 40 Faculty, and 27 Venues.'
+            : groupsData ? `Synchronized weekly teaching schedule across ${groupsData.groups?.length || 0} Student Groups, ${groupsData.faculty?.length || 0} Faculty, and ${groupsData.rooms?.length || 0} Venues.` : 'Synchronized weekly teaching schedule across student groups, faculty, and campus venues.'
         }
         badge={
           <StatusBadge
@@ -297,16 +297,16 @@ export const TimetableGrid: React.FC = () => {
                   setFilterId('');
                 } else if (nv === 'group') {
                   if (user?.role === 'student') {
-                    setFilterId(user.student_group || 'Y1-A');
+                    setFilterId(user.student_group || (groupsData?.groups?.[0]?.id ?? ''));
                   } else if (user?.role === 'department_coordinator') {
-                    setFilterId(`${user.department || 'CSE'}-2`);
+                    const dGroup = groupsData?.groups?.find(g => g.department === user.department); setFilterId(dGroup ? dGroup.id : (groupsData?.groups?.[0]?.id ?? ''));
                   } else {
-                    setFilterId('Y1-A');
+                    setFilterId(groupsData?.groups?.[0]?.id ?? '');
                   }
                 } else if (nv === 'faculty') {
-                  setFilterId(user?.role === 'faculty' ? (user.faculty_id || 'F06') : 'F01');
+                  setFilterId(user?.role === 'faculty' ? (user.faculty_id || (groupsData?.faculty?.[0]?.id ?? '')) : (groupsData?.faculty?.[0]?.id ?? ''));
                 } else if (nv === 'room') {
-                  setFilterId('CR-101');
+                  setFilterId(groupsData?.rooms?.[0]?.id ?? '');
                 }
               }}
               className="w-auto min-w-[150px] text-xs py-1.5"
@@ -315,11 +315,11 @@ export const TimetableGrid: React.FC = () => {
                 <option value="all">All Classes & Venues</option>
               )}
               <option value="group">
-                {user?.role === 'student' ? `My Class (${user.student_group || 'Y1-A'})` : 'By Student Class'}
+                {user?.role === 'student' ? `My Class (${user.student_group || (groupsData?.groups?.[0]?.id ?? '')})` : 'By Student Class'}
               </option>
               {user?.role !== 'student' && (
                 <option value="faculty">
-                  {user?.role === 'faculty' ? `My Faculty Schedule (${user.faculty_id || 'F06'})` : 'By Faculty Member'}
+                  {user?.role === 'faculty' ? `My Faculty Schedule${user.faculty_id ? ` (${user.faculty_id})` : ''}` : 'By Faculty Member'}
                 </option>
               )}
               {user?.role !== 'faculty' && user?.role !== 'student' && (
@@ -332,7 +332,7 @@ export const TimetableGrid: React.FC = () => {
               user?.role === 'student' ? (
                 <div className="px-3 py-1.5 rounded-[8px] bg-[#EBF5EE] border border-[#C3E2CD] text-xs text-[#2F7D4F] font-semibold flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5" />
-                  <span>{user.student_group || 'Y1-A'}</span>
+                  <span>{user.student_group || (groupsData?.groups?.[0]?.id ?? '')}</span>
                 </div>
               ) : (
                 <Select
@@ -371,7 +371,7 @@ export const TimetableGrid: React.FC = () => {
             {filterView === 'faculty' && (
               user?.role === 'faculty' ? (
                 <div className="px-3 py-1.5 rounded-[8px] bg-[#F2ECDC] border border-[#E4DBC6] text-xs text-[#B08A3E] font-mono font-semibold">
-                  {user.faculty_id || 'F06'}
+                  {user.faculty_id || 'Assigned'}
                 </div>
               ) : (
                 <Select
@@ -405,7 +405,7 @@ export const TimetableGrid: React.FC = () => {
                     </option>
                   ))
                 ) : (
-                  <option value="CR-101">CR-101</option>
+                  <option value="">Loading rooms...</option>
                 )}
               </Select>
             )}

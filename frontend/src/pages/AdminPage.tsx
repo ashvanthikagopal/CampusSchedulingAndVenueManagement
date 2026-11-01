@@ -175,7 +175,7 @@ export const AdminPage: React.FC = () => {
             <div className="p-4 border-b border-[#E4DBC6] font-semibold text-sm text-[#1F2A24] flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[#B08A3E]" />
-                All 27 Campus Venues Detail
+                Campus Venues Utilization Detail ({roomAnalytics.length})
               </span>
               <span className="text-xs text-[#7C877F] font-normal font-mono">
                 {roomAnalytics.length} venues cataloged

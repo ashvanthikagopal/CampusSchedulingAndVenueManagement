@@ -45,7 +45,7 @@ interface RoomData {
 export const ClubTimetable: React.FC = () => {
   usePageMetadata(
     'Club Venue Availability & Timetable | CIT Schedule',
-    'Explore 27 campus rooms, find free venue slots for Spectra week, and request space with transparent clash detection.'
+    'Explore campus venues, find free venue slots for Spectra week, and request space with transparent clash detection.'
   );
 
   const { user } = useAuth();

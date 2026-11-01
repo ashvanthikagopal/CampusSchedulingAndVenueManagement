@@ -227,12 +227,18 @@ def get_schedule_groups(db: Session = Depends(get_db)):
         for r in data.get("rooms", [])
     ]
 
+    courses = [
+        {"id": c["id"], "name": c.get("name", c["id"]), "department": c.get("department", ""), "credits": c.get("credits", 3)}
+        for c in data.get("courses", [])
+    ]
+
     return {
         "groups": groups,
         "by_year": by_year,
         "by_dept": by_dept,
         "faculty": faculty,
-        "rooms": rooms
+        "rooms": rooms,
+        "courses": courses
     }
 
 

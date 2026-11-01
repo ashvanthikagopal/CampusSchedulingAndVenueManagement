@@ -15,9 +15,8 @@ import { Button } from '../components/ui/Button';
 
 export const FacultyDashboard: React.FC = () => {
   const { user } = useAuth();
-  const facId = user?.faculty_id || 'F06';
-
   const [scheduleData, setScheduleData] = useState<any>(null);
+  const facId = user?.faculty_id || scheduleData?.faculty_id || '';
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -53,12 +52,12 @@ export const FacultyDashboard: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         title={`Welcome, ${user?.name || 'Faculty Member'}`}
-        subtitle={`Faculty Member (${facId} · ${user?.department || 'CSE'}). Weekly teaching timetable synchronized with 0 clashes. Max daily limit: ${maxHours}h (Rule H12).`}
+        subtitle={`Faculty Member${facId ? ` (${facId} · ${user?.department || scheduleData?.department || 'Academic'})` : ''}. Weekly teaching timetable synchronized with 0 clashes. Max daily limit: ${maxHours}h (Rule H12).`}
         badge={
           <StatusBadge
             status="success"
             size="sm"
-            label={`Faculty ${facId} Scoped`}
+            label={facId ? `Faculty ${facId} Scoped` : 'Faculty Workspace'}
             icon={<UserCheck className="w-3.5 h-3.5" />}
           />
         }

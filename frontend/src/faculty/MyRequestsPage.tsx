@@ -44,7 +44,7 @@ export const MyRequestsPage: React.FC = () => {
   // Session Request Modal State
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
   const [reqType, setReqType] = useState<'move' | 'extra'>('move');
-  const [courseId, setCourseId] = useState('CS202');
+  const [courseId, setCourseId] = useState('');
   const [targetSessionId, setTargetSessionId] = useState('');
   const [sessionKind, setSessionKind] = useState('lecture');
   const [sessionDuration, setSessionDuration] = useState(1);
@@ -75,6 +75,14 @@ export const MyRequestsPage: React.FC = () => {
     queryFn: async () => {
       const res = await api.get('/bookings/mine');
       return res.data || [];
+    }
+  });
+
+  const { data: groupsData } = useQuery({
+    queryKey: ['scheduleGroups'],
+    queryFn: async () => {
+      const res = await api.get('/schedule/groups');
+      return res.data;
     }
   });
 
@@ -217,7 +225,7 @@ export const MyRequestsPage: React.FC = () => {
           <StatusBadge
             status="info"
             size="sm"
-            label={`Faculty: ${user?.faculty_id || 'F06'}`}
+            label={user?.faculty_id ? `Faculty: ${user.faculty_id}` : 'Faculty Portal'}
           />
         }
         actions={
@@ -516,8 +524,15 @@ export const MyRequestsPage: React.FC = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label>Course Code</Label>
-                  <Input value={courseId} onChange={e => setCourseId(e.target.value)} />
+                  <Label>Course</Label>
+                  <Select value={courseId} onChange={e => setCourseId(e.target.value)}>
+                    <option value="">Select Course...</option>
+                    {groupsData?.courses?.map((c: any) => (
+                      <option key={c.id} value={c.id}>
+                        {c.id} · {c.name}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
               </div>
 
@@ -527,7 +542,7 @@ export const MyRequestsPage: React.FC = () => {
                   <Input
                     value={targetSessionId}
                     onChange={e => setTargetSessionId(e.target.value)}
-                    placeholder="e.g. SESS_CS202_LEC_1"
+                    placeholder="e.g. Target Session ID from your schedule"
                   />
                 </div>
               )}

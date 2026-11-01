@@ -78,7 +78,7 @@ export const MySchedulePage: React.FC = () => {
       for (let p = Number(leaveStartPeriod); p <= Number(leaveEndPeriod); p++) {
         periods.push(p);
       }
-      const facId = user?.faculty_id || scheduleData?.faculty_id || 'F06';
+      const facId = user?.faculty_id || scheduleData?.faculty_id || '';
       const res = await api.post('/disruptions/dry-run', {
         description: `Faculty Leave: ${leaveDay} P${leaveStartPeriod}-P${leaveEndPeriod}`,
         changes: [
@@ -111,9 +111,9 @@ export const MySchedulePage: React.FC = () => {
       for (let p = Number(leaveStartPeriod); p <= Number(leaveEndPeriod); p++) {
         periods.push(p);
       }
-      const facId = user?.faculty_id || scheduleData?.faculty_id || 'F06';
+      const facId = user?.faculty_id || scheduleData?.faculty_id || '';
       await api.post('/disruptions', {
-        description: `Leave Declaration: Prof. ${user?.name || 'Sharma'} (${leaveDay} P${leaveStartPeriod}-P${leaveEndPeriod})`,
+        description: `Leave Declaration: Prof. ${user?.name || user?.faculty_id || 'Faculty Member'} (${leaveDay} P${leaveStartPeriod}-P${leaveEndPeriod})`,
         changes: [
           {
             type: "faculty_unavailable",

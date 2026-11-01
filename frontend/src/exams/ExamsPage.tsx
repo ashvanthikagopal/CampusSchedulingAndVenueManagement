@@ -42,7 +42,7 @@ export const ExamsPage: React.FC = () => {
       {/* Page Header */}
       <PageHeader
         title="Midsem Examination Schedule"
-        subtitle="All 41 examinations scheduled across 12 slots (Mon-Sat AM/PM) with strict half-capacity seating arithmetic and zero same-day clashes."
+        subtitle={`${exams.length} examinations scheduled across 12 slots (Mon-Sat AM/PM) with strict half-capacity seating arithmetic and zero same-day clashes.`}
         badge={
           <StatusBadge
             status="brass"
@@ -94,7 +94,7 @@ export const ExamsPage: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-3 text-xs font-mono shrink-0">
-          <StatusBadge status="success" size="sm" label="41 / 41 Exams Scheduled" />
+          <StatusBadge status="success" size="sm" label={`${exams.length} Exams Scheduled`} />
           <StatusBadge status="info" size="sm" label="0 Same-Day Group Clashes" />
         </div>
       </Panel>

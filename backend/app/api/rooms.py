@@ -413,3 +413,10 @@ def get_room_availability(
         "periods": EVENT_PERIODS if event_only else PERIODS,
         "days": days_to_check,
     }
+
+@router.get("", response_model=List[Dict[str, Any]])
+@router.get("/all", response_model=List[Dict[str, Any]])
+def list_all_rooms(db: Session = Depends(get_db)):
+    """Returns all campus rooms from the authoritative dataset."""
+    dataset = get_dataset_data(db)
+    return dataset.get("rooms", [])

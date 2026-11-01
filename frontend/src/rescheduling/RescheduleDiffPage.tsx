@@ -63,16 +63,13 @@ export const RescheduleDiffPage: React.FC = () => {
     }
   };
 
-  const handleLoadSampleDisruption = () => {
-    setDisruptionText(JSON.stringify({
-      id: "sample-disruption",
-      description: "F07 Monday travel, CR-102 room repair closure, new CSE-2 tutorial CS202-T2",
-      changes: [
-        { type: "faculty_unavailable", faculty_id: "F07", days: ["MON"], periods: [1,2,3,4,5,6,7,8,9], reason: "Conference travel" },
-        { type: "room_unavailable", room_id: "CR-102", days: ["MON","TUE","WED","THU","FRI"], periods: [1,2,3,4,5,6,7,8,9], reason: "Water leak repair" },
-        { type: "add_session", session: { id: "CS202-T2", course_id: "CS202", kind: "tutorial", groups: ["CSE-2"], faculty_id: "F06", size: 80, duration: 1, room_types: ["classroom", "lecture_hall", "auditorium"], needs_accessible: false, basket_slot: null, fixed_slot: null } }
-      ]
-    }, null, 2));
+  const handleLoadSampleDisruption = async () => {
+    try {
+      const res = await api.get('/disruptions/sample');
+      setDisruptionText(JSON.stringify(res.data, null, 2));
+    } catch (err: any) {
+      alert('Failed to load official sample disruption: ' + (err.response?.data?.detail || err.message));
+    }
   };
 
   const handleSubmitDisruption = async () => {

@@ -50,13 +50,46 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
         soft_total = sched.get("soft_total", 0)
         b_score = 0.0
 
+    alt_b = sum(1 for b in bookings if b.get("status") == "alternative_offered")
+    rejected_b = sum(1 for b in bookings if b.get("status") == "rejected")
     booking_reqs = data.get("booking_requests", [])
-    max_b_score = float(len(booking_reqs) * 3.0) if booking_reqs else 70.0
+    total_bookings = len(booking_reqs)
+    max_b_score = float(total_bookings * 3.0) if total_bookings > 0 else 0.0
 
     rooms = data.get("rooms", [])
-    total_slots = len(rooms) * 5 * 8  # 8 teaching periods per day (excluding lunch P5) * 5 days
+    rooms_count = len(rooms)
+    total_slots = rooms_count * 5 * 8  # 8 teaching periods per day (excluding lunch P5) * 5 days
     used_slots = sum(s.get("duration", 1) for s in sched.get("sessions", []))
     room_util = round((used_slots / total_slots * 100), 1) if total_slots > 0 else 0.0
+
+    # Calculate department load dynamically from sessions and active schedule
+    c_dept = {c["id"]: c.get("department", "Other") for c in data.get("courses", [])}
+    s_map = {sess["id"]: sess for sess in data.get("sessions", [])}
+    dept_counts: Dict[str, Dict[str, Any]] = {}
+    
+    for entry in sched.get("sessions", []):
+        sid = entry.get("session_id")
+        sess = s_map.get(sid, {})
+        cid = sess.get("course_id")
+        dept = c_dept.get(cid, "Other")
+        kind = sess.get("kind", "lecture")
+        if dept not in dept_counts:
+            dept_counts[dept] = {"name": dept, "lectures": 0, "labs": 0, "tutorials": 0}
+        if kind == "lecture":
+            dept_counts[dept]["lectures"] += 1
+        elif kind == "lab":
+            dept_counts[dept]["labs"] += 1
+        elif kind == "tutorial":
+            dept_counts[dept]["tutorials"] += 1
+
+    major_order = ["CSE", "ECE", "ME", "CE", "EE"]
+    sorted_dept_load = []
+    for dname in major_order:
+        if dname in dept_counts:
+            sorted_dept_load.append(dept_counts[dname])
+    for dname, dval in sorted(dept_counts.items()):
+        if dname not in major_order:
+            sorted_dept_load.append(dval)
 
     return DashboardMetrics(
         sessions_scheduled=sessions_count,
@@ -68,7 +101,12 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
         booking_score=b_score,
         max_booking_score=max_b_score,
         room_utilization_rate=room_util,
-        active_dataset_id=data.get("dataset_id", "cit-public-v1")
+        active_dataset_id=data.get("dataset_id", "cit-public-v1"),
+        rooms_count=rooms_count,
+        total_bookings=total_bookings,
+        alternative_bookings=alt_b,
+        rejected_bookings=rejected_b,
+        department_load=sorted_dept_load
     )
 
 
@@ -122,26 +160,6 @@ def get_room_analytics(db: Session = Depends(get_db)):
 def get_audit_logs(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
     """Returns chronologically ordered audit logs for all administrative actions (Admin only)."""
     logs = db.query(AuditLogModel).order_by(AuditLogModel.timestamp.desc()).limit(100).all()
-    if not logs:
-        now_str = datetime.now(timezone.utc).isoformat()
-        return [
-            {
-                "id": 1,
-                "actor": "admin@cit.edu",
-                "action": "SYSTEM_INITIALIZE",
-                "entity": "System",
-                "timestamp": now_str,
-                "after_json": {"status": "Database initialized with 0 hard violations"}
-            },
-            {
-                "id": 2,
-                "actor": "admin@cit.edu",
-                "action": "GENERATE_TIMETABLE",
-                "entity": "ScheduleVersion:v_base_1",
-                "timestamp": now_str,
-                "after_json": {"sessions_scheduled": 189, "hard_violations": 0, "soft_total": 3}
-            }
-        ]
     return logs
 
 

@@ -231,6 +231,11 @@ class DashboardMetrics(BaseModel):
     max_booking_score: float
     room_utilization_rate: float
     active_dataset_id: str
+    rooms_count: Optional[int] = 0
+    total_bookings: Optional[int] = 0
+    alternative_bookings: Optional[int] = 0
+    rejected_bookings: Optional[int] = 0
+    department_load: Optional[List[Dict[str, Any]]] = []
 
 
 class PriorityUpdateRequest(BaseModel):

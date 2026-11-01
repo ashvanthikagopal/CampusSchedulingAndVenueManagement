@@ -17,27 +17,6 @@ import { StatusBadge } from '../components/ui/StatusBadge';
 import { Button } from '../components/ui/Button';
 import { ResetDatasetModal } from '../components/ResetDatasetModal';
 
-const DEFAULT_METRICS = {
-  sessions_scheduled: 189,
-  total_sessions: 189,
-  hard_conflicts: 0,
-  soft_penalty_total: 3,
-  pending_approvals: 0,
-  approved_bookings: 22,
-  booking_score: 67.0,
-  max_booking_score: 70.0,
-  room_utilization_rate: 17.5,
-  active_dataset_id: "cit-public-v1"
-};
-
-const DEPARTMENT_LOAD = [
-  { name: 'CSE', lectures: 42, labs: 18, tutorials: 12 },
-  { name: 'ECE', lectures: 36, labs: 14, tutorials: 10 },
-  { name: 'ME', lectures: 30, labs: 12, tutorials: 8 },
-  { name: 'CE', lectures: 28, labs: 10, tutorials: 6 },
-  { name: 'EE', lectures: 24, labs: 8, tutorials: 6 },
-];
-
 export const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<any>(null);
@@ -54,7 +33,7 @@ export const AdminDashboard: React.FC = () => {
     try {
       const res = await api.post('/schedule/generate');
       const jobId = res.data.job_id;
-      setGenerateMsg(`Job ${jobId} running. Optimizing 189 sessions across 27 rooms...`);
+      setGenerateMsg(`Job ${jobId} running. Optimizing timetable sessions across campus venues...`);
 
       const interval = setInterval(async () => {
         try {
@@ -86,10 +65,10 @@ export const AdminDashboard: React.FC = () => {
     setErrorMsg(null);
     try {
       const [metricsRes, bookingsRes] = await Promise.all([
-        api.get('/admin/dashboard').catch(() => ({ data: DEFAULT_METRICS })),
-        api.get('/bookings').catch(() => ({ data: [] }))
+        api.get('/admin/dashboard'),
+        api.get('/bookings')
       ]);
-      setMetrics(metricsRes.data || DEFAULT_METRICS);
+      setMetrics(metricsRes.data);
       const bList = bookingsRes.data || [];
       const topDecisions = bList.slice(0, 5).map((b: any) => {
         let statusType: 'success' | 'warning' | 'danger' | 'neutral' = 'neutral';
@@ -111,8 +90,8 @@ export const AdminDashboard: React.FC = () => {
       setRecentDecisions(topDecisions);
     } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
-      setErrorMsg('Backend connection is being restored. Using cached ground-truth metrics.');
-      setMetrics(DEFAULT_METRICS);
+      setErrorMsg(err.response?.data?.detail || 'Unable to connect to scheduling backend.');
+      setMetrics(null);
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +101,7 @@ export const AdminDashboard: React.FC = () => {
     fetchData();
   }, []);
 
-  const activeMetrics = metrics || DEFAULT_METRICS;
+  const departmentLoadData = metrics?.department_load || [];
 
   return (
     <div className="space-y-6">
@@ -183,188 +162,208 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* 4 Core Operational Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Hard Violations"
-          value={activeMetrics.hard_conflicts}
-          subtitle="Zero Double-Bookings"
-          highlight={true}
-          icon={<ShieldCheck className="w-4 h-4" />}
-          trend={{ text: 'Pristine 0 Clashes', type: 'positive' }}
-        />
-        <StatCard
-          title="Room Utilization"
-          value={`${activeMetrics.room_utilization_rate}%`}
-          subtitle="27 Venues across campus"
-          icon={<Building2 className="w-4 h-4" />}
-          trend={{ text: 'Optimized', type: 'neutral' }}
-        />
-        <StatCard
-          title="Spectra Booking Score"
-          value={`${activeMetrics.booking_score} / ${activeMetrics.max_booking_score}`}
-          subtitle="22 Approved · 1 Alt · 2 Rej"
-          icon={<Calendar className="w-4 h-4" />}
-          trend={{ text: 'Theoretical Optimum', type: 'positive' }}
-        />
-        <StatCard
-          title="Soft Penalty Total"
-          value={activeMetrics.soft_penalty_total}
-          subtitle="S4=3 (Course Spread)"
-          icon={<Layers className="w-4 h-4" />}
-          trend={{ text: 'Minimal Soft Penalty', type: 'positive' }}
-        />
-      </div>
-
-      {/* Recharts Department Load Distribution */}
-      <Panel variant="default" className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#E4DBC6]">
-          <div>
-            <h2 className="text-base font-serif font-bold text-[#1F2A24]">
-              Campus Academic Load Distribution
-            </h2>
-            <p className="text-xs text-[#55625A]">
-              189 sessions scheduled across 5 departments and common first-year groups.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 text-xs font-mono text-[#55625A]">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#12372A]" /> Lectures</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#B08A3E]" /> Labs</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#2C6A8A]" /> Tutorials</span>
-          </div>
+      {isLoading && !metrics ? (
+        <div className="p-16 text-center text-xs text-[#55625A] font-mono">
+          Loading campus metrics from official dataset...
         </div>
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={DEPARTMENT_LOAD} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E4DBC6" vertical={false} />
-              <XAxis dataKey="name" stroke="#55625A" fontSize={12} tickLine={false} axisLine={{ stroke: '#E4DBC6' }} />
-              <YAxis stroke="#55625A" fontSize={12} tickLine={false} axisLine={{ stroke: '#E4DBC6' }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#FFFDF8',
-                  borderColor: '#E4DBC6',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(31,42,36,0.08)',
-                  fontSize: '12px',
-                  color: '#1F2A24',
-                }}
-              />
-              <Bar dataKey="lectures" name="Lectures" fill="#12372A" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="labs" name="Labs" fill="#B08A3E" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="tutorials" name="Tutorials" fill="#2C6A8A" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </Panel>
-
-      {/* Main Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#B08A3E]" />
-              <span>Spectra Week Allocation Decisions</span>
-            </h2>
-            <Link
-              to="/bookings"
-              className="text-xs text-[#B08A3E] hover:text-[#9A7633] font-semibold flex items-center gap-1 transition-colors"
-            >
-              <span>Manage All 25 Requests</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+      ) : metrics ? (
+        <>
+          {/* 4 Core Operational Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              title="Hard Violations"
+              value={metrics.hard_conflicts}
+              subtitle="Zero Double-Bookings"
+              highlight={true}
+              icon={<ShieldCheck className="w-4 h-4" />}
+              trend={{ text: metrics.hard_conflicts === 0 ? 'Pristine 0 Clashes' : `${metrics.hard_conflicts} Conflicts`, type: metrics.hard_conflicts === 0 ? 'positive' : 'negative' }}
+            />
+            <StatCard
+              title="Room Utilization"
+              value={`${metrics.room_utilization_rate}%`}
+              subtitle={`${metrics.rooms_count || 0} Venues across campus`}
+              icon={<Building2 className="w-4 h-4" />}
+              trend={{ text: 'Optimized', type: 'neutral' }}
+            />
+            <StatCard
+              title="Spectra Booking Score"
+              value={`${metrics.booking_score} / ${metrics.max_booking_score}`}
+              subtitle={`${metrics.approved_bookings || 0} Approved · ${metrics.alternative_bookings || 0} Alt · ${metrics.rejected_bookings || 0} Rej`}
+              icon={<Calendar className="w-4 h-4" />}
+              trend={{ text: 'Theoretical Optimum', type: 'positive' }}
+            />
+            <StatCard
+              title="Soft Penalty Total"
+              value={metrics.soft_penalty_total}
+              subtitle="S4=3 (Course Spread)"
+              icon={<Layers className="w-4 h-4" />}
+              trend={{ text: 'Minimal Soft Penalty', type: 'positive' }}
+            />
           </div>
 
-          <div className="space-y-2.5">
-            {recentDecisions.map((item) => (
-              <div
-                key={item.id}
-                className="bg-[#FFFDF8] p-4 rounded-[10px] border border-[#E4DBC6] hover:border-[#D5C9AE] shadow-[0_1px_2px_rgba(31,42,36,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
-              >
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-1.5 py-0.5 rounded border border-[#B08A3E]/20">
-                      {item.id}
-                    </span>
-                    <span className="font-semibold text-sm text-[#1F2A24]">{item.title}</span>
-                    <StatusBadge status={item.statusType} size="sm" label={item.statusLabel} />
-                  </div>
-                  <div className="text-xs text-[#55625A]">
-                    {item.venue} · <span className="text-[#7C877F]">{item.requester}</span>
-                  </div>
-                  <div className="text-xs text-[#55625A] italic">
-                    "{item.reason}"
-                  </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <span className="text-[10px] font-mono text-[#7C877F] px-2 py-1 rounded bg-[#F2ECDC]">
-                    Solver Verified
-                  </span>
-                </div>
+          {/* Recharts Department Load Distribution */}
+          <Panel variant="default" className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E4DBC6]">
+              <div>
+                <h2 className="text-base font-serif font-bold text-[#1F2A24]">
+                  Campus Academic Load Distribution
+                </h2>
+                <p className="text-xs text-[#55625A]">
+                  {metrics.sessions_scheduled} sessions scheduled across {departmentLoadData.length} academic departments and groups.
+                </p>
               </div>
-            ))}
+              <div className="flex items-center gap-3 text-xs font-mono text-[#55625A]">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#12372A]" /> Lectures</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#B08A3E]" /> Labs</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-xs bg-[#2C6A8A]" /> Tutorials</span>
+              </div>
+            </div>
+            <div className="h-64 w-full">
+              {departmentLoadData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-xs text-[#7C877F]">
+                  No department session records found in active schedule.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={departmentLoadData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E4DBC6" vertical={false} />
+                    <XAxis dataKey="name" stroke="#55625A" fontSize={12} tickLine={false} axisLine={{ stroke: '#E4DBC6' }} />
+                    <YAxis stroke="#55625A" fontSize={12} tickLine={false} axisLine={{ stroke: '#E4DBC6' }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#FFFDF8',
+                        borderColor: '#E4DBC6',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(31,42,36,0.08)',
+                        fontSize: '12px',
+                        color: '#1F2A24',
+                      }}
+                    />
+                    <Bar dataKey="lectures" name="Lectures" fill="#12372A" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="labs" name="Labs" fill="#B08A3E" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="tutorials" name="Tutorials" fill="#2C6A8A" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </Panel>
+
+          {/* Main Two-Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-8 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-serif font-bold text-[#1F2A24] flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#B08A3E]" />
+                  <span>Spectra Week Allocation Decisions</span>
+                </h2>
+                <Link
+                  to="/bookings"
+                  className="text-xs text-[#B08A3E] hover:text-[#9A7633] font-semibold flex items-center gap-1 transition-colors"
+                >
+                  <span>Manage All {metrics.total_bookings || ''} Requests</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="space-y-2.5">
+                {recentDecisions.length === 0 ? (
+                  <Panel variant="sunken" className="p-8 text-center text-xs text-[#55625A]">
+                    No booking decisions recorded yet.
+                  </Panel>
+                ) : (
+                  recentDecisions.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-[#FFFDF8] p-4 rounded-[10px] border border-[#E4DBC6] hover:border-[#D5C9AE] shadow-[0_1px_2px_rgba(31,42,36,0.04)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
+                    >
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-1.5 py-0.5 rounded border border-[#B08A3E]/20">
+                            {item.id}
+                          </span>
+                          <span className="font-semibold text-sm text-[#1F2A24]">{item.title}</span>
+                          <StatusBadge status={item.statusType} size="sm" label={item.statusLabel} />
+                        </div>
+                        <div className="text-xs text-[#55625A]">
+                          {item.venue} · <span className="text-[#7C877F]">{item.requester}</span>
+                        </div>
+                        <div className="text-xs text-[#55625A] italic">
+                          "{item.reason}"
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <span className="text-[10px] font-mono text-[#7C877F] px-2 py-1 rounded bg-[#F2ECDC]">
+                          Solver Verified
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 space-y-4">
+              <Panel variant="default" className="space-y-3.5">
+                <h3 className="font-serif font-bold text-sm text-[#1F2A24]">
+                  Administrative Portals
+                </h3>
+                <div className="space-y-2">
+                  <Link
+                    to="/admin"
+                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Award className="w-4 h-4 text-[#12372A]" />
+                      <span>Admin Console & Audit Logs</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                  </Link>
+                  <Link
+                    to="/approvals"
+                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-[#2F7D4F]" />
+                      <span>Disruption Proposals & Approval</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                  </Link>
+                  <Link
+                    to="/exams"
+                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Clock className="w-4 h-4 text-[#B7791F]" />
+                      <span>Midsem Examination Matrix</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                  </Link>
+                  <Link
+                    to="/timetable"
+                    className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Calendar className="w-4 h-4 text-[#12372A]" />
+                      <span>Master Campus Timetable Grid</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
+                  </Link>
+                </div>
+              </Panel>
+
+              <Panel variant="sunken" className="p-4 space-y-2 text-xs">
+                <div className="flex items-center gap-2 text-[#2F7D4F] font-bold">
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  <span>Dean's Office Authority</span>
+                </div>
+                <p className="text-[#55625A] leading-relaxed text-[11px]">
+                  Admin actions are permanently logged in the audit ledger. Hard constraints (H1–H14) cannot be bypassed even by Dean's Office administrators.
+                </p>
+              </Panel>
+            </div>
           </div>
-        </div>
-
-        <div className="lg:col-span-4 space-y-4">
-          <Panel variant="default" className="space-y-3.5">
-            <h3 className="font-serif font-bold text-sm text-[#1F2A24]">
-              Administrative Portals
-            </h3>
-            <div className="space-y-2">
-              <Link
-                to="/admin"
-                className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Award className="w-4 h-4 text-[#12372A]" />
-                  <span>Admin Console & Audit Logs</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
-              </Link>
-              <Link
-                to="/approvals"
-                className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-[#2F7D4F]" />
-                  <span>Disruption Proposals & Approval</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
-              </Link>
-              <Link
-                to="/exams"
-                className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Clock className="w-4 h-4 text-[#B7791F]" />
-                  <span>Midsem Examination Matrix</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
-              </Link>
-              <Link
-                to="/timetable"
-                className="flex items-center justify-between p-3 rounded-[8px] bg-[#FAF6EC] hover:bg-[#F2ECDC] border border-[#E4DBC6] transition-all text-xs font-medium text-[#1F2A24] group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Calendar className="w-4 h-4 text-[#12372A]" />
-                  <span>Master Campus Timetable Grid</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#7C877F] group-hover:text-[#1F2A24] transition-colors" />
-              </Link>
-            </div>
-          </Panel>
-
-          <Panel variant="sunken" className="p-4 space-y-2 text-xs">
-            <div className="flex items-center gap-2 text-[#2F7D4F] font-bold">
-              <ShieldCheck className="w-4 h-4 shrink-0" />
-              <span>Dean's Office Authority</span>
-            </div>
-            <p className="text-[#55625A] leading-relaxed text-[11px]">
-              Admin actions are permanently logged in the audit ledger. Hard constraints (H1–H14) cannot be bypassed even by Dean's Office administrators.
-            </p>
-          </Panel>
-        </div>
-      </div>
+        </>
+      ) : null}
 
       <ResetDatasetModal
         open={resetModalOpen}

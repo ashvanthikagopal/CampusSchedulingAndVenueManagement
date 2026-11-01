@@ -22,6 +22,14 @@ from backend.validator.validator import run as official_validator_run, apply_dis
 
 router = APIRouter(prefix="/disruptions", tags=["disruptions"])
 
+@router.get("/sample")
+def get_sample_disruption_payload():
+    """Returns the official sample disruption payload from starter pack."""
+    path = get_sample_disruption_path()
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
 
 @router.post("")
 @router.post("/report")

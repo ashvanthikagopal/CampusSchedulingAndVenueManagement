@@ -20,6 +20,7 @@ export const CoordinatorDashboard: React.FC = () => {
   const [deptSessions, setDeptSessions] = useState<any[]>([]);
   const [labBookings, setLabBookings] = useState<any[]>([]);
   const [sessionRequests, setSessionRequests] = useState<any[]>([]);
+  const [deptCourses, setDeptCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [decisionSuccess, setDecisionSuccess] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -36,10 +37,11 @@ export const CoordinatorDashboard: React.FC = () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const [schedRes, bookingsRes, reqsRes] = await Promise.all([
+      const [schedRes, bookingsRes, reqsRes, groupsRes] = await Promise.all([
         api.get(`/schedule?view=group`).catch(() => ({ data: { sessions: [] } })),
         api.get('/bookings').catch(() => ({ data: [] })),
-        api.get('/session-requests').catch(() => ({ data: [] }))
+        api.get('/session-requests').catch(() => ({ data: [] })),
+        api.get('/schedule/groups').catch(() => ({ data: { courses: [] } }))
       ]);
 
       // Filter sessions belonging to this department
@@ -68,6 +70,13 @@ export const CoordinatorDashboard: React.FC = () => {
       setLabBookings(deptLabBookings);
 
       setSessionRequests(reqsRes.data || []);
+
+      // Filter courses belonging to this department
+      const allCourses = groupsRes.data?.courses || [];
+      const filteredCourses = allCourses.filter((c: any) =>
+        c.department === dept || c.id.startsWith(dept) || (dept === 'CSE' && c.id.startsWith('CS'))
+      );
+      setDeptCourses(filteredCourses.length > 0 ? filteredCourses : allCourses);
     } catch (err: any) {
       console.error('Failed to load coordinator data:', err);
       setErrorMsg('Error synchronizing department timetable data.');
@@ -177,7 +186,7 @@ export const CoordinatorDashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Department Sessions"
-          value={deptSessions.length || 38}
+          value={deptSessions.length}
           subtitle={`Lectures, Labs & Tutorials in ${dept}`}
           icon={<Calendar className="w-4 h-4" />}
           trend={{ text: 'Timetable Synchronized', type: 'positive' }}
@@ -343,15 +352,20 @@ export const CoordinatorDashboard: React.FC = () => {
 
             <form onSubmit={handleSubmitRequest} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-[#1F2A24] mb-1">Course ID</label>
-                <input
-                  type="text"
+                <label className="block font-semibold text-[#1F2A24] mb-1">Course</label>
+                <select
                   required
-                  placeholder="e.g. CS202"
                   value={courseId}
-                  onChange={(e) => setCourseId(e.target.value.toUpperCase())}
+                  onChange={(e) => setCourseId(e.target.value)}
                   className="w-full px-3 py-2 rounded bg-white border border-[#E4DBC6] focus:border-[#12372A] focus:outline-hidden"
-                />
+                >
+                  <option value="">Select Course...</option>
+                  {deptCourses.map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.id} · {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -368,15 +382,20 @@ export const CoordinatorDashboard: React.FC = () => {
 
               {requestType === 'move' && (
                 <div>
-                  <label className="block font-semibold text-[#1F2A24] mb-1">Target Session ID</label>
-                  <input
-                    type="text"
+                  <label className="block font-semibold text-[#1F2A24] mb-1">Target Session</label>
+                  <select
                     required
-                    placeholder="e.g. CS202-L1"
                     value={targetSessionId}
                     onChange={(e) => setTargetSessionId(e.target.value)}
                     className="w-full px-3 py-2 rounded bg-white border border-[#E4DBC6] focus:border-[#12372A] focus:outline-hidden"
-                  />
+                  >
+                    <option value="">Select Session to Move...</option>
+                    {deptSessions.map((s: any) => (
+                      <option key={s.session_id} value={s.session_id}>
+                        {s.session_id} ({s.course_id} {s.kind} · {s.day} P{s.start_period})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
 
@@ -396,7 +415,7 @@ export const CoordinatorDashboard: React.FC = () => {
                 <Button variant="secondary" size="sm" type="button" onClick={() => setIsModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button variant="evergreen" size="sm" type="submit" loading={isSubmitting}>
+                <Button variant="evergreen" size="sm" type="submit" loading={isSubmitting} disabled={!courseId}>
                   Submit Request
                 </Button>
               </div>

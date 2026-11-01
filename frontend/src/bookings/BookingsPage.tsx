@@ -30,6 +30,8 @@ export const BookingsPage: React.FC = () => {
   const [checkResult, setCheckResult] = useState<any>(null);
   const [_isChecking, setIsChecking] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [availableRooms, setAvailableRooms] = useState<any[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Editable Form fields
   const [title, setTitle] = useState('');
@@ -62,21 +64,23 @@ export const BookingsPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  const sampleChips = [
-    "Need a room for 45 people on Tuesday 6 to 8 pm, projector please.",
-    "Book the auditorium for CSE farewell, Friday evening, around 400 people, stage and mic.",
-    "Can I get a lab with computers for a 3-hour coding contest on Thursday afternoon? About 60 participants.",
-    "seminar hall kal shaam 6 baje, 2 ghante, 100 log, mic chahiye",
-    "I want SH-2 on Friday at 10 am for a poster session, 60 people."
-  ];
+  const sampleChips = bookings.slice(0, 5).map(b => 
+    `Book ${b.requested_room || 'venue'} for ${b.title} (${b.attendance} people, ${b.duration_periods || 2}h)`
+  );
 
   const fetchBookings = async () => {
     setLoading(true);
+    setErrorMsg(null);
     try {
-      const res = await api.get('/bookings');
-      setBookings(res.data);
-    } catch (err) {
+      const [bRes, rRes] = await Promise.all([
+        api.get('/bookings'),
+        api.get('/rooms').catch(() => ({ data: [] }))
+      ]);
+      setBookings(bRes.data || []);
+      setAvailableRooms(rRes.data || []);
+    } catch (err: any) {
       console.error('Failed to load bookings:', err);
+      setErrorMsg(err.response?.data?.detail || 'Failed to load booking allocations.');
     } finally {
       setLoading(false);
     }
@@ -225,9 +229,19 @@ export const BookingsPage: React.FC = () => {
         </div>
 
         <div className="divide-y divide-[#E4DBC6]/70">
-          {loading ? (
+          {errorMsg ? (
+            <div className="p-12 text-center text-xs text-[#B3402F] space-y-2">
+              <div>{errorMsg}</div>
+              <button
+                onClick={() => fetchBookings()}
+                className="px-3 py-1 rounded bg-[#B08A3E] text-white font-semibold cursor-pointer"
+              >
+                Retry
+              </button>
+            </div>
+          ) : loading ? (
             <div className="p-12 text-center text-xs text-[#55625A] font-mono">
-              Loading booking allocations...
+              Loading booking allocations from official dataset...
             </div>
           ) : bookings.length === 0 ? (
             <div className="p-12 text-center text-xs text-[#7C877F]">
@@ -408,11 +422,17 @@ export const BookingsPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Preferred Specific Room (Optional)</Label>
-                  <Input
+                  <Select
                     value={requestedRoom}
-                    onChange={(e) => setRequestedRoom(e.target.value.toUpperCase())}
-                    placeholder="e.g. AUD, SH-1, CR-101"
-                  />
+                    onChange={(e) => setRequestedRoom(e.target.value)}
+                  >
+                    <option value="">Any Suitable Venue</option>
+                    {availableRooms.map((r: any) => (
+                      <option key={r.id} value={r.id}>
+                        {r.id} · {r.name} ({r.type}, Cap: {r.capacity})
+                      </option>
+                    ))}
+                  </Select>
                 </div>
                 <div>
                   <Label>Required Amenities</Label>
