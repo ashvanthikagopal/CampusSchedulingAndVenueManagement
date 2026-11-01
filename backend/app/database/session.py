@@ -1,8 +1,4 @@
 
-"""
-SQLAlchemy database engine and session factory.
-Supports SQLite locally and SSL-secured MySQL for deployment.
-"""
 import os
 import ssl
 
@@ -30,8 +26,6 @@ elif DATABASE_URL.startswith("mysql"):
         )
 
     ssl_context = ssl.create_default_context(cafile=ssl_ca)
-    ssl_context.check_hostname = True
-    ssl_context.verify_mode = ssl.CERT_REQUIRED
 
     connect_args = {
         "ssl": ssl_context,
