@@ -261,13 +261,13 @@ export const BookingsPage: React.FC = () => {
                 >
                   <div className="space-y-1.5 max-w-3xl">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-2 py-0.5 rounded border border-[#B08A3E]/30">
+                      <span className="inline-flex items-center justify-center font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-2.5 py-1 rounded-[6px] border border-[#B08A3E]/30 leading-none">
                         {b.id}
                       </span>
                       <span className="font-bold text-sm text-[#1F2A24]">{b.title}</span>
                       <StatusBadge status={statusVariant} size="sm" label={statusLabel} />
                       {b.reason_code && (
-                        <span className="text-[10px] font-mono text-[#55625A] bg-[#F2ECDC] px-2 py-0.5 rounded border border-[#E4DBC6]">
+                        <span className="inline-flex items-center justify-center text-[10px] font-mono font-medium text-[#55625A] bg-[#F2ECDC] px-2.5 py-1 rounded-[6px] border border-[#E4DBC6] leading-none">
                           {b.reason_code}
                         </span>
                       )}

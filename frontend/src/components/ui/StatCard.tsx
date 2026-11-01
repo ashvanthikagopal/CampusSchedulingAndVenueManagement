@@ -55,7 +55,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         {(subtitle || trend) && (
           <div className="flex items-center gap-2 text-xs text-[#55625A] flex-wrap">
             {trend && (
-              <span className={`font-medium px-1.5 py-0.5 rounded text-[10px] ${
+              <span className={`inline-flex items-center justify-center font-medium px-2 py-0.5 rounded-[4px] text-[10px] leading-none ${
                 trend.type === 'positive' ? 'bg-[#EBF5EE] text-[#2F7D4F]' :
                 trend.type === 'negative' ? 'bg-[#FBEFEF] text-[#B3402F]' :
                 'bg-[#F2ECDC] text-[#55625A]'

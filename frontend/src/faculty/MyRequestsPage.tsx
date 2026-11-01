@@ -340,10 +340,10 @@ export const MyRequestsPage: React.FC = () => {
               >
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F2ECDC] text-[#55625A] border border-[#E4DBC6]">
+                    <span className="inline-flex items-center justify-center text-[10px] font-mono font-semibold uppercase tracking-wider px-2.5 py-1 rounded-[6px] bg-[#F2ECDC] text-[#55625A] border border-[#E4DBC6] leading-none">
                       {item.type === 'disruption' ? 'Leave' : item.type === 'session_request' ? 'Adjustment' : 'Venue'}
                     </span>
-                    <span className="text-xs text-[#7C877F] font-mono font-bold">
+                    <span className="inline-flex items-center justify-center text-xs text-[#7C877F] font-mono font-bold leading-none">
                       {item.id}
                     </span>
                     {item.raw.proposal?.validator_report?.hard_violation_count === 0 && (

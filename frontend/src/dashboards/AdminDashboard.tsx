@@ -278,7 +278,7 @@ export const AdminDashboard: React.FC = () => {
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2.5 flex-wrap">
-                          <span className="font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-1.5 py-0.5 rounded border border-[#B08A3E]/20">
+                          <span className="inline-flex items-center justify-center font-mono text-xs font-bold text-[#B08A3E] bg-[#FAF6EC] px-2.5 py-1 rounded-[6px] border border-[#B08A3E]/30 leading-none">
                             {item.id}
                           </span>
                           <span className="font-semibold text-sm text-[#1F2A24]">{item.title}</span>
@@ -292,7 +292,7 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
-                        <span className="text-[10px] font-mono text-[#7C877F] px-2 py-1 rounded bg-[#F2ECDC]">
+                        <span className="inline-flex items-center justify-center text-[10px] font-mono text-[#55625A] px-2.5 py-1 rounded-[6px] bg-[#F2ECDC] border border-[#E4DBC6] leading-none">
                           Solver Verified
                         </span>
                       </div>

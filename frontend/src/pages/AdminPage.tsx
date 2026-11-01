@@ -205,7 +205,7 @@ export const AdminPage: React.FC = () => {
                       <td className="p-3 text-[#55625A] font-mono">{r.hours_used} / 45 hrs</td>
                       <td className="p-3">
                         <span
-                          className={`font-mono font-semibold px-2 py-0.5 rounded text-xs border ${
+                          className={`inline-flex items-center justify-center font-mono font-semibold px-2.5 py-1 rounded-[6px] text-xs border leading-none ${
                             r.utilization_pct > 60
                               ? 'bg-[#FAF4E6] text-[#B08A3E] border-[#E9D9AE]'
                               : 'bg-[#F2ECDC] text-[#1F2A24] border-[#E4DBC6]'
@@ -292,7 +292,7 @@ export const AdminPage: React.FC = () => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-[#1F2A24]">{log.actor}</span>
-                      <span className="font-mono text-[10px] text-[#B08A3E] bg-[#FAF4E6] px-2 py-0.5 rounded border border-[#E9D9AE]">
+                      <span className="inline-flex items-center justify-center font-mono text-[10px] font-bold text-[#B08A3E] bg-[#FAF4E6] px-2.5 py-1 rounded-[6px] border border-[#E9D9AE] leading-none">
                         {log.action}
                       </span>
                       <span className="text-[#55625A] font-mono">{log.entity}</span>

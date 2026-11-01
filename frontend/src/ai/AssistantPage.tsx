@@ -169,7 +169,7 @@ export const AssistantPage: React.FC = () => {
                       {m.proposalCard.alternatives.map((alt: any, aIdx: number) => (
                         <div key={aIdx} className="bg-[#FAF6EC] p-2 rounded-[6px] border border-[#E4DBC6] text-[#1F2A24] flex items-center justify-between">
                           <span>{alt.label || `${alt.day} P${alt.start_period} in ${alt.room_name}`}</span>
-                          <span className="font-mono text-[10px] text-[#2F7D4F] bg-[#EBF5EE] px-1.5 py-0.5 rounded border border-[#C3E2CD]">0 Clashes</span>
+                          <span className="inline-flex items-center justify-center font-mono text-[10px] font-bold text-[#2F7D4F] bg-[#EBF5EE] px-2.5 py-1 rounded-[6px] border border-[#C3E2CD] leading-none">0 Clashes</span>
                         </div>
                       ))}
                     </div>

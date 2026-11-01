@@ -332,7 +332,7 @@ export const ClubTimetable: React.FC = () => {
           <Sparkles className="w-5 h-5 text-[#B08A3E] shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#FAF4E6] text-[#B08A3E] border border-[#E9D9AE]">
+              <span className="inline-flex items-center justify-center text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-[6px] bg-[#FAF4E6] text-[#B08A3E] border border-[#E9D9AE] leading-none">
                 Spectra Fest Week 7
               </span>
               <span className="text-xs text-[#55625A]">Master Allocation Active</span>
@@ -892,7 +892,7 @@ export const ClubTimetable: React.FC = () => {
 
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#B08A3E]/20 text-[#B08A3E] border border-[#B08A3E]/40/30">
+                <span className="inline-flex items-center justify-center text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-[6px] bg-[#FAF4E6] text-[#B08A3E] border border-[#E9D9AE] leading-none">
                   {inspectedRoom.id}
                 </span>
                 <span className="text-xs text-[#55625A] font-medium">{inspectedRoom.building}</span>

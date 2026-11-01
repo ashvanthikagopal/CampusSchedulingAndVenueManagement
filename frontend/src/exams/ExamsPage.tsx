@@ -118,7 +118,7 @@ export const ExamsPage: React.FC = () => {
               <div className="space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="font-mono text-xs font-bold text-[#7A4F10] bg-[#FAF4E6] px-2 py-0.5 rounded border border-[#EBD19E]">
+                    <span className="inline-flex items-center justify-center font-mono text-xs font-bold text-[#7A4F10] bg-[#FAF4E6] px-2.5 py-1 rounded-[6px] border border-[#EBD19E] leading-none">
                       {ex.exam_id}
                     </span>
                     <div className="text-sm font-bold text-[#1F2A24] mt-2">
@@ -126,7 +126,7 @@ export const ExamsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-[6px] bg-[#F2ECDC] text-[#1F2A24] font-mono shrink-0 border border-[#E4DBC6]">
+                  <span className="inline-flex items-center justify-center text-xs font-semibold px-2.5 py-1 rounded-[6px] bg-[#F2ECDC] text-[#1F2A24] font-mono shrink-0 border border-[#E4DBC6] leading-none">
                     {ex.day} · {ex.session}
                   </span>
                 </div>

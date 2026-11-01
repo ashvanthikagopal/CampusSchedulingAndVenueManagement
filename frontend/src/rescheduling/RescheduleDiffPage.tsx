@@ -228,19 +228,19 @@ export const RescheduleDiffPage: React.FC = () => {
                             </td>
                             <td className="p-3">
                               {isRemoved ? (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FBEFEF] text-[#B3402F] border border-[#EFC5BF]">
+                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#FBEFEF] text-[#B3402F] border border-[#EFC5BF] leading-none">
                                   Removed
                                 </span>
                               ) : isAdded ? (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EBF5EE] text-[#2F7D4F] border border-[#C3E2CD]">
+                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#EBF5EE] text-[#2F7D4F] border border-[#C3E2CD] leading-none">
                                   Added
                                 </span>
                               ) : m.time_changed ? (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FDF5E6] text-[#B7791F] border border-[#EBD19E]">
+                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#FDF5E6] text-[#B7791F] border border-[#EBD19E] leading-none">
                                   Time + Room
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EDF4F8] text-[#2C6A8A] border border-[#C6DFEB]">
+                                <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-[6px] text-[10px] font-semibold bg-[#EDF4F8] text-[#2C6A8A] border border-[#C6DFEB] leading-none">
                                   Room Only
                                 </span>
                               )}

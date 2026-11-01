@@ -456,7 +456,7 @@ export const TimetableGrid: React.FC = () => {
             <div>
               <div className="text-sm font-bold text-[#1F2A24] flex items-center gap-2">
                 <span>{classSummary.group?.name || filterId}</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F2ECDC] text-[#55625A] border border-[#E4DBC6]">
+                <span className="inline-flex items-center justify-center text-[10px] font-mono px-2.5 py-1 rounded-[6px] bg-[#F2ECDC] text-[#55625A] border border-[#E4DBC6] leading-none">
                   {classSummary.group?.department || 'Department Cohort'}
                 </span>
                 {classSummary.hasElectives && (
